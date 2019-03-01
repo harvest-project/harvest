@@ -1,0 +1,13 @@
+---
+- name: Install system packages
+  become: yes
+  apt: name={{ packages }} update_cache=yes
+  vars:
+    packages:
+      - build-essential
+      - python3-pip
+      - python-pip
+      - redis
+      - postgresql
+      - libboost-all-dev
+      - libssl-dev

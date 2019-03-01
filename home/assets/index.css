@@ -1,0 +1,24 @@
+body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+.react-root {
+    margin: 0;
+    padding: 0;
+}
+
+.table-row-error {
+    background: #fff0f0;
+}
+
+
+.table-row-warning {
+    background: #fff9d1;
+}
+
+
+.table-row-info {
+    background: #e6f1ff;
+}

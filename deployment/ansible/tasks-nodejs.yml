@@ -1,0 +1,31 @@
+---
+- name: Download Node.js repository script
+  get_url:
+    url: "https://deb.nodesource.com/setup_10.x"
+    dest: "/tmp/setup_10.x"
+  register: nodejs_script_download
+
+- name: Add Node.js repository
+  become: yes
+  command: "bash /tmp/setup_10.x"
+  when: nodejs_script_download is changed
+  register: nodejs_script
+
+- name: Install Node.js
+  become: yes
+  apt: name=nodejs
+  when: nodejs_script is changed
+
+- name: Create node_modules directory
+  file:
+    path: "{{ node_modules_path }}"
+    state: directory
+
+- name: Symlink node_modules to /home/vagrant for performance
+  file:
+    src: "{{ node_modules_path }}"
+    dest: "{{ project_node_modules_path }}"
+    state: link
+
+- name: Install Harvest npm dependencies
+  npm: path=/vagrant/ state=present

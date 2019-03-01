@@ -1,0 +1,43 @@
+---
+- name: Download libtorrent source
+  get_url:
+    url: "{{ libtorrent_tarball_url }}"
+    dest: "/tmp/{{ libtorrent_filename }}.tar.gz"
+  register: libtorrent_download
+
+- name: Unpack libtorrent
+  unarchive:
+    copy: no
+    dest: /tmp/
+    src: "{{ libtorrent_download.dest }}"
+  when: libtorrent_download is changed
+  register: libtorrent_source
+
+- name: Configure libtorrent
+  command: ./configure --enable-examples --enable-python-binding --with-boost-python=boost_python3
+  environment:
+    PYTHON: /usr/bin/python3
+  args:
+    chdir: "/tmp/{{ libtorrent_filename }}"
+  when: libtorrent_source is changed
+  register: libtorrent_configure
+
+- name: Make libtorrent
+  command: make -j4
+  args:
+    chdir: "/tmp/{{ libtorrent_filename }}"
+  when: libtorrent_configure is changed
+  register: libtorrent_make
+
+- name: Install libtorrent
+  become: yes
+  command: make install
+  args:
+    chdir: "/tmp/{{ libtorrent_filename }}"
+  when: libtorrent_make is changed
+  register: libtorrent_make_install
+
+- name: Run ldconfig for libtorrent
+  become: yes
+  command: ldconfig
+  when: libtorrent_make_install is changed

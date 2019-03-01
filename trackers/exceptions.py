@@ -1,0 +1,2 @@
+class TrackerException(Exception):
+    pass

@@ -1,0 +1,15 @@
+__pycache__/
+.DS_Store
+
+/.idea/
+/db.sqlite3
+/venv/
+/node_modules/
+/static/
+/dist/
+.venv
+.vscode
+postgres-data
+.vagrant
+playbook.retry
+/django_env

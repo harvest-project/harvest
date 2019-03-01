@@ -13,3 +13,4 @@ postgres-data
 .vagrant
 playbook.retry
 /django_env
+/alcazard/

@@ -57,16 +57,12 @@ export class AddClient extends React.Component {
         this.props.onHide();
     }
 
-    cancelAddClient() {
-        this.props.onHide();
-    }
-
     render() {
         return <Modal
             title="Add Client"
             visible={this.props.visible}
             onOk={() => this.addClient()}
-            onCancel={() => this.cancelAddClient()}
+            onCancel={() => this.props.onHide()}
         >
             <Spin spinning={this.state.isAdding}>
                 <Form layout="vertical">

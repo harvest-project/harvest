@@ -1,6 +1,9 @@
-class PluginMissingException(Exception):
-    def __init__(self, name, action, *args, **kwargs):
-        super().__init__('Missing plugin {} to perform {}.'.format(name, action), *args, **kwargs)
+from rest_framework.exceptions import APIException
+
+
+class PluginMissingException(APIException):
+    def __init__(self, name, action):
+        super().__init__('Missing plugin {} to perform {}.'.format(name, action), 400)
 
 
 class DuplicatePluginException(Exception):

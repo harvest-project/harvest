@@ -1,11 +1,12 @@
-import {Button, Drawer, Icon, Progress, Table} from 'antd';
+import {Button, Drawer, Dropdown, Icon, Menu, Progress, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {UIContext} from 'home/assets/contexts';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {Timer} from 'home/assets/controls/Timer';
 import {formatBytes} from 'home/utils';
 import React from 'react';
-import {AddTorrent} from 'torrents/assets/components/AddTorrent';
+import {AddTorrentFromFile} from 'torrents/assets/components/AddTorrentFromFile';
+import {AddTorrentFromTracker} from 'torrents/assets/components/AddTorrentFromTracker';
 import {TorrentDetailsDisplay} from 'torrents/assets/components/TorrentDetailsDisplay';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
@@ -68,7 +69,8 @@ export class Torrents extends React.Component {
         this.state = {
             torrents: [],
             selectedTorrent: null,
-            addingTorrent: false,
+            addFromFile: false,
+            addFromTracker: false,
         };
 
         this.onRow = record => ({
@@ -146,9 +148,18 @@ export class Torrents extends React.Component {
             <Timer interval={3000} onInterval={() => this.refreshInstances()}/>
 
             <DivRow>
-                <Button type="primary" icon="plus" onClick={() => this.setState({addingTorrent: true})}>
-                    Add Torrent
-                </Button>
+                <Dropdown overlay={<Menu>
+                    <Menu.Item key="file" onClick={() => this.setState({addFromFile: true})}>
+                        From File
+                    </Menu.Item>
+                    <Menu.Item key="tracker" onClick={() => this.setState({addFromTracker: true})}>
+                        From Tracker
+                    </Menu.Item>
+                </Menu>}>
+                    <Button htmlType="button" type="primary" icon="plus">
+                        Add Torrent <Icon type="down"/>
+                    </Button>
+                </Dropdown>
             </DivRow>
 
             <Table
@@ -160,7 +171,10 @@ export class Torrents extends React.Component {
                 rowClassName={getRowClassName}
             />
 
-            <AddTorrent visible={this.state.addingTorrent} onHide={() => this.setState({addingTorrent: false})}/>
+            <AddTorrentFromFile visible={this.state.addFromFile}
+                                onHide={() => this.setState({addFromFile: false})}/>
+            <AddTorrentFromTracker visible={this.state.addFromTracker}
+                                   onHide={() => this.setState({addFromTracker: false})}/>
 
             {this.renderDrawer()}
         </div>;

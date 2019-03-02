@@ -1,9 +1,9 @@
 from django.db import transaction
 from django.utils import timezone
+from rest_framework.exceptions import APIException
 
 from torrents.alcazar_client import AlcazarClient, create_or_update_torrent_from_alcazar
-from torrents.models import TorrentInfo, TorrentFile
-from trackers.registry import TrackerRegistry
+from torrents.models import TorrentInfo, TorrentFile, Realm
 from trackers.utils import get_info_hash_from_torrent
 
 
@@ -38,8 +38,12 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
     return torrent_info
 
 
-def add_torrent_from_tracker(realm, tracker_id, download_path, *, force_fetch=True):
-    tracker = TrackerRegistry.get_plugin(realm.name, 'add_torrent')
+def add_torrent_from_tracker(tracker, tracker_id, download_path, *, force_fetch=True):
+    try:
+        realm = Realm.objects.get(name=tracker.name)
+    except Realm.DoesNotExist:
+        raise APIException('Realm for tracker {} not found. Please create one by adding an instance.'.format(
+            tracker.name), 400)
     torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=force_fetch)
     client = AlcazarClient()
     added_state = client.add_torrent(realm.name, torrent_info.torrent_file.torrent_file, download_path)

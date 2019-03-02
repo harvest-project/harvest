@@ -12,4 +12,5 @@ urlpatterns = [
     path('alcazar/clients', views.AlcazarClients.as_view()),
     path('', views.Torrents.as_view()),
     path('add-torrent-from-file', views.AddTorrentFromFile.as_view()),
+    path('add-torrent-from-tracker', views.AddTorrentFromTracker.as_view()),
 ]

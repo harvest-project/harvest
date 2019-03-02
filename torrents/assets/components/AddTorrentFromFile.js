@@ -1,4 +1,4 @@
-import {Form, Icon, Input, message, Modal, Select, Spin} from 'antd';
+import {Form, Input, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {DataContext} from 'home/assets/contexts';
 import {formatBytes} from 'home/utils';
@@ -9,7 +9,7 @@ import {UploadTorrent} from 'torrents/assets/components/UploadTorrent';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
 @observer
-export class AddTorrent extends React.Component {
+export class AddTorrentFromFile extends React.Component {
     static propTypes = {
         visible: PropTypes.bool.isRequired,
         onHide: PropTypes.func.isRequired,
@@ -20,7 +20,7 @@ export class AddTorrent extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
+        this.state = this.cleanState = {
             isAdding: false,
             selectedRealm: null,
             selectedFile: null,
@@ -33,6 +33,14 @@ export class AddTorrent extends React.Component {
             message.error('Please select a realm.');
             return;
         }
+        if (!this.state.selectedFile) {
+            message.error('Please select a file.');
+            return;
+        }
+        if (!this.state.downloadPath) {
+            message.error('Please enter a download path.');
+            return;
+        }
 
         this.setState({isAdding: true});
         try {
@@ -43,29 +51,31 @@ export class AddTorrent extends React.Component {
             );
         } catch (response) {
             await APIHelper.showResponseError(response, 'Error adding client');
-            return
+            return;
         } finally {
             this.setState({isAdding: false});
         }
 
-        this.props.onHide();
+        this.hide();
     }
 
-    cancelAddClient() {
+    hide() {
+        this.setState(this.cleanState);
         this.props.onHide();
     }
 
     render() {
         return <Modal
-            title="Add Torrent"
+            title="Add Torrent From File"
             visible={this.props.visible}
             onOk={() => this.addTorrent()}
-            onCancel={() => this.cancelAddClient()}
+            onCancel={() => this.hide()}
         >
             <Spin spinning={this.state.isAdding}>
                 <Form layout="vertical">
                     <Form.Item label="Realm:">
-                        <Select onChange={value => this.setState({selectedRealm: value})}>
+                        <Select value={this.state.selectedRealm}
+                                onChange={value => this.setState({selectedRealm: value})}>
                             {this.context.realms.map(realm => (
                                 <Select.Option key={realm.name} value={realm.name}>
                                     {realm.name}

@@ -49,4 +49,14 @@ export const TorrentsAPI = new class {
     async deleteTorrentById(torrentId) {
         return await APIHelper.delete('/api/torrents/by-id/' + torrentId);
     }
+
+    async addTorrentFromFile(realm, torrentFile, downloadPath) {
+        return await APIHelper.post('/api/torrents/add-torrent-from-file', {
+            jsonBody: {
+                realm: realm,
+                torrent_file: torrentFile,
+                download_path: downloadPath,
+            },
+        });
+    }
 };

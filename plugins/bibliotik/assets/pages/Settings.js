@@ -75,7 +75,7 @@ export class Settings extends React.Component {
     }
 
     async saveConfig() {
-        this.setState({isSaving: true});
+        this.setState({isAdding: true});
         try {
             await BibliotikAPI.saveConfig(
                 this.state.username,
@@ -86,7 +86,7 @@ export class Settings extends React.Component {
             await APIHelper.showResponseError(response, 'Failed to save config');
             return;
         } finally {
-            this.setState({isSaving: false});
+            this.setState({isAdding: false});
         }
 
         message.success('Saved Bibliotik settings');
@@ -152,7 +152,7 @@ export class Settings extends React.Component {
                     <h1>Bibliotik.me Settings</h1>
 
                     <Form.Item label="Username:" {...fieldLayout}>
-                        <Input type='text' value={this.state.username}
+                        <Input type="text" value={this.state.username}
                                onChange={event => this.setState({username: event.target.value})}/>
                     </Form.Item>
 
@@ -170,7 +170,7 @@ export class Settings extends React.Component {
                     </Form.Item>
 
                     <Form.Item {...submitLayout}>
-                        <Button type="primary" htmlType="submit" block loading={this.state.isSaving}>Save</Button>
+                        <Button type="primary" htmlType="submit" block loading={this.state.isAdding}>Save</Button>
                     </Form.Item>
                 </Form>
             </Col>

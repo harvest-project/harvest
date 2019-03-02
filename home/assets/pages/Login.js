@@ -25,7 +25,9 @@ export class LoginForm extends React.Component {
 
     async performLogin(username, password) {
         try {
-            this.context.user = await AuthAPI.login(username, password);
+            const user = await AuthAPI.login(username, password);
+            await this.context.fetchInitial();
+            this.context.user = user;
             message.success(`Welcome, ${this.context.user.full_name || this.context.user.username}.`);
         } catch (response) {
             if (response.status === 400) {

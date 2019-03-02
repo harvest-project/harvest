@@ -74,7 +74,7 @@ def create_or_update_torrent_from_alcazar(realm, torrent_info_id, torrent_state)
         logger.info('IntegrityError creating torrent, it must have popped up. Retrieving existing.')
         torrent = Torrent.objects.get(realm=realm, info_hash=torrent_state['info_hash'])
 
-        if torrent.torrent_info_id != torrent_info_id:
+        if torrent.torrent_info_id is None and torrent.torrent_info_id != torrent_info_id:
             logger.warning('Discovered unlinked torrent {}, linking to {}.'.format(torrent.info_hash, torrent_info_id))
             torrent.torrent_info_id = torrent_info_id
             torrent.save()
@@ -95,7 +95,7 @@ class AlcazarRemoteException(APIException):
 class AlcazarClient:
     _thread_local_storage = threading.local()
 
-    def __init__(self, timeout=5):
+    def __init__(self, timeout=20):
         self.config = AlcazarClientConfig.get_config()
         self.timeout = timeout
 

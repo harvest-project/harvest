@@ -67,14 +67,14 @@ export class AlcazarClientSettings extends React.Component {
     }
 
     async saveAlcazarConfig() {
-        this.setState({isSaving: true});
+        this.setState({isAdding: true});
         try {
             await TorrentsAPI.saveAlcazarClientConfig(this.state.baseUrl, this.state.token);
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to save settings');
             return;
         } finally {
-            this.setState({isSaving: false});
+            this.setState({isAdding: false});
         }
 
         message.success('Saved Redacted settings');
@@ -110,7 +110,7 @@ export class AlcazarClientSettings extends React.Component {
                     <h1>Alcazar Connection Settings</h1>
 
                     <Form.Item label="Base URL:" {...fieldLayout}>
-                        <Input type='text' value={this.state.baseUrl}
+                        <Input type="text" value={this.state.baseUrl}
                                onChange={event => this.setState({baseUrl: event.target.value})}/>
                     </Form.Item>
 

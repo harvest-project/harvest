@@ -47,14 +47,14 @@ export class APISettings extends React.Component {
 
     async generateToken() {
         let data;
-        this.setState({isSaving: true});
+        this.setState({isAdding: true});
         try {
             data = await SettingsAPI.generateToken(this.state.baseUrl, this.state.token);
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to generate token');
             return;
         } finally {
-            this.setState({isSaving: false});
+            this.setState({isAdding: false});
         }
 
         this.setState({

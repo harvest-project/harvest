@@ -107,6 +107,7 @@ module.exports = {
         filename: 'app.js',
         path: path.resolve(__dirname, 'dist'),
     },
+    devtool: 'eval-source-map',
     optimization: {
         usedExports: true,
     },

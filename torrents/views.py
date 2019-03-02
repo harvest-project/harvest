@@ -1,3 +1,5 @@
+import base64
+
 from django.db import transaction
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
@@ -5,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Harvest.utils import TransactionAPIView
+from torrents.add_torrent import add_torrent_from_file
 from torrents.alcazar_client import AlcazarClient, AlcazarRemoteException
 from torrents.models import AlcazarClientConfig, Realm, Torrent
 from torrents.remove_torrent import remove_torrent
@@ -54,7 +57,9 @@ class AlcazarClients(APIView):
         client = AlcazarClient()
         return Response(client.get_clients())
 
+    @transaction.atomic
     def post(self, request):
+        Realm.objects.get_or_create(name=request.data['realm'])
         client = AlcazarClient()
         return Response(client.add_client(request.data))
 
@@ -105,3 +110,13 @@ class TorrentByRealmInfoHash(TorrentView, APIView):
             return Torrent.objects.get(realm=realm, info_hash=info_hash)
         except Torrent.DoesNotExist:
             raise NotFound()
+
+
+class AddTorrentFromFile(APIView):
+    @transaction.atomic
+    def post(self, request):
+        realm = Realm.objects.get(name=request.data['realm'])
+        torrent_file = base64.b64decode(request.data['torrent_file'])
+        download_path = request.data['download_path']
+        added_torrent = add_torrent_from_file(realm, torrent_file, download_path)
+        return Response(TorrentSerializer(added_torrent).data)

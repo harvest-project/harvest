@@ -7,6 +7,8 @@ import {clearContextType} from 'home/utils';
 import {observer} from 'mobx-react';
 import React from 'react';
 import {withRouter} from 'react-router-dom';
+import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
+import {TrackersAPI} from 'trackers/assets/TrackersAPI';
 
 @clearContextType
 @withRouter
@@ -27,7 +29,9 @@ export class Auth extends React.Component {
 
     async loadAuth() {
         try {
-            this.context.user = await AuthAPI.getUser();
+            const user = await AuthAPI.getUser();
+            await this.context.fetchInitial();
+            this.context.user = user;
         } catch (response) {
             if (response.status !== 401) {
                 await APIHelper.showResponseError(response, 'Failed to load auth status');

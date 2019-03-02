@@ -8,6 +8,4 @@ from trackers.serializers import TrackerSerializer
 class Trackers(APIView):
     def get(self, request):
         trackers = TrackerRegistry.get_plugins()
-        return Response({
-            'trackers': TrackerSerializer(trackers, many=True).data,
-        })
+        return Response(TrackerSerializer(trackers, many=True).data)

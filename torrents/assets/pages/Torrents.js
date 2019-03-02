@@ -3,8 +3,9 @@ import {APIHelper} from 'home/assets/api/APIHelper';
 import {UIContext} from 'home/assets/contexts';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {Timer} from 'home/assets/controls/Timer';
-import prettysize from 'prettysize';
+import {formatBytes} from 'home/utils';
 import React from 'react';
+import {AddTorrent} from 'torrents/assets/components/AddTorrent';
 import {TorrentDetailsDisplay} from 'torrents/assets/components/TorrentDetailsDisplay';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
@@ -44,7 +45,7 @@ const columns = [
     {
         title: 'Size',
         dataIndex: 'size',
-        render: (data, record, index) => prettysize(data),
+        render: (data, record, index) => formatBytes(data),
     },
     {
         title: 'Progress',
@@ -67,6 +68,7 @@ export class Torrents extends React.Component {
         this.state = {
             torrents: [],
             selectedTorrent: null,
+            addingTorrent: false,
         };
 
         this.onRow = record => ({
@@ -144,7 +146,9 @@ export class Torrents extends React.Component {
             <Timer interval={3000} onInterval={() => this.refreshInstances()}/>
 
             <DivRow>
-                <Button type="primary">Add Torrent</Button>
+                <Button type="primary" icon="plus" onClick={() => this.setState({addingTorrent: true})}>
+                    Add Torrent
+                </Button>
             </DivRow>
 
             <Table
@@ -155,6 +159,8 @@ export class Torrents extends React.Component {
                 onRow={this.onRow}
                 rowClassName={getRowClassName}
             />
+
+            <AddTorrent visible={this.state.addingTorrent} onHide={() => this.setState({addingTorrent: false})}/>
 
             {this.renderDrawer()}
         </div>;

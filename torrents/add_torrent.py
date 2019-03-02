@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from torrents.alcazar_client import AlcazarClient, create_or_update_torrent_from_alcazar
 from torrents.models import TorrentInfo, TorrentFile
-from torrents.signals import torrent_added
 from trackers.registry import TrackerRegistry
 from trackers.utils import get_info_hash_from_torrent
 
@@ -39,12 +38,17 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
     return torrent_info
 
 
-def add_torrent(realm, tracker_id, download_path, *, force_fetch=True):
+def add_torrent_from_tracker(realm, tracker_id, download_path, *, force_fetch=True):
     tracker = TrackerRegistry.get_plugin(realm.name, 'add_torrent')
     torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=force_fetch)
     client = AlcazarClient()
     added_state = client.add_torrent(realm.name, torrent_info.torrent_file.torrent_file, download_path)
-    torrent, created = create_or_update_torrent_from_alcazar(realm, torrent_info.id, added_state)
-    if created:
-        torrent_added.send(torrent)
+    torrent, _ = create_or_update_torrent_from_alcazar(realm, torrent_info.id, added_state)
     return torrent
+
+
+def add_torrent_from_file(realm, torrent_file, download_path):
+    client = AlcazarClient()
+    added_torrent_state = client.add_torrent(realm.name, torrent_file, download_path)
+    added_torrent, _ = create_or_update_torrent_from_alcazar(realm, None, added_torrent_state)
+    return added_torrent

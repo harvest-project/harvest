@@ -71,7 +71,7 @@ export class AlcazarConfig extends React.Component {
     }
 
     async saveAlcazarConfig() {
-        this.setState({isSaving: true});
+        this.setState({isAdding: true});
         try {
             await TorrentsAPI.saveAlcazarConfig({
                 api_port: this.state.apiPort,
@@ -84,7 +84,7 @@ export class AlcazarConfig extends React.Component {
             await APIHelper.showResponseError(response, 'Failed to save settings');
             return;
         } finally {
-            this.setState({isSaving: false});
+            this.setState({isAdding: false});
         }
 
         message.success('Saved Alcazar settings');
@@ -123,7 +123,7 @@ export class AlcazarConfig extends React.Component {
                         help="The port that Alcazar uses to expose its API. If you change this, make sure to also update
                         the Harvest Alcazar Client settings to reflect the change. Applied on restart."
                     >
-                        <Input type='text' value={this.state.apiPort}
+                        <Input type="text" value={this.state.apiPort}
                                onChange={event => this.setState({apiPort: event.target.value})}/>
                     </Form.Item>
 
@@ -154,7 +154,7 @@ export class AlcazarConfig extends React.Component {
                         help="Ports that are used for local communication with clients. Preferably not opened to the
                         world (firewalled). Example: 9091-9191. You can add more ranges, use commas to separate them."
                     >
-                        <Input type='text' value={this.state.localPortPoolsFmt}
+                        <Input type="text" value={this.state.localPortPoolsFmt}
                                onChange={event => this.setState({localPortPoolsFmt: event.target.value})}/>
                     </Form.Item>
 
@@ -164,7 +164,7 @@ export class AlcazarConfig extends React.Component {
                         help="Ports that clients can listen on for peers. Need to be opened in the firewall and port
                         forwarded, if behind NAT."
                     >
-                        <Input type='text' value={this.state.peerPortPoolsFmt}
+                        <Input type="text" value={this.state.peerPortPoolsFmt}
                                onChange={event => this.setState({peerPortPoolsFmt: event.target.value})}/>
                     </Form.Item>
 

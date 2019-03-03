@@ -1,7 +1,7 @@
 import {Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
-import {DataContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {Login} from 'home/assets/pages/Login';
 import {clearContextType} from 'home/utils';
 import {observer} from 'mobx-react';
@@ -14,7 +14,7 @@ import {TrackersAPI} from 'trackers/assets/TrackersAPI';
 @withRouter
 @observer
 export class Auth extends React.Component {
-    static contextType = DataContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

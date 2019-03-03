@@ -1,11 +1,11 @@
 import {Button, Col, Form, Icon, Input, message, Row} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
-import {DataContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import React from 'react';
 
 export class LoginForm extends React.Component {
-    static contextType = DataContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

@@ -1,6 +1,6 @@
 import {Form, Icon, Input, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {DataContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -15,7 +15,7 @@ export class AddClient extends React.Component {
         onHide: PropTypes.func.isRequired,
     };
 
-    static contextType = DataContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

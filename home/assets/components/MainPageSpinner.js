@@ -1,11 +1,11 @@
 import {Spin} from 'antd';
-import {UIContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {observer} from 'mobx-react';
 import React from 'react';
 
 @observer
 export class MainPageSpinner extends React.Component {
-    static contextType = UIContext;
+    static contextType = HarvestContext;
 
     render() {
         return <Spin spinning={this.context.numLoading > 0}>

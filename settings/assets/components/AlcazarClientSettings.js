@@ -1,7 +1,7 @@
 import {Alert, Button, Col, Form, Input, message, Row, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {Timer} from 'home/assets/controls/Timer';
-import {UIContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
 import React from 'react';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
@@ -15,7 +15,7 @@ const submitLayout = {
 };
 
 export class AlcazarClientSettings extends React.Component {
-    static contextType = UIContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

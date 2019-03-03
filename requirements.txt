@@ -8,3 +8,4 @@ psycopg2-binary==2.7.7
 Markdown==3.0.1
 redis==3.2.0
 coreapi==2.3.3
+iso8601==0.1.12

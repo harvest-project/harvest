@@ -1,11 +1,11 @@
 import {Form, Input, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {DataContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {formatBytes} from 'home/utils';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {UploadTorrent} from 'torrents/assets/components/UploadTorrent';
+import {UploadTorrent} from 'torrents/assets/controls/UploadTorrent';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
 @observer
@@ -15,7 +15,7 @@ export class AddTorrentFromFile extends React.Component {
         onHide: PropTypes.func.isRequired,
     };
 
-    static contextType = DataContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

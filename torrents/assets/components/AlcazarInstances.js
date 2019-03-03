@@ -1,13 +1,13 @@
 import {Button, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {Timer} from 'home/assets/controls/Timer';
-import {UIContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import React from 'react';
 import {AddClient} from 'torrents/assets/components/AddClient';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
 export class AlcazarInstances extends React.Component {
-    static contextType = UIContext;
+    static contextType = HarvestContext;
     static columns = [
         {
             title: 'Name',

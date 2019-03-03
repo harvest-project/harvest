@@ -20,6 +20,9 @@ export class APIHelper {
         if (!response.ok) {
             throw response;
         }
+        if (response.status === 204) { // No Content
+            return null;
+        }
         return response.json();
     }
 

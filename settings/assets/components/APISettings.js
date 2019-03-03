@@ -1,6 +1,6 @@
 import {Button, Col, Form, Icon, Input, message, Row} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {UIContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import React from 'react';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import {SettingsAPI} from 'settings/assets/SettingsAPI';
@@ -14,7 +14,7 @@ const submitLayout = {
 };
 
 export class APISettings extends React.Component {
-    static contextType = UIContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

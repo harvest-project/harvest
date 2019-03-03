@@ -69,4 +69,21 @@ export const TorrentsAPI = new class {
             },
         });
     }
+
+    async getDownloadLocations() {
+        return await APIHelper.get('/api/torrents/download-locations');
+    }
+
+    async addDownloadLocation(realmId, pattern) {
+        return await APIHelper.post('/api/torrents/download-locations', {
+            jsonBody: {
+                realm: realmId,
+                pattern: pattern,
+            },
+        });
+    }
+
+    async deleteDownloadLocation(downloadLocationId) {
+        return await APIHelper.delete(`/api/torrents/download-locations/${downloadLocationId}`);
+    }
 };

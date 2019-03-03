@@ -1,6 +1,6 @@
 import {Form, Input, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {DataContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -13,7 +13,7 @@ export class AddTorrentFromTracker extends React.Component {
         onHide: PropTypes.func.isRequired,
     };
 
-    static contextType = DataContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);
@@ -58,7 +58,6 @@ export class AddTorrentFromTracker extends React.Component {
     }
 
     hide() {
-        debugger;
         this.setState(this.cleanState);
         this.props.onHide();
     }

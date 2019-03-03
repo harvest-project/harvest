@@ -1,6 +1,6 @@
 import {Button, Drawer, Dropdown, Icon, Menu, Progress, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {UIContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {Timer} from 'home/assets/controls/Timer';
 import {formatBytes} from 'home/utils';
@@ -61,7 +61,7 @@ const columns = [
 ];
 
 export class Torrents extends React.Component {
-    static contextType = UIContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);

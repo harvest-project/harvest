@@ -4,7 +4,7 @@ from torrents.exceptions import AlcazarNotConfiguredException
 
 
 class Realm(models.Model):
-    """Creates a scope for torrents. Usually it's a 1:1 mapping with trackers."""
+    """Creates a scope for torrents. Usually it's a 1:1 mapping with trackers, but custom ones can be created."""
 
     name = models.CharField(max_length=64, unique=True)
 
@@ -37,7 +37,7 @@ class AlcazarClientConfig(models.Model):
 
 class TorrentInfo(models.Model):
     """
-    Main table for storing tracker-specific torrent information, as fetched from there.
+    Main table for storing tracker-specific torrent information, as fetched from the remote.
 
     Optionally accompanied by a more in-depth tracker-specific model linked to this one.
     """
@@ -45,6 +45,8 @@ class TorrentInfo(models.Model):
     # Link to the Realm, in which this TorrentInfo belongs
     realm = models.ForeignKey(Realm, models.CASCADE, related_name='torrent_infos')
 
+    # If the original is deleted, instead of deleting it from DB, we can just mark it as is_deleted=True
+    is_deleted = models.BooleanField()
     # Info hash of the torrent inside.
     info_hash = models.CharField(max_length=40, db_index=True)
     # Tracker-specific torrent identifier. In most cases this is a torrent_id in some for or another.
@@ -97,3 +99,14 @@ class Torrent(models.Model):
 
     class Meta:
         unique_together = ('realm', 'info_hash')
+
+
+class DownloadLocation(models.Model):
+    """Table for download locations - patterns to use to determine where downloads are stored."""
+
+    realm = models.ForeignKey(Realm, models.CASCADE, related_name='download_locations')
+    pattern = models.CharField(max_length=65536)
+
+    class Meta:
+        unique_together = (('realm', 'pattern'),)
+        ordering = ('realm', 'pattern')

@@ -1,7 +1,7 @@
 import {Icon, Layout} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
-import {DataContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import React from 'react';
 import styles from './HarvestHeader.less';
 
@@ -12,7 +12,7 @@ const sizes = {
 };
 
 export class HarvestHeader extends React.Component {
-    static contextType = DataContext;
+    static contextType = HarvestContext;
 
     logout = async () => {
         try {

@@ -1,7 +1,7 @@
 import {Alert, Button, Checkbox, Col, Form, Input, message, Row, Tag, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {Timer} from 'home/assets/controls/Timer';
-import {UIContext} from 'home/assets/contexts';
+import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {ResponseErrorDisplay} from 'home/assets/controls/ResponseErrorDisplay';
 import {formatDateTimeString} from 'home/utils';
@@ -17,7 +17,7 @@ const submitLayout = {
 };
 
 export class Settings extends React.Component {
-    static contextType = UIContext;
+    static contextType = HarvestContext;
 
     constructor(props) {
         super(props);
@@ -179,7 +179,7 @@ export class Settings extends React.Component {
                 <h1>Status / Control</h1>
 
                 <DivRow>
-                    Last Login Date:&nbsp;
+                    Last Login Date:{' '}
                     {this.state.config && this.state.config.login_datetime ?
                         formatDateTimeString(this.state.config.login_datetime) : '-'}<br/>
 

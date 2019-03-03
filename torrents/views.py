@@ -2,16 +2,17 @@ import base64
 
 from django.db import transaction
 from rest_framework.exceptions import NotFound, APIException
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Harvest.utils import TransactionAPIView
 from torrents.add_torrent import add_torrent_from_file, add_torrent_from_tracker
 from torrents.alcazar_client import AlcazarClient, AlcazarRemoteException
-from torrents.models import AlcazarClientConfig, Realm, Torrent
+from torrents.models import AlcazarClientConfig, Realm, Torrent, DownloadLocation
 from torrents.remove_torrent import remove_torrent
-from torrents.serializers import AlcazarClientConfigSerializer, RealmSerializer, TorrentSerializer
+from torrents.serializers import AlcazarClientConfigSerializer, RealmSerializer, TorrentSerializer, \
+    DownloadLocationSerializer
 from trackers.registry import TrackerRegistry
 
 
@@ -118,13 +119,13 @@ class AddTorrentFromFile(APIView):
     def post(self, request):
         realm_name = request.data['realm_name']
         torrent_file = base64.b64decode(request.data['torrent_file'])
-        download_path = request.data['download_path']
+        download_path_pattern = request.data['download_path']
 
         try:
             realm = Realm.objects.get(name=realm_name)
         except Realm.DoesNotExist:
             raise APIException('Realm {} not found. Please create one by adding an instance.'.format(realm_name), 400)
-        added_torrent = add_torrent_from_file(realm, torrent_file, download_path)
+        added_torrent = add_torrent_from_file(realm, torrent_file, download_path_pattern)
         return Response(TorrentSerializer(added_torrent).data)
 
 
@@ -132,8 +133,18 @@ class AddTorrentFromTracker(APIView):
     def post(self, request):
         tracker_name = request.data['tracker_name']
         tracker_id = request.data['tracker_id']
-        download_path = request.data['download_path']
+        download_path_pattern = request.data['download_path']
 
         tracker = TrackerRegistry.get_plugin(tracker_name, 'add-torrent-from-tracker')
-        added_torrent = add_torrent_from_tracker(tracker, tracker_id, download_path)
+        added_torrent = add_torrent_from_tracker(tracker, tracker_id, download_path_pattern)
         return Response(TorrentSerializer(added_torrent).data)
+
+
+class DownloadLocations(ListCreateAPIView):
+    queryset = DownloadLocation.objects.all()
+    serializer_class = DownloadLocationSerializer
+
+
+class DownloadLocationView(RetrieveUpdateDestroyAPIView):
+    queryset = DownloadLocation.objects.all()
+    serializer_class = DownloadLocationSerializer

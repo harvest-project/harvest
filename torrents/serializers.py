@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from torrents.models import AlcazarClientConfig, Realm, Torrent, TorrentInfo
+from torrents.models import AlcazarClientConfig, Realm, Torrent, TorrentInfo, DownloadLocation
 
 
 class AlcazarClientConfigSerializer(serializers.ModelSerializer):
@@ -22,10 +22,19 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
 
 
 class TorrentSerializer(serializers.ModelSerializer):
-    realm = RealmSerializer()
+    realm = serializers.PrimaryKeyRelatedField(queryset=Realm.objects.all())
     torrent_info = TorrentInfoSerializer()
 
     class Meta:
         model = Torrent
         fields = ('id', 'realm', 'torrent_info', 'info_hash', 'download_path', 'name', 'size', 'downloaded', 'uploaded',
                   'download_rate', 'upload_rate', 'progress', 'added_datetime', 'error')
+
+
+class DownloadLocationSerializer(serializers.ModelSerializer):
+    realm = serializers.PrimaryKeyRelatedField(queryset=Realm.objects.all())
+
+    class Meta:
+        model = DownloadLocation
+        fields = ('id', 'realm', 'pattern')
+        depth = 1

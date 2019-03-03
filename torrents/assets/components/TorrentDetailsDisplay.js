@@ -18,7 +18,8 @@ export class TorrentDetailsDisplay extends React.Component {
 
             <Col xs={24} >
                 <p>
-                    Info Hash: {t.info_hash}
+                    Info Hash: {t.info_hash}<br/>
+                    Path: {t.download_path}
                 </p>
             </Col>
 
@@ -44,6 +45,13 @@ export class TorrentDetailsDisplay extends React.Component {
             {t.error ?
                 <Col xs={24} style={{paddingTop: 8, paddingBottom: 8}}>
                     <Alert type="error" message="Torrent Error" description={t.error}/>
+                </Col>
+                : null
+            }
+
+            {t.tracker_error ?
+                <Col xs={24} style={{paddingTop: 8, paddingBottom: 8}}>
+                    <Alert type="error" message="Tracker Error" description={t.tracker_error}/>
                 </Col>
                 : null
             }

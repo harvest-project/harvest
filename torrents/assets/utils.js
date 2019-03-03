@@ -8,3 +8,11 @@ export function fileToBase64(file) {
         reader.readAsDataURL(file);
     });
 }
+
+export const TorrentStatus = {
+    CHECK_WAITING: 0,
+    CHECKING: 1,
+    DOWNLOADING: 2,
+    SEEDING: 3,
+    STOPPED: 4,
+};

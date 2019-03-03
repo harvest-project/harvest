@@ -27,8 +27,8 @@ class TorrentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Torrent
-        fields = ('id', 'realm', 'torrent_info', 'info_hash', 'download_path', 'name', 'size', 'downloaded', 'uploaded',
-                  'download_rate', 'upload_rate', 'progress', 'added_datetime', 'error')
+        fields = ('id', 'realm', 'torrent_info', 'info_hash', 'status', 'download_path', 'name', 'size', 'downloaded',
+                  'uploaded', 'download_rate', 'upload_rate', 'progress', 'added_datetime', 'error', 'tracker_error')
 
 
 class DownloadLocationSerializer(serializers.ModelSerializer):

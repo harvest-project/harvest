@@ -9,15 +9,32 @@ import {AddTorrentFromFile} from 'torrents/assets/components/AddTorrentFromFile'
 import {AddTorrentFromTracker} from 'torrents/assets/components/AddTorrentFromTracker';
 import {TorrentDetailsDisplay} from 'torrents/assets/components/TorrentDetailsDisplay';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
+import {TorrentStatus} from 'torrents/assets/utils';
+
+const iconError = <Icon type="close-circle" style={{color: 'red', fontSize: 18}}/>;
+const iconDownloading = <Icon type="download" style={{color: '#1890ff', fontSize: 18}}/>;
+const iconSeeding = <Icon type="upload" style={{color: '#52c41a', fontSize: 18}}/>;
+const iconWaiting = <Icon type="clock-circle" style={{color: '#cccccc', fontSize: 18}}/>;
+const iconStopped = <Icon type="pause-circle" style={{color: '#cccccc', fontSize: 18}}/>;
+const iconUnknown = <Icon type="question-circle" style={{color: 'red', fontSize: 18}}/>;
 
 function renderIcon(data, record, index) {
-    if (record.error) {
-        return <Icon type="close-circle" style={{color: 'red', fontSize: 18}}/>;
+    if (record.error || record.tracker_error) {
+        return iconError;
     }
-    if (record.progress < 1) {
-        return <Icon type="download" style={{color: '#1890ff', fontSize: 18}}/>;
+    if (record.status === TorrentStatus.CHECK_WAITING || record.status === TorrentStatus.CHECKING) {
+        return iconWaiting;
     }
-    return <Icon type="upload" style={{color: '#52c41a', fontSize: 18}}/>;
+    if (record.status === TorrentStatus.DOWNLOADING) {
+        return iconDownloading;
+    }
+    if (record.status === TorrentStatus.SEEDING) {
+        return iconSeeding;
+    }
+    if (record.status === TorrentStatus.STOPPED) {
+        return iconStopped;
+    }
+    return iconUnknown;
 }
 
 
@@ -55,8 +72,9 @@ const columns = [
         width: 140,
     },
     {
+        key: 'error',
         title: 'Error',
-        dataIndex: 'error',
+        render: (data, record, index) => <span>{record.error || record.tracker_error}</span>,
     },
 ];
 

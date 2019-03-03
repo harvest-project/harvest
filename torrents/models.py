@@ -82,10 +82,19 @@ class TorrentFile(models.Model):
 class Torrent(models.Model):
     """Main table for torrents that are present in a torrent client."""
 
+    STATUS_CHOICES = (
+        (0, 'Check Waiting'),
+        (1, 'Checking'),
+        (2, 'Downloading'),
+        (3, 'Seeding'),
+        (4, 'Stopped'),
+    )
+
     realm = models.ForeignKey(Realm, models.PROTECT, related_name='torrents')
     torrent_info = models.OneToOneField(TorrentInfo, models.PROTECT, null=True, related_name='torrent')
 
     info_hash = models.CharField(max_length=40, db_index=True)
+    status = models.IntegerField(choices=STATUS_CHOICES)
     download_path = models.CharField(max_length=65536)
     name = models.TextField(null=True)
     size = models.BigIntegerField(null=True)
@@ -95,7 +104,8 @@ class Torrent(models.Model):
     upload_rate = models.BigIntegerField(null=True)
     progress = models.FloatField(null=True)
     added_datetime = models.DateTimeField(null=True)
-    error = models.TextField(max_length=65536, null=True, db_index=True)
+    error = models.TextField(null=True, db_index=True)
+    tracker_error = models.TextField(null=True, db_index=True)
 
     class Meta:
         unique_together = ('realm', 'info_hash')

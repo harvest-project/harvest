@@ -60,8 +60,8 @@ export class HarvestHeader extends React.Component {
             </span>;
         } else {
             const allGreen = this.state.clients.map(c => c.status === 'green').reduce((a, b) => a && b, true);
-            const downRate = this.state.clients.map(c => c.session_stats.download_rate).reduce((a, b) => a + b);
-            const upRate = this.state.clients.map(c => c.session_stats.upload_rate).reduce((a, b) => a + b);
+            const downRate = this.state.clients.map(c => c.session_stats.download_rate).reduce((a, b) => a + b, 0);
+            const upRate = this.state.clients.map(c => c.session_stats.upload_rate).reduce((a, b) => a + b, 0);
             return <span>
                 {allGreen ?
                     <Icon type="check-circle" style={{color: '#52c41a'}}/> :

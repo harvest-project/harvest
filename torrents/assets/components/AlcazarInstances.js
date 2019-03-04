@@ -1,4 +1,4 @@
-import {Button, Table} from 'antd';
+import {Button, Icon, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
@@ -7,9 +7,20 @@ import React from 'react';
 import {AddClient} from 'torrents/assets/components/AddClient';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
+const ICONS = {
+    green: <Icon type="check-circle" style={{color: '#52c41a'}}/>,
+    yellow: <Icon type="warning" style={{color: '#ddc000'}}/>,
+    red: <Icon type="close-circle" style={{color: 'red'}}/>,
+};
+
 export class AlcazarInstances extends React.Component {
     static contextType = HarvestContext;
     static columns = [
+        {
+            key: 'status',
+            title: '',
+            render: (data, record, index) => ICONS[record.status],
+        },
         {
             title: 'Name',
             dataIndex: 'name',
@@ -76,10 +87,12 @@ export class AlcazarInstances extends React.Component {
                 RPC Port: {client.rpc_port}<br/>
                 RPC Password: {client.config.rpc_password}<br/>
                 State Path: {client.state_path}<br/>
+                Errors: {JSON.stringify(client.errors)}<br/>
             </p>;
         } else if (client.type === 'managed_libtorrent') {
             return <p>
                 State Path: {client.state_path}<br/>
+                Errors: {JSON.stringify(client.errors)}<br/>
             </p>;
         } else {
             return <p>

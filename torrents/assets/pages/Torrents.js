@@ -1,4 +1,4 @@
-import {Button, Drawer, Dropdown, Icon, Menu, Progress, Table} from 'antd';
+import {Alert, Button, Drawer, Dropdown, Icon, Menu, Progress, Select, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
@@ -17,6 +17,14 @@ const iconSeeding = <Icon type="upload" style={{color: '#52c41a', fontSize: 18}}
 const iconWaiting = <Icon type="clock-circle" style={{color: '#cccccc', fontSize: 18}}/>;
 const iconStopped = <Icon type="pause-circle" style={{color: '#cccccc', fontSize: 18}}/>;
 const iconUnknown = <Icon type="question-circle" style={{color: 'red', fontSize: 18}}/>;
+
+const FILTER_ALL = 'all';
+const FILTER_ACTIVE = 'active';
+const FILTER_DOWNLOADING = 'downloading';
+const FILTER_ERRORS = 'errors';
+
+const MAX_TORRENTS = 200;
+const TORRENTS_PER_PAGE = 40;
 
 function renderIcon(data, record, index) {
     if (record.error || record.tracker_error) {
@@ -85,6 +93,8 @@ export class Torrents extends React.Component {
         super(props);
 
         this.state = {
+            torrentsFilter: FILTER_ALL,
+            torrentsRealmId: null,
             torrents: [],
             selectedTorrent: null,
             addFromFile: false,
@@ -94,20 +104,34 @@ export class Torrents extends React.Component {
         this.onRow = record => ({
             onClick: () => this.selectRow(record),
         });
+
+        this.queryIndex = 0; // Used to avoid duplicate / out-of-order AJAX queries
     }
 
     componentDidMount() {
-        this.context.trackLoadingAsync(async () => this.refreshInstances());
+        this.context.trackLoadingAsync(async () => this.refreshTorrents());
     }
 
-    async refreshInstances() {
+    async refreshTorrents() {
+        const queryIndex = ++this.queryIndex;
         let data;
+
         try {
-            data = await TorrentsAPI.getTorrents();
+            data = await TorrentsAPI.getTorrents(
+                this.state.torrentsFilter,
+                this.state.torrentsRealmId,
+                MAX_TORRENTS,
+            );
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to load torrents');
             return;
         }
+
+        if (this.queryIndex !== queryIndex) {
+            console.log('Cancelling obsolete request.');
+            return;
+        }
+
         this.setState({
             torrents: data.torrents,
         });
@@ -144,11 +168,31 @@ export class Torrents extends React.Component {
         });
     }
 
+    setFilter(filter) {
+        this.setState({
+            torrentsFilter: filter,
+        }, () => {
+            this.context.trackLoadingAsync(async () => this.refreshTorrents());
+        });
+    }
+
+    setRealm(realmId) {
+        this.setState({
+            torrentsRealmId: realmId,
+        }, () => {
+            this.context.trackLoadingAsync(async () => this.refreshTorrents());
+        });
+    }
+
+    getFilterButtonType(filter) {
+        return this.state.torrentsFilter === filter ? 'primary' : 'default';
+    }
+
     renderDrawer() {
         const st = this.state.selectedTorrent;
         return <Drawer
             title={st ? st.name : ''}
-            width={460}
+            width={440}
             placement="right"
             closable={false}
             onClose={() => this.setState({selectedTorrent: null})}
@@ -163,7 +207,7 @@ export class Torrents extends React.Component {
 
     render() {
         return <div>
-            <Timer interval={3000} onInterval={() => this.refreshInstances()}/>
+            <Timer interval={3000} onInterval={() => this.refreshTorrents()}/>
 
             <DivRow>
                 <Dropdown overlay={<Menu>
@@ -178,7 +222,46 @@ export class Torrents extends React.Component {
                         Add Torrent <Icon type="down"/>
                     </Button>
                 </Dropdown>
+
+                {' '}Filter:{' '}
+                <Button.Group>
+                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_ALL)}
+                            onClick={() => this.setFilter(FILTER_ALL)}>
+                        All
+                    </Button>
+                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_ACTIVE)}
+                            onClick={() => this.setFilter(FILTER_ACTIVE)}>
+                        Active
+                    </Button>
+                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_DOWNLOADING)}
+                            onClick={() => this.setFilter(FILTER_DOWNLOADING)}>
+                        Downloading
+                    </Button>
+                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_ERRORS)}
+                            onClick={() => this.setFilter(FILTER_ERRORS)}>
+                        Errors
+                    </Button>
+                </Button.Group>
+
+                {' '}Realm:{' '}
+                <Select value={this.state.torrentsRealmId}
+                        onChange={value => this.setRealm(value)}
+                        style={{width: 120}}>
+                    <Select.Option key="all" value={null}>
+                        All
+                    </Select.Option>
+
+                    {this.context.realms.map(realm => (
+                        <Select.Option key={realm.id} value={realm.id}>
+                            {realm.name}
+                        </Select.Option>
+                    ))}
+                </Select>
             </DivRow>
+
+            {this.state.torrents.length === MAX_TORRENTS ? <DivRow>
+                <Alert type="warning" message={`Too many torrents matched. Showing only ${MAX_TORRENTS}.`}/>
+            </DivRow> : null}
 
             <Table
                 size="small"
@@ -187,6 +270,9 @@ export class Torrents extends React.Component {
                 rowKey="id"
                 onRow={this.onRow}
                 rowClassName={getRowClassName}
+                pagination={{
+                    defaultPageSize: TORRENTS_PER_PAGE,
+                }}
             />
 
             <AddTorrentFromFile visible={this.state.addFromFile}

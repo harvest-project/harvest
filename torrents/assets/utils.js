@@ -16,3 +16,17 @@ export const TorrentStatus = {
     SEEDING: 3,
     STOPPED: 4,
 };
+
+export function getTorrentStatusDisplay(torrentStatus) {
+    return {
+        0: 'Check Waiting',
+        1: 'Checking',
+        2: 'Downloading',
+        3: 'Seeding',
+        4: 'Stopped',
+    }[torrentStatus];
+}
+
+export function shortenInfoHash(infoHash) {
+    return infoHash.substring(0, 5) + '...' + infoHash.substring(35, 40);
+}

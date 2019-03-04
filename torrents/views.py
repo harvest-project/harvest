@@ -1,6 +1,7 @@
 import base64
 
 from django.db import transaction
+from django.db.models import Q
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
@@ -67,8 +68,32 @@ class AlcazarClients(APIView):
 
 
 class Torrents(APIView):
+    FILTER_ACTIVE = 'active'
+    FILTER_DOWNLOADING = 'downloading'
+    FILTER_ERRORS = 'errors'
+
+    def _apply_filter(self, qs, filter):
+        if filter == self.FILTER_ACTIVE:
+            return qs.filter(Q(download_rate__gt=0) | Q(upload_rate__gt=0))
+        if filter == self.FILTER_DOWNLOADING:
+            return qs.filter(status=Torrent.STATUS_DOWNLOADING)
+        return qs
+
+    def _apply_realm(self, qs, realm_id):
+        if realm_id:
+            return qs.filter(realm_id=int(realm_id))
+        return qs
+
+    def _apply_limit(self, qs, limit):
+        if limit:
+            return qs[:int(limit)]
+        return qs
+
     def get(self, request):
         torrents = Torrent.objects.select_related('realm', 'torrent_info').all()
+        torrents = self._apply_filter(torrents, request.query_params.get('filter'))
+        torrents = self._apply_realm(torrents, request.query_params.get('realm_id'))
+        torrents = self._apply_limit(torrents, request.query_params.get('limit'))
         return Response({
             'torrents': TorrentSerializer(torrents, many=True).data,
         })

@@ -1,7 +1,8 @@
-import {Alert, Button, Col, Popconfirm, Progress, Row, Statistic} from 'antd';
+import {Alert, Button, Col, Popconfirm, Progress, Row, Statistic, Tooltip} from 'antd';
 import {formatBytes} from 'home/utils';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {getTorrentStatusDisplay, shortenInfoHash} from 'torrents/assets/utils';
 
 export class TorrentDetailsDisplay extends React.Component {
     static propTypes = {
@@ -12,15 +13,16 @@ export class TorrentDetailsDisplay extends React.Component {
     render() {
         const t = this.props.torrent;
         return <Row gutter={16}>
-            <Col xs={24} style={{paddingTop: 8, paddingBottom: 8}}>
-                <Progress percent={Math.floor(t.progress * 100)} size="large"/>
+            <Col xs={24}>
+                <p>
+                    <b>Status:</b> {getTorrentStatusDisplay(t.status)}<br/>
+                    <b>Info Hash:</b> <Tooltip title={t.info_hash}>{shortenInfoHash(t.info_hash)}</Tooltip><br/>
+                    <b>Path:</b> {t.download_path}
+                </p>
             </Col>
 
-            <Col xs={24} >
-                <p>
-                    Info Hash: {t.info_hash}<br/>
-                    Path: {t.download_path}
-                </p>
+            <Col xs={24} style={{paddingBottom: 12}}>
+                <Progress percent={Math.floor(t.progress * 100)} size="large"/>
             </Col>
 
             <Col xs={8}>

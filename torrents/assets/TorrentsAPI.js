@@ -42,8 +42,14 @@ export const TorrentsAPI = new class {
         });
     }
 
-    async getTorrents() {
-        return await APIHelper.get('/api/torrents/');
+    async getTorrents(filter, realmId, limit) {
+        return await APIHelper.get('/api/torrents/', {
+            queryParams: {
+                filter: filter,
+                realm_id: realmId,
+                limit: limit,
+            },
+        });
     }
 
     async deleteTorrentById(torrentId) {

@@ -82,12 +82,18 @@ class TorrentFile(models.Model):
 class Torrent(models.Model):
     """Main table for torrents that are present in a torrent client."""
 
+    STATUS_CHECK_WAITING = 0
+    STATUS_CHECKING = 1
+    STATUS_DOWNLOADING = 2
+    STATUS_SEEDING = 3
+    STATUS_STOPPED = 4
+
     STATUS_CHOICES = (
-        (0, 'Check Waiting'),
-        (1, 'Checking'),
-        (2, 'Downloading'),
-        (3, 'Seeding'),
-        (4, 'Stopped'),
+        (STATUS_CHECK_WAITING, 'Check Waiting'),
+        (STATUS_CHECKING, 'Checking'),
+        (STATUS_DOWNLOADING, 'Downloading'),
+        (STATUS_SEEDING, 'Seeding'),
+        (STATUS_STOPPED, 'Stopped'),
     )
 
     realm = models.ForeignKey(Realm, models.PROTECT, related_name='torrents')

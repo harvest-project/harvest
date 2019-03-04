@@ -1,7 +1,8 @@
 import {Button, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {Timer} from 'home/assets/controls/Timer';
 import {HarvestContext} from 'home/assets/context';
+import {Timer} from 'home/assets/controls/Timer';
+import {formatBytes} from 'home/utils';
 import React from 'react';
 import {AddClient} from 'torrents/assets/components/AddClient';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
@@ -27,7 +28,17 @@ export class AlcazarInstances extends React.Component {
         },
         {
             title: '# of Torrents',
-            dataIndex: 'num_torrents',
+            dataIndex: 'session_stats.torrent_count',
+        },
+        {
+            key: 'down_speed',
+            title: 'Down Speed',
+            render: (data, record, index) => <span>{formatBytes(record.session_stats.download_rate) + '/s'}</span>,
+        },
+        {
+            key: 'up_speed',
+            title: 'Up Speed',
+            render: (data, record, index) => <span>{formatBytes(record.session_stats.upload_rate) + '/s'}</span>,
         },
     ];
 

@@ -4,18 +4,25 @@
   background: #fff;
   padding: 0;
   display: flex;
-  justify-content: flex-end;
-  align-items: stretch;
+  justify-content: stretch;
+  align-items: center;
+}
+
+.header-item {
+  padding: 16px;
 }
 
 .header-button {
   cursor: pointer;
   color: @link-color;
-  padding: 12px;
+  padding: 16px;
   transition: all @animation-duration-base ease;
-  line-height: 44px;
 
   &:hover {
     background: #f5f5f5;
   }
+}
+
+.header-spacer {
+  flex-grow: 1;
 }

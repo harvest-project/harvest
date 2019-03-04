@@ -70,6 +70,7 @@ class AlcazarClients(APIView):
 class Torrents(APIView):
     FILTER_ACTIVE = 'active'
     FILTER_DOWNLOADING = 'downloading'
+    FILTER_SEEDING = 'seeding'
     FILTER_ERRORS = 'errors'
 
     def _apply_filter(self, qs, filter):
@@ -77,6 +78,8 @@ class Torrents(APIView):
             return qs.filter(Q(download_rate__gt=0) | Q(upload_rate__gt=0))
         if filter == self.FILTER_DOWNLOADING:
             return qs.filter(status=Torrent.STATUS_DOWNLOADING)
+        if filter == self.FILTER_SEEDING:
+            return qs.filter(status=Torrent.STATUS_SEEDING)
         return qs
 
     def _apply_realm(self, qs, realm_id):

@@ -21,3 +21,7 @@ export function clearContextType(cls) {
     delete cls.contextType;
     return cls;
 }
+
+export function capitalizeWord(word) {
+    return word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
+}

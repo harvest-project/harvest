@@ -25,6 +25,15 @@ export const HarvestStore = new class HarvestStore {
         return null;
     }
 
+    getRealmById(realmId) {
+        for (const realm of this.realms) {
+            if (realm.id === realmId) {
+                return realm;
+            }
+        }
+        return null;
+    }
+
     /******** UI State ********/
 
     @observable numLoading = 0;

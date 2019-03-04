@@ -21,6 +21,7 @@ const iconUnknown = <Icon type="question-circle" style={{color: 'red', fontSize:
 const FILTER_ALL = 'all';
 const FILTER_ACTIVE = 'active';
 const FILTER_DOWNLOADING = 'downloading';
+const FILTER_SEEDING = 'seeding';
 const FILTER_ERRORS = 'errors';
 
 const MAX_TORRENTS = 200;
@@ -53,44 +54,48 @@ function getRowClassName(record, index) {
     return null;
 }
 
-
-const columns = [
-    {
-        title: 'ID',
-        dataIndex: 'id',
-    },
-    {
-        key: 'icon',
-        title: '',
-        render: renderIcon,
-    },
-    {
-        title: 'Name',
-        dataIndex: 'name',
-    },
-    {
-        title: 'Size',
-        dataIndex: 'size',
-        render: (data, record, index) => formatBytes(data),
-    },
-    {
-        title: 'Progress',
-        dataIndex: 'progress',
-        render: (data, record, index) => <Progress percent={Math.floor(data * 100)} size="small"/>,
-        width: 140,
-    },
-    {
-        key: 'error',
-        title: 'Error',
-        render: (data, record, index) => <span>{record.error || record.tracker_error}</span>,
-    },
-];
-
 export class Torrents extends React.Component {
     static contextType = HarvestContext;
 
     constructor(props) {
         super(props);
+
+        this.columns = [
+            {
+                title: 'ID',
+                dataIndex: 'id',
+            },
+            {
+                key: 'realm',
+                title: 'Realm',
+                render: (data, record, index) => <span>{this.context.getRealmById(record.realm).name}</span>,
+            },
+            {
+                key: 'icon',
+                title: '',
+                render: renderIcon,
+            },
+            {
+                title: 'Name',
+                dataIndex: 'name',
+            },
+            {
+                title: 'Size',
+                dataIndex: 'size',
+                render: (data, record, index) => formatBytes(data),
+            },
+            {
+                title: 'Progress',
+                dataIndex: 'progress',
+                render: (data, record, index) => <Progress percent={Math.floor(data * 100)} size="small"/>,
+                width: 140,
+            },
+            {
+                key: 'error',
+                title: 'Error',
+                render: (data, record, index) => <span>{record.error || record.tracker_error}</span>,
+            },
+        ];
 
         this.state = {
             torrentsFilter: FILTER_ALL,
@@ -223,7 +228,7 @@ export class Torrents extends React.Component {
                     </Button>
                 </Dropdown>
 
-                {' '}Filter:{' '}
+                {' '}Filter:&nbsp;
                 <Button.Group>
                     <Button htmlType="button" type={this.getFilterButtonType(FILTER_ALL)}
                             onClick={() => this.setFilter(FILTER_ALL)}>
@@ -237,13 +242,17 @@ export class Torrents extends React.Component {
                             onClick={() => this.setFilter(FILTER_DOWNLOADING)}>
                         Downloading
                     </Button>
+                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_SEEDING)}
+                            onClick={() => this.setFilter(FILTER_SEEDING)}>
+                        Seeding
+                    </Button>
                     <Button htmlType="button" type={this.getFilterButtonType(FILTER_ERRORS)}
                             onClick={() => this.setFilter(FILTER_ERRORS)}>
                         Errors
                     </Button>
                 </Button.Group>
 
-                {' '}Realm:{' '}
+                {' '}Realm:&nbsp;
                 <Select value={this.state.torrentsRealmId}
                         onChange={value => this.setRealm(value)}
                         style={{width: 120}}>
@@ -266,7 +275,7 @@ export class Torrents extends React.Component {
             <Table
                 size="small"
                 dataSource={this.state.torrents}
-                columns={columns}
+                columns={this.columns}
                 rowKey="id"
                 onRow={this.onRow}
                 rowClassName={getRowClassName}

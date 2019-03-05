@@ -2,7 +2,7 @@ import {Button, Icon, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
-import {formatBytes} from 'home/utils';
+import {formatBytes, toJSONPretty} from 'home/utils';
 import React from 'react';
 import {AddClient} from 'torrents/assets/components/AddClient';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
@@ -44,12 +44,16 @@ export class AlcazarInstances extends React.Component {
         {
             key: 'down_speed',
             title: 'Down Speed',
-            render: (data, record, index) => <span>{formatBytes(record.session_stats.download_rate) + '/s'}</span>,
+            render: (data, record, index) => <span>
+                {formatBytes(record.session_stats ? record.session_stats.download_rate : 0) + '/s'}
+            </span>,
         },
         {
             key: 'up_speed',
             title: 'Up Speed',
-            render: (data, record, index) => <span>{formatBytes(record.session_stats.upload_rate) + '/s'}</span>,
+            render: (data, record, index) => <span>
+                {formatBytes(record.session_stats ? record.session_stats.upload_rate : 0) + '/s'}
+            </span>,
         },
     ];
 
@@ -87,12 +91,12 @@ export class AlcazarInstances extends React.Component {
                 RPC Port: {client.rpc_port}<br/>
                 RPC Password: {client.config.rpc_password}<br/>
                 State Path: {client.state_path}<br/>
-                Errors: {JSON.stringify(client.errors)}<br/>
+                Errors: {toJSONPretty(client.errors)}<br/>
             </p>;
         } else if (client.type === 'managed_libtorrent') {
             return <p>
                 State Path: {client.state_path}<br/>
-                Errors: {JSON.stringify(client.errors)}<br/>
+                Errors: {toJSONPretty(client.errors)}<br/>
             </p>;
         } else {
             return <p>

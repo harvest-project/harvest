@@ -12,7 +12,7 @@ export function formatDateTimeString(dateTimeString) {
 }
 
 export function formatBytes(bytes) {
-    return prettysize(bytes);
+    return prettysize(bytes, {places: 2});
 }
 
 // The static fields are hoisted and due to a bug, the context shows up in the HOC. This works around it.

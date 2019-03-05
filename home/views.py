@@ -1,8 +1,7 @@
-from time import sleep
-
 import coreapi
 import coreschema
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Count, Sum
 from django.views.generic import TemplateView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
@@ -11,6 +10,7 @@ from rest_framework.views import APIView
 
 from Harvest.utils import CORSBrowserExtensionView
 from home.serializers import UserSerializer
+from torrents.download_locations import get_disk_usages_from_locations
 
 
 class Index(TemplateView):
@@ -63,4 +63,17 @@ class Ping(CORSBrowserExtensionView, APIView):
     def get(self, request):
         return Response({
             'success': True,
+        })
+
+
+class DashboardData(APIView):
+    def get(self, request):
+        from torrents.models import DownloadLocation, Torrent
+        realm_stats = Torrent.objects.values('realm').annotate(
+            torrent_size=Sum('size'),
+            torrent_count=Count('realm'),
+        )
+        return Response({
+            'disk_usage': get_disk_usages_from_locations(DownloadLocation.objects.all()),
+            'realm_torrent_counts': realm_stats,
         })

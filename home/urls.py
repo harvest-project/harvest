@@ -7,4 +7,5 @@ urlpatterns = [
     path('logout', views.Logout.as_view()),
     path('user', views.User.as_view()),
     path('ping', views.Ping.as_view()),
+    path('home/dashboard-data', views.DashboardData.as_view()),
 ]

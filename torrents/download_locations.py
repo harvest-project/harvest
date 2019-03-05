@@ -1,3 +1,5 @@
+import os
+import shutil
 import string
 
 from rest_framework.exceptions import APIException
@@ -54,3 +56,27 @@ def format_download_path_pattern(download_path_pattern, torrent_file, torrent_in
         raise DownloadLocationException('Braces still present in pattern. Probably misformatted.')
     download_path = download_path.replace('\0', '_')
     return download_path
+
+
+def get_mount_point_of_path(path):
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+        if path == '/':
+            break
+    return path
+
+
+def get_disk_usages_from_locations(locations):
+    mount_points = set()
+    for location in locations:
+        mount_points.add(get_mount_point_of_path(location.pattern))
+    result = []
+    for mount_point in sorted(mount_points):
+        usage = shutil.disk_usage(mount_point)
+        result.append({
+            'mount': mount_point,
+            'total': usage.total,
+            'used': usage.used,
+            'free': usage.free,
+        })
+    return result

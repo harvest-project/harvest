@@ -93,7 +93,7 @@ class Torrents(APIView):
         return qs
 
     def get(self, request):
-        torrents = Torrent.objects.select_related('realm', 'torrent_info').all()
+        torrents = Torrent.objects.select_related('realm', 'torrent_info').order_by('-added_datetime')
         torrents = self._apply_filter(torrents, request.query_params.get('filter'))
         torrents = self._apply_realm(torrents, request.query_params.get('realm_id'))
         torrents = self._apply_limit(torrents, request.query_params.get('limit'))

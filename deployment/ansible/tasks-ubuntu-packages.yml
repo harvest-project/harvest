@@ -11,3 +11,4 @@
       - postgresql
       - libboost-all-dev
       - libssl-dev
+      - transmission-daemon

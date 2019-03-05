@@ -71,7 +71,7 @@ export class HarvestHeader extends React.Component {
                     <Icon type="check-circle" style={{color: '#52c41a'}}/> :
                     <Icon type="warning" style={{color: '#ddc000'}}/>}
                 &nbsp;
-                Alcazar is up. Up: {formatBytes(downRate)}/s. Down: {formatBytes(upRate)}/s.
+                Alcazar is up. Up: {formatBytes(upRate)}/s. Down: {formatBytes(downRate)}/s.
             </span>;
         }
     }

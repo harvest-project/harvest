@@ -4,6 +4,7 @@ import {HarvestContext} from 'home/assets/context';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {SelectDownloadLocation} from 'torrents/assets/controls/SelectDownloadLocation';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
 @observer
@@ -88,8 +89,12 @@ export class AddTorrentFromTracker extends React.Component {
                     </Form.Item>
 
                     <Form.Item label="Download Path:">
-                        <Input type="text" value={this.state.downloadPath}
-                               onChange={e => this.setState({downloadPath: e.target.value})}/>
+                        <SelectDownloadLocation
+                            realmId={this.state.selectedTracker ? this.context.getRealmByName(
+                                this.state.selectedTracker).id : null}
+                            value={this.state.downloadPath}
+                            onChange={value => this.setState({downloadPath: value})}
+                        />
                     </Form.Item>
                 </Form>
             </Spin>

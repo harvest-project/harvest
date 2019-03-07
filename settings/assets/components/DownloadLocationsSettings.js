@@ -93,7 +93,7 @@ export class DownloadLocationsSettings extends React.Component {
     addToRealm(realm) {
         this.setState({
             addToRealm: realm,
-            addToTracker: this.context.getTrackerForRealm(realm.name),
+            addToTracker: this.context.getTrackerByName(realm.name),
         });
     }
 

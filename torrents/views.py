@@ -73,13 +73,15 @@ class Torrents(APIView):
     FILTER_SEEDING = 'seeding'
     FILTER_ERRORS = 'errors'
 
-    def _apply_filter(self, qs, filter):
-        if filter == self.FILTER_ACTIVE:
+    def _apply_filter(self, qs, filter_type):
+        if filter_type == self.FILTER_ACTIVE:
             return qs.filter(Q(download_rate__gt=0) | Q(upload_rate__gt=0))
-        if filter == self.FILTER_DOWNLOADING:
+        if filter_type == self.FILTER_DOWNLOADING:
             return qs.filter(status=Torrent.STATUS_DOWNLOADING)
-        if filter == self.FILTER_SEEDING:
+        if filter_type == self.FILTER_SEEDING:
             return qs.filter(status=Torrent.STATUS_SEEDING)
+        if filter_type == self.FILTER_ERRORS:
+            return qs.filter(Q(error__isnull=False) | Q(tracker_error__isnull=False))
         return qs
 
     def _apply_realm(self, qs, realm_id):

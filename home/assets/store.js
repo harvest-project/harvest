@@ -16,22 +16,20 @@ export const HarvestStore = new class HarvestStore {
         this.downloadLocations = await TorrentsAPI.getDownloadLocations();
     }
 
-    getTrackerForRealm(realmName) {
-        for (const tracker of this.trackers) {
-            if (tracker.name === realmName) {
-                return tracker;
-            }
-        }
-        return null;
+    getTrackerByName(name) {
+        return this.trackers.find(t => t.name === name) || null;
     }
 
     getRealmById(realmId) {
-        for (const realm of this.realms) {
-            if (realm.id === realmId) {
-                return realm;
-            }
-        }
-        return null;
+        return this.realms.find(r => r.id === realmId) || null;
+    }
+
+    getRealmByName(realmId) {
+        return this.realms.find(r => r.name === realmId) || null;
+    }
+
+    getDownloadLocationsForRealm(realmId) {
+        return this.downloadLocations.filter(l => l.realm === realmId);
     }
 
     /******** UI State ********/

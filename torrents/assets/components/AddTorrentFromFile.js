@@ -1,10 +1,11 @@
-import {Form, Input, message, Modal, Select, Spin} from 'antd';
+import {Form, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {formatBytes} from 'home/utils';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {SelectDownloadLocation} from 'torrents/assets/controls/SelectDownloadLocation';
 import {UploadTorrent} from 'torrents/assets/controls/UploadTorrent';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
@@ -22,14 +23,14 @@ export class AddTorrentFromFile extends React.Component {
 
         this.state = this.cleanState = {
             isAdding: false,
-            selectedRealm: null,
+            selectedRealmId: null,
             selectedFile: null,
             downloadPath: '',
         }
     }
 
     async addTorrent() {
-        if (!this.state.selectedRealm) {
+        if (!this.state.selectedRealmId) {
             message.error('Please select a realm.');
             return;
         }
@@ -42,10 +43,12 @@ export class AddTorrentFromFile extends React.Component {
             return;
         }
 
+        const realm = this.context.getRealmById(this.state.selectedRealmId);
+
         this.setState({isAdding: true});
         try {
             await TorrentsAPI.addTorrentFromFile(
-                this.state.selectedRealm,
+                realm.name,
                 this.state.selectedFile.base64,
                 this.state.downloadPath,
             );
@@ -74,10 +77,10 @@ export class AddTorrentFromFile extends React.Component {
             <Spin spinning={this.state.isAdding}>
                 <Form layout="vertical">
                     <Form.Item label="Realm:">
-                        <Select value={this.state.selectedRealm}
-                                onChange={value => this.setState({selectedRealm: value})}>
+                        <Select value={this.state.selectedRealmId}
+                                onChange={value => this.setState({selectedRealmId: value})}>
                             {this.context.realms.map(realm => (
-                                <Select.Option key={realm.name} value={realm.name}>
+                                <Select.Option key={realm.name} value={realm.id}>
                                     {realm.name}
                                 </Select.Option>
                             ))}
@@ -94,8 +97,11 @@ export class AddTorrentFromFile extends React.Component {
                     </Form.Item>
 
                     <Form.Item label="Download Path:">
-                        <Input type="text" value={this.state.downloadPath}
-                               onChange={e => this.setState({downloadPath: e.target.value})}/>
+                        <SelectDownloadLocation
+                            realmId={this.state.selectedRealmId}
+                            value={this.state.downloadPath}
+                            onChange={value => this.setState({downloadPath: value})}
+                        />
                     </Form.Item>
                 </Form>
             </Spin>

@@ -48,7 +48,7 @@ export class Dashboard extends React.Component {
             <Row type="flex" gutter={16} className={styles['dashboard-row']}>
                 {this.state.data ? this.state.data.disk_usage.map((disk_usage, i) => (
                     <Col key={i} xs={12} sm={8} lg={6} xl={4}>
-                        <Card size="small" style={{textAlign: 'center'}} title={`Space on ${disk_usage.mount}`}>
+                        <Card size="small" style={{textAlign: 'center'}} title={`Usage on ${disk_usage.mount}`}>
                             <Progress
                                 type="circle"
                                 percent={Math.round((disk_usage.total - disk_usage.free) / disk_usage.total * 100)}

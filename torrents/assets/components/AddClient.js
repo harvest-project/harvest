@@ -67,7 +67,7 @@ export class AddClient extends React.Component {
             <Spin spinning={this.state.isAdding}>
                 <Form layout="vertical">
                     <Form.Item label="Realm:">
-                        <Select onChange={value => this.setState({selectedRealm: value})}>
+                        <Select onChange={value => this.setState({selectedRealmId: value})}>
                             {this.context.realms.map(realm => (
                                 <Select.Option key={realm.name} value={realm.name}>
                                     {realm.name}

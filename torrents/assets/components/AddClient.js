@@ -25,7 +25,6 @@ export class AddClient extends React.Component {
             selectedRealm: null,
             customRealmName: '',
             selectedInstanceType: null,
-            addClientInstanceType: 'managed_libtorrent',
         }
     }
 
@@ -67,7 +66,8 @@ export class AddClient extends React.Component {
             <Spin spinning={this.state.isAdding}>
                 <Form layout="vertical">
                     <Form.Item label="Realm:">
-                        <Select onChange={value => this.setState({selectedRealm: value})}>
+                        <Select value={this.state.selectedRealm}
+                                onChange={value => this.setState({selectedRealm: value})}>
                             {this.context.trackers
                                 .filter(t => this.context.getRealmByName(t.name) === null)
                                 .map(tracker => (
@@ -95,8 +95,8 @@ export class AddClient extends React.Component {
                         : null}
 
                     <Form.Item label="Instance Type:">
-                        <Select onChange={value => this.setState({selectedInstanceType: value})}
-                                defaultValue="managed_libtorrent">
+                        <Select value={this.state.selectedInstanceType}
+                                onChange={value => this.setState({selectedInstanceType: value})}>
                             <Select.Option value="managed_libtorrent">Managed Libtorrent</Select.Option>
                             <Select.Option value="managed_transmission">Managed Transmission</Select.Option>
                         </Select>

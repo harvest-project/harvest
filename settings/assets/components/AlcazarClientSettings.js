@@ -1,8 +1,8 @@
-import {Alert, Button, Col, Form, Input, message, Row, Tooltip} from 'antd';
+import {Alert, Button, Checkbox, Col, Form, Input, message, Row, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {Timer} from 'home/assets/controls/Timer';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
+import {Timer} from 'home/assets/controls/Timer';
 import React from 'react';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
@@ -23,6 +23,7 @@ export class AlcazarClientSettings extends React.Component {
         this.state = {
             baseUrl: '',
             token: '',
+            unifySingleFileTorrents: false,
             isSaving: false,
 
             isTesting: false,
@@ -48,6 +49,7 @@ export class AlcazarClientSettings extends React.Component {
             this.setState({
                 baseUrl: data.base_url,
                 token: data.token,
+                unifySingleFileTorrents: data.unify_single_file_torrents,
             });
         });
     }
@@ -69,7 +71,11 @@ export class AlcazarClientSettings extends React.Component {
     async saveAlcazarConfig() {
         this.setState({isAdding: true});
         try {
-            await TorrentsAPI.saveAlcazarClientConfig(this.state.baseUrl, this.state.token);
+            await TorrentsAPI.saveAlcazarClientConfig(
+                this.state.baseUrl,
+                this.state.token,
+                this.state.unifySingleFileTorrents,
+            );
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to save settings');
             return;
@@ -110,17 +116,32 @@ export class AlcazarClientSettings extends React.Component {
                     <h1>Alcazar Connection Settings</h1>
 
                     <Form.Item label="Base URL:" {...fieldLayout}>
-                        <Input type="text" value={this.state.baseUrl}
-                               onChange={event => this.setState({baseUrl: event.target.value})}/>
+                        <Input
+                            type="text"
+                            value={this.state.baseUrl}
+                            onChange={event => this.setState({baseUrl: event.target.value})}
+                        />
                     </Form.Item>
 
                     <Form.Item label="Token:" {...fieldLayout}>
-                        <Input type="text" value={this.state.token}
-                               onChange={event => this.setState({token: event.target.value})}/>
+                        <Input
+                            type="text"
+                            value={this.state.token}
+                            onChange={event => this.setState({token: event.target.value})}
+                        />
+                    </Form.Item>
+
+                    <Form.Item label="Unify Single File Torrents:" {...fieldLayout}>
+                        <Checkbox
+                            checked={this.state.unifySingleFileTorrents}
+                            onChange={event => this.setState({unifySingleFileTorrents: event.target.checked})}
+                        />
                     </Form.Item>
 
                     <Form.Item {...submitLayout}>
-                        <Button type="primary" htmlType="submit" block loading={this.state.isSaving}>Save</Button>
+                        <Button type="primary" htmlType="submit" block loading={this.state.isSaving}>
+                            Save
+                        </Button>
                     </Form.Item>
                 </Form>
             </Col>

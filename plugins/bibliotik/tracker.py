@@ -1,12 +1,10 @@
 from plugins.bibliotik.client import BibliotikClient
-from trackers.models import FetchTorrentResult
+from trackers.models import FetchTorrentResult, BaseTracker
 
 
-class BibliotikTrackerPlugin:
+class BibliotikTrackerPlugin(BaseTracker):
     name = 'bibliotik'
     display_name = 'Bibliotik.me'
-
-    download_location_components = ()
 
     def fetch_torrent(self, tracker_id):
         client = BibliotikClient()
@@ -17,9 +15,3 @@ class BibliotikTrackerPlugin:
             torrent_filename=torrent_filename,
             torrent_file=torrent_file,
         )
-
-    def on_torrent_info_updated(self, torrent_info):
-        pass
-
-    def get_download_location_context(self, torrent_info):
-        return []

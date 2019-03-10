@@ -11,6 +11,11 @@ class DuplicatePluginException(Exception):
         super().__init__('Trying to register a duplicate plugin {}.'.format(name), *args, **kwargs)
 
 
+class InvalidPluginException(Exception):
+    def __init__(self, name, *args, **kwargs):
+        super().__init__('Trying to register a duplicate plugin {}.'.format(name), *args, **kwargs)
+
+
 class PluginRegistry:
     def __init__(self):
         self._plugins = {}
@@ -20,7 +25,7 @@ class PluginRegistry:
             raise DuplicatePluginException(plugin.name)
         self._plugins[plugin.name] = plugin
 
-    def get_plugin(self, name, action):
+    def get_plugin(self, name, action=None):
         plugin = self._plugins.get(name)
         if plugin is None:
             raise PluginMissingException(name, action)

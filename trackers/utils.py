@@ -9,3 +9,4 @@ class TorrentFileInfo:
         info = meta_info['info']
         self.name = info['name']
         self.info_hash = hashlib.sha1(bencode.bencode(info)).hexdigest()
+        self.is_multifile = 'files' in info

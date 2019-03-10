@@ -47,14 +47,15 @@ def add_torrent_from_tracker(tracker, tracker_id, download_path_pattern, *, forc
         raise APIException('Realm for tracker {} not found. Please create one by adding an instance.'.format(
             tracker.name), 400)
     torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=force_fetch)
+    torrent_file_bytes = bytes(torrent_info.torrent_file.torrent_file)
     download_path = format_download_path_pattern(
         download_path_pattern,
-        bytes(torrent_info.torrent_file.torrent_file),
+        torrent_file_bytes,
         torrent_info,
     )
     added_state = client.add_torrent(
         realm.name,
-        torrent_info.torrent_file.torrent_file,
+        torrent_file_bytes,
         download_path,
     )
     torrent, _ = create_or_update_torrent_from_alcazar(realm, torrent_info.id, added_state)

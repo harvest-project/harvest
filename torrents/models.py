@@ -17,6 +17,7 @@ class AlcazarClientConfig(models.Model):
 
     base_url = models.CharField(max_length=2048)
     token = models.CharField(max_length=64)
+    unify_single_file_torrents = models.BooleanField(default=False)
 
     @classmethod
     def get_locked_config(cls):

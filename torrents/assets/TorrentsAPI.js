@@ -9,9 +9,13 @@ export const TorrentsAPI = new class {
         return await APIHelper.get('/api/torrents/alcazar-client/config');
     }
 
-    async saveAlcazarClientConfig(base_url, token) {
+    async saveAlcazarClientConfig(baseUrl, token, unifySingleFileTorrents) {
         return await APIHelper.put('/api/torrents/alcazar-client/config', {
-            jsonBody: {base_url, token},
+            jsonBody: {
+                base_url: baseUrl,
+                token: token,
+                unify_single_file_torrents: unifySingleFileTorrents,
+            },
         });
     }
 

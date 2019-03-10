@@ -4,13 +4,15 @@ from django.db import transaction
 
 from plugins.redacted.client import RedactedClient
 from plugins.redacted.models import RedactedTorrentGroup, RedactedTorrent
+from plugins.redacted.serializers import RedactedTorrentInfoMetadataSerializer
 from torrents.download_locations import DownloadLocationComponent
-from trackers.models import FetchTorrentResult
+from trackers.models import FetchTorrentResult, BaseTracker
 
 
-class RedactedTrackerPlugin:
+class RedactedTrackerPlugin(BaseTracker):
     name = 'redacted'
     display_name = 'Redacted.ch'
+    torrent_info_metadata_serializer = RedactedTorrentInfoMetadataSerializer
 
     download_location_components = (
         DownloadLocationComponent(

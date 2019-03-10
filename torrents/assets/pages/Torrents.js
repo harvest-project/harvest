@@ -152,7 +152,7 @@ export class Torrents extends React.Component {
         });
 
         const queryIndex = ++this.queryIndex;
-        let data, orderBy;
+        let data, orderBy = 'id';
 
         if (this.state.sortedInfo) {
             orderBy = this.state.sortedInfo.columnKey;

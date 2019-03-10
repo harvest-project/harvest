@@ -112,7 +112,10 @@ class Torrents(ListAPIView):
         return qs.order_by(order_by)
 
     def get_queryset(self):
-        torrents = Torrent.objects.select_related('realm', 'torrent_info').order_by('-added_datetime')
+        torrents = Torrent.objects.select_related(
+            'realm',
+            'torrent_info',
+        ).order_by('-added_datetime')
         torrents = self._apply_status(torrents, self.request.query_params.get('status'))
         torrents = self._apply_realm(torrents, self.request.query_params.get('realm_id'))
         torrents = self._apply_order_by(torrents, self.request.query_params.get('order_by'))

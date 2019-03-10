@@ -1,5 +1,6 @@
 import base64
 import logging
+import os
 import threading
 import urllib.parse
 
@@ -11,6 +12,7 @@ from rest_framework.exceptions import APIException
 
 from torrents import signals
 from torrents.models import AlcazarClientConfig, Torrent
+from trackers.utils import TorrentFileInfo
 
 logger = logging.getLogger(__name__)
 
@@ -143,9 +145,17 @@ class AlcazarClient:
         return self._request('GET', '/ping')
 
     def add_torrent(self, realm_name, torrent_file, download_path):
+        name = None
+        if self.config.unify_single_file_torrents:
+            torrent_file_info = TorrentFileInfo(torrent_file)
+            if torrent_file_info.is_multifile:
+                name = os.path.basename(download_path)
+                download_path = os.path.dirname(download_path)
+
         return self._request('POST', '/torrents/{}'.format(realm_name), json={
             'torrent': base64.b64encode(torrent_file).decode(),
             'download_path': download_path,
+            'name': name,
         })
 
     def delete_torrent(self, realm_name, info_hash):

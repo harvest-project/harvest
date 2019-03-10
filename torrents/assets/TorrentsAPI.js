@@ -42,12 +42,14 @@ export const TorrentsAPI = new class {
         });
     }
 
-    async getTorrents(filter, realmId, limit) {
+    async getTorrents(status, realmId, page, pageSize, orderBy) {
         return await APIHelper.get('/api/torrents/', {
             queryParams: {
-                filter: filter,
+                status: status,
                 realm_id: realmId,
-                limit: limit,
+                page: page,
+                page_size: pageSize,
+                order_by: orderBy,
             },
         });
     }

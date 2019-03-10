@@ -1,4 +1,4 @@
-import {Alert, Button, Drawer, Dropdown, Icon, Menu, Progress, Select, Table} from 'antd';
+import {Button, Drawer, Dropdown, Icon, Menu, Progress, Select, Table, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
@@ -23,9 +23,6 @@ const FILTER_ACTIVE = 'active';
 const FILTER_DOWNLOADING = 'downloading';
 const FILTER_SEEDING = 'seeding';
 const FILTER_ERRORS = 'errors';
-
-const MAX_TORRENTS = 200;
-const TORRENTS_PER_PAGE = 40;
 
 function renderIcon(data, record, index) {
     if (record.error || record.tracker_error) {
@@ -64,43 +61,71 @@ export class Torrents extends React.Component {
             {
                 title: 'ID',
                 dataIndex: 'id',
+                sorter: true,
             },
             {
-                key: 'realm',
                 title: 'Realm',
-                render: (data, record, index) => <span>{this.context.getRealmById(record.realm).name}</span>,
+                dataIndex: 'realm',
+                render: data => <span>{this.context.getRealmById(data).name}</span>,
             },
             {
-                key: 'icon',
+                key: 'status',
                 title: '',
                 render: renderIcon,
+                sorter: true,
             },
             {
                 title: 'Name',
                 dataIndex: 'name',
+                render: data => <div style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                }}>
+                    {data}
+                </div>,
             },
             {
                 title: 'Size',
                 dataIndex: 'size',
-                render: (data, record, index) => formatBytes(data),
+                render: data => formatBytes(data).replace(' ', '\u00a0'),
             },
             {
                 title: 'Progress',
                 dataIndex: 'progress',
-                render: (data, record, index) => <Progress percent={Math.floor(data * 100)} size="small"/>,
+                render: data => <Progress percent={Math.floor(data * 100)} size="small"/>,
                 width: 140,
             },
             {
                 key: 'error',
                 title: 'Error',
-                render: (data, record, index) => <span>{record.error || record.tracker_error}</span>,
+                width: 140,
+                render: (data, record) => (
+                    <Tooltip title={record.error || record.tracker_error}>
+                        <div style={{
+                            maxWidth: 140,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                        }}>
+                            {record.error || record.tracker_error}
+                        </div>
+                    </Tooltip>
+                ),
             },
         ];
 
         this.state = {
-            torrentsFilter: FILTER_ALL,
-            torrentsRealmId: null,
+            loading: false,
+
+            filterStatus: FILTER_ALL,
+            filterRealmId: null,
             torrents: [],
+            pagination: {
+                position: 'bottom',
+                pageSize: 50,
+            },
+            sortedInfo: null,
+
             selectedTorrent: null,
             addFromFile: false,
             addFromTracker: false,
@@ -114,18 +139,35 @@ export class Torrents extends React.Component {
     }
 
     componentDidMount() {
-        this.context.trackLoadingAsync(async () => this.refreshTorrents());
+        this.refreshTorrents(true);
     }
 
-    async refreshTorrents() {
+    async refreshTorrents(modalLoading = false) {
+        if (!modalLoading && this.state.loading) {
+            return; // Do not supersede a modal (main) loading request
+        }
+
+        this.setState({
+            loading: modalLoading,
+        });
+
         const queryIndex = ++this.queryIndex;
-        let data;
+        let data, orderBy;
+
+        if (this.state.sortedInfo) {
+            orderBy = this.state.sortedInfo.columnKey;
+            if (this.state.sortedInfo.order === 'descend') {
+                orderBy = '-' + orderBy;
+            }
+        }
 
         try {
             data = await TorrentsAPI.getTorrents(
-                this.state.torrentsFilter,
-                this.state.torrentsRealmId,
-                MAX_TORRENTS,
+                this.state.filterStatus,
+                this.state.filterRealmId,
+                this.state.pagination.current,
+                this.state.pagination.pageSize,
+                orderBy,
             );
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to load torrents');
@@ -137,13 +179,18 @@ export class Torrents extends React.Component {
             return;
         }
 
+        const newPagination = {...this.state.pagination};
+        newPagination.total = data.count;
+
         this.setState({
-            torrents: data.torrents,
+            loading: false,
+            torrents: data.results,
+            pagination: newPagination,
         });
 
         if (this.state.selectedTorrent) {
             let selectedTorrent = null;
-            for (const torrent of data.torrents) {
+            for (const torrent of data.results) {
                 if (torrent.id === this.state.selectedTorrent.id) {
                     selectedTorrent = torrent;
                     break;
@@ -154,6 +201,19 @@ export class Torrents extends React.Component {
             });
         }
     }
+
+    handleTableChange = (pagination, filters, sorter) => {
+        const newPagination = {...this.state.pagination};
+        newPagination.current = pagination.current;
+        this.setState(
+            {
+                pagination: newPagination,
+                sortedInfo: sorter,
+                page: pagination.current,
+            },
+            () => this.refreshTorrents(true),
+        );
+    };
 
     selectRow(record) {
         this.setState({
@@ -174,23 +234,25 @@ export class Torrents extends React.Component {
     }
 
     setFilter(filter) {
-        this.setState({
-            torrentsFilter: filter,
-        }, () => {
-            this.context.trackLoadingAsync(async () => this.refreshTorrents());
-        });
+        this.setState(
+            {
+                filterStatus: filter,
+            },
+            () => this.refreshTorrents(true),
+        );
     }
 
     setRealm(realmId) {
-        this.setState({
-            torrentsRealmId: realmId,
-        }, () => {
-            this.context.trackLoadingAsync(async () => this.refreshTorrents());
-        });
+        this.setState(
+            {
+                filterRealmId: realmId,
+            },
+            () => this.refreshTorrents(true),
+        );
     }
 
     getFilterButtonType(filter) {
-        return this.state.torrentsFilter === filter ? 'primary' : 'default';
+        return this.state.filterStatus === filter ? 'primary' : 'default';
     }
 
     renderDrawer() {
@@ -253,7 +315,7 @@ export class Torrents extends React.Component {
                 </Button.Group>
 
                 {' '}Realm:&nbsp;
-                <Select value={this.state.torrentsRealmId}
+                <Select value={this.state.filterRealmId}
                         onChange={value => this.setRealm(value)}
                         style={{width: 120}}>
                     <Select.Option key="all" value={null}>
@@ -268,20 +330,16 @@ export class Torrents extends React.Component {
                 </Select>
             </DivRow>
 
-            {this.state.torrents.length === MAX_TORRENTS ? <DivRow>
-                <Alert type="warning" message={`Too many torrents matched. Showing only ${MAX_TORRENTS}.`}/>
-            </DivRow> : null}
-
             <Table
                 size="small"
                 dataSource={this.state.torrents}
+                loading={this.state.loading}
                 columns={this.columns}
                 rowKey="id"
                 onRow={this.onRow}
                 rowClassName={getRowClassName}
-                pagination={{
-                    defaultPageSize: TORRENTS_PER_PAGE,
-                }}
+                pagination={this.state.pagination}
+                onChange={this.handleTableChange}
             />
 
             <AddTorrentFromFile visible={this.state.addFromFile}

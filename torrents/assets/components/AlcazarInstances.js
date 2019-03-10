@@ -93,6 +93,14 @@ export class AlcazarInstances extends React.Component {
                 State Path: {client.state_path}<br/>
                 Errors: {toJSONPretty(client.errors)}<br/>
             </p>;
+        } else if (client.type === 'remote_transmission') {
+            return <p>
+                RPC Host: {client.config.rpc_host}<br/>
+                RPC Port: {client.config.rpc_port}<br/>
+                RPC Username: {client.config.rpc_username}<br/>
+                RPC Password: {client.config.rpc_password}<br/>
+                Errors: {toJSONPretty(client.errors)}<br/>
+            </p>;
         } else if (client.type === 'managed_libtorrent') {
             return <p>
                 State Path: {client.state_path}<br/>

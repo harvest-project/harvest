@@ -4,6 +4,7 @@ from django.db import transaction
 from django.db.models import Q
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -67,22 +68,31 @@ class AlcazarClients(APIView):
         return Response(client.add_client(request.data))
 
 
-class Torrents(APIView):
+class TorrentsPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
+class Torrents(ListAPIView):
+    serializer_class = TorrentSerializer
+    pagination_class = TorrentsPagination
+
     FILTER_ACTIVE = 'active'
     FILTER_DOWNLOADING = 'downloading'
     FILTER_SEEDING = 'seeding'
     FILTER_ERRORS = 'errors'
 
-    def _apply_filter(self, qs, filter_type):
-        if filter_type == self.FILTER_ACTIVE:
-            return qs.filter(Q(download_rate__gt=0) | Q(upload_rate__gt=0))
-        if filter_type == self.FILTER_DOWNLOADING:
-            return qs.filter(status=Torrent.STATUS_DOWNLOADING)
-        if filter_type == self.FILTER_SEEDING:
-            return qs.filter(status=Torrent.STATUS_SEEDING)
-        if filter_type == self.FILTER_ERRORS:
-            return qs.filter(Q(error__isnull=False) | Q(tracker_error__isnull=False))
-        return qs
+    FILTER_FUNCS = {
+        None: lambda qs: qs,
+        FILTER_ACTIVE: lambda qs: qs.filter(Q(download_rate__gt=0) | Q(upload_rate__gt=0)),
+        FILTER_DOWNLOADING: lambda qs: qs.filter(status=Torrent.STATUS_DOWNLOADING),
+        FILTER_SEEDING: lambda qs: qs.filter(status=Torrent.STATUS_SEEDING),
+        FILTER_ERRORS: lambda qs: qs.filter(Q(error__isnull=False) | Q(tracker_error__isnull=False)),
+    }
+
+    def _apply_status(self, qs, status):
+        return self.FILTER_FUNCS[status](qs)
 
     def _apply_realm(self, qs, realm_id):
         if realm_id:
@@ -94,14 +104,17 @@ class Torrents(APIView):
             return qs[:int(limit)]
         return qs
 
-    def get(self, request):
+    def _apply_order_by(self, qs, order_by):
+        if not order_by:
+            return qs
+        return qs.order_by(order_by)
+
+    def get_queryset(self):
         torrents = Torrent.objects.select_related('realm', 'torrent_info').order_by('-added_datetime')
-        torrents = self._apply_filter(torrents, request.query_params.get('filter'))
-        torrents = self._apply_realm(torrents, request.query_params.get('realm_id'))
-        torrents = self._apply_limit(torrents, request.query_params.get('limit'))
-        return Response({
-            'torrents': TorrentSerializer(torrents, many=True).data,
-        })
+        torrents = self._apply_status(torrents, self.request.query_params.get('filter'))
+        torrents = self._apply_realm(torrents, self.request.query_params.get('realm_id'))
+        torrents = self._apply_order_by(torrents, self.request.query_params.get('order_by'))
+        return torrents
 
 
 class TorrentView(APIView):

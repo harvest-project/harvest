@@ -20,6 +20,7 @@ def alcazar_torrent_equals(torrent, torrent_state):
         raise Exception('Comparing different info hash torrents.')
 
     return (
+            torrent.client == torrent_state['client'] and
             torrent.status == torrent_state['status'] and
             torrent.download_path == torrent_state['download_path'] and
             torrent.name == torrent_state['name'] and
@@ -39,6 +40,7 @@ def _update_torrent_from_alcazar(torrent, torrent_state):
     if torrent.info_hash != torrent_state['info_hash']:
         raise Exception('Comparing different info hash torrents.')
 
+    torrent.client = torrent_state['client']
     torrent.status = torrent_state['status']
     torrent.download_path = torrent_state['download_path']
     torrent.name = torrent_state['name']

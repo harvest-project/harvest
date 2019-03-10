@@ -99,6 +99,7 @@ class Torrent(models.Model):
     realm = models.ForeignKey(Realm, models.PROTECT, related_name='torrents')
     torrent_info = models.OneToOneField(TorrentInfo, models.PROTECT, null=True, related_name='torrent')
 
+    client = models.CharField(max_length=64)
     info_hash = models.CharField(max_length=40, db_index=True)
     status = models.IntegerField(choices=STATUS_CHOICES)
     download_path = models.CharField(max_length=65536)

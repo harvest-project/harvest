@@ -99,7 +99,7 @@ export class Torrents extends React.Component {
                 key: 'error',
                 title: 'Error',
                 width: 140,
-                render: (data, record) => (
+                render: (data, record) => record.error || record.tracker_error ? (
                     <Tooltip title={record.error || record.tracker_error}>
                         <div style={{
                             maxWidth: 140,
@@ -110,7 +110,7 @@ export class Torrents extends React.Component {
                             {record.error || record.tracker_error}
                         </div>
                     </Tooltip>
-                ),
+                ) : null,
             },
         ];
 

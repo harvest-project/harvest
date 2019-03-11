@@ -135,6 +135,7 @@ export class AlcazarInstances extends React.Component {
                 dataSource={this.state.clients}
                 columns={this.constructor.columns}
                 rowKey={i => i.name}
+                pagination={false}
                 expandedRowRender={this.expandedRowRender}
             />
         </div>;

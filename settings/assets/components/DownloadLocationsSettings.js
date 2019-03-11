@@ -111,6 +111,7 @@ export class DownloadLocationsSettings extends React.Component {
                     size="small"
                     columns={this.columns}
                     dataSource={this.getRealmLocations(realm)}
+                    pagination={false}
                     rowKey={i => i.id}
                 />
             </DivRow>)}

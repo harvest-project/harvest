@@ -10,6 +10,8 @@ from torrents.exceptions import AlcazarNotConfiguredException
 
 logger = logging.getLogger(__name__)
 
+UPDATE_BATCH_SIZE = 10000
+
 
 @db_periodic_task(IntervalSeconds(3))
 @transaction.atomic
@@ -21,11 +23,19 @@ def poll_alcazar():
         logger.info('Skipping alcazar poll due to missing config.')
         return
 
-    events = client.pop_updates()
-    # print(events)
+    update_batch = client.pop_update_batch(10000)
 
-    logger.debug('Received {} updates and {} deletes from alcazar.'.format(
-        len(events['updated']), len(events['removed'])))
+    num_added = 0
+    num_updated = 0
+    num_removed = 0
+
+    for realm_batch in update_batch.values():
+        num_added += len(realm_batch['added'])
+        num_updated += len(realm_batch['updated'])
+        num_removed += len(realm_batch['removed'])
+
+    logger.debug('Received {} added, {} updated and {} removed from alcazar.'.format(
+        num_added, num_updated, num_removed))
 
     processor = AlcazarEventProcessor()
-    processor.process(events)
+    processor.process(update_batch)

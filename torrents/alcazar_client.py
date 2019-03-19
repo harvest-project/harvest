@@ -138,8 +138,8 @@ class AlcazarClient:
     def _get_url(self, endpoint):
         return urllib.parse.urljoin(self.config.base_url, endpoint)
 
-    def pop_updates(self):
-        return self._request('POST', '/pop_updates')
+    def pop_update_batch(self, limit):
+        return self._request('POST', '/pop_update_batch', params={'limit': limit})
 
     def ping(self):
         return self._request('GET', '/ping')

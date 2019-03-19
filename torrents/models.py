@@ -16,7 +16,7 @@ class AlcazarClientConfig(models.Model):
     """Singleton model for storing the information to access alcazard."""
 
     base_url = models.CharField(max_length=2048)
-    token = models.CharField(max_length=64)
+    token = models.CharField(blank=True, max_length=64)
     unify_single_file_torrents = models.BooleanField(default=False)
 
     @classmethod

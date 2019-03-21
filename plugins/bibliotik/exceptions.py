@@ -1,4 +1,4 @@
-from trackers.exceptions import TrackerException
+from trackers.exceptions import TrackerException, TorrentNotFoundException
 
 
 class BibliotikException(TrackerException):
@@ -9,5 +9,5 @@ class BibliotikLoginException(BibliotikException):
     pass
 
 
-class BibliotikBadTorrentIdException(BibliotikException):
+class BibliotikTorrentNotFoundException(TorrentNotFoundException):
     pass

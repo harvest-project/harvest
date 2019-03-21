@@ -25,7 +25,6 @@ class DatabaseSyncedThrottler:
         requests = list(self.model.objects.select_for_update().order_by('datetime'))
 
         current_datetime = timezone.now()
-        print(len(requests))
         if len(requests) >= self.num_requests:
             sleep_time = self.per_seconds - (current_datetime - requests[0].datetime).total_seconds()
             if sleep_time > 0:

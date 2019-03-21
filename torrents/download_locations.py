@@ -9,8 +9,7 @@ from trackers.utils import TorrentFileInfo
 
 
 class DownloadLocationException(APIException):
-    def __init__(self, detail):
-        super().__init__(detail, 400)
+    status_code = 400
 
 
 class DownloadLocationComponent:

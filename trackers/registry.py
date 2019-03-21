@@ -2,8 +2,10 @@ from rest_framework.exceptions import APIException
 
 
 class PluginMissingException(APIException):
+    status_code = 400
+
     def __init__(self, name, action):
-        super().__init__('Missing plugin {} to perform {}.'.format(name, action), 400)
+        super().__init__('Missing plugin {} to perform {}.'.format(name, action))
 
 
 class DuplicatePluginException(Exception):

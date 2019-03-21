@@ -2,19 +2,20 @@ import base64
 
 from django.db import transaction
 from django.db.models import Q
-from rest_framework.exceptions import NotFound, APIException
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Harvest.utils import TransactionAPIView
-from torrents.add_torrent import add_torrent_from_file, add_torrent_from_tracker
+from torrents.add_torrent import add_torrent_from_file, add_torrent_from_tracker, fetch_torrent
 from torrents.alcazar_client import AlcazarClient, AlcazarRemoteException
+from torrents.exceptions import RealmNotFoundException
 from torrents.models import AlcazarClientConfig, Realm, Torrent, DownloadLocation
 from torrents.remove_torrent import remove_torrent
 from torrents.serializers import AlcazarClientConfigSerializer, RealmSerializer, TorrentSerializer, \
-    DownloadLocationSerializer
+    DownloadLocationSerializer, TorrentInfoSerializer
 from trackers.registry import TrackerRegistry
 
 
@@ -162,6 +163,20 @@ class TorrentByRealmInfoHash(TorrentView, APIView):
             raise NotFound()
 
 
+class FetchTorrent(APIView):
+    def post(self, request):
+        tracker_name = request.data['tracker_name']
+        tracker_id = request.data['tracker_id']
+        tracker = TrackerRegistry.get_plugin(tracker_name, self.__class__.__name__)
+
+        try:
+            realm = Realm.objects.get(name=tracker.name)
+        except Realm.DoesNotExist:
+            raise RealmNotFoundException(tracker.name)
+        added_torrent = fetch_torrent(realm, tracker, tracker_id)
+        return Response(TorrentInfoSerializer(added_torrent).data)
+
+
 class AddTorrentFromFile(APIView):
     @transaction.atomic
     def post(self, request):
@@ -172,7 +187,7 @@ class AddTorrentFromFile(APIView):
         try:
             realm = Realm.objects.get(name=realm_name)
         except Realm.DoesNotExist:
-            raise APIException('Realm {} not found. Please create one by adding an instance.'.format(realm_name), 400)
+            raise RealmNotFoundException(realm_name)
         added_torrent = add_torrent_from_file(realm, torrent_file, download_path_pattern)
         return Response(TorrentSerializer(added_torrent).data)
 
@@ -183,7 +198,7 @@ class AddTorrentFromTracker(APIView):
         tracker_id = request.data['tracker_id']
         download_path_pattern = request.data['download_path']
 
-        tracker = TrackerRegistry.get_plugin(tracker_name, 'add-torrent-from-tracker')
+        tracker = TrackerRegistry.get_plugin(tracker_name, self.__class__.__name__)
         added_torrent = add_torrent_from_tracker(tracker, tracker_id, download_path_pattern)
         return Response(TorrentSerializer(added_torrent).data)
 

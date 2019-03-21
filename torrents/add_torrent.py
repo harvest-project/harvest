@@ -4,7 +4,8 @@ from rest_framework.exceptions import APIException
 
 from torrents.alcazar_client import AlcazarClient, create_or_update_torrent_from_alcazar
 from torrents.download_locations import format_download_path_pattern
-from torrents.models import TorrentInfo, TorrentFile, Realm
+from torrents.models import TorrentInfo, TorrentFile, Realm, Torrent
+from trackers.utils import TorrentFileInfo
 
 
 def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
@@ -15,7 +16,7 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
 
     fetch_datetime = timezone.now()
     fetch_torrent_result = tracker.fetch_torrent(tracker_id)
-    info_hash = TorrentInfo(fetch_torrent_result.torrent_file).info_hash
+    info_hash = TorrentFileInfo(fetch_torrent_result.torrent_file).info_hash
     with transaction.atomic():
         torrent_info, _ = TorrentInfo.objects.update_or_create(
             realm=realm,
@@ -35,17 +36,30 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
                 'torrent_file': fetch_torrent_result.torrent_file,
             },
         )
+        try:
+            torrent = Torrent.objects.get(realm=realm, info_hash=info_hash)
+            torrent.torrent_info = torrent_info
+            torrent.save(update_fields=('torrent_info',))
+        except Torrent.DoesNotExist:
+            pass
         tracker.on_torrent_info_updated(torrent_info)
     return torrent_info
 
 
 def add_torrent_from_tracker(tracker, tracker_id, download_path_pattern, *, force_fetch=True):
-    client = AlcazarClient()
     try:
         realm = Realm.objects.get(name=tracker.name)
     except Realm.DoesNotExist:
         raise APIException('Realm for tracker {} not found. Please create one by adding an instance.'.format(
             tracker.name), 400)
+    try:
+        torrent_info = TorrentInfo.objects.get(realm=realm, tracker_id=tracker_id, is_deleted=False)
+        Torrent.objects.get(realm=realm, info_hash=torrent_info.info_hash)
+        raise APIException('Torrent already exists and is present in a client.', 400)
+    except (TorrentInfo.DoesNotExist, Torrent.DoesNotExist):
+        pass
+
+    client = AlcazarClient()
     torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=force_fetch)
     torrent_file_bytes = bytes(torrent_info.torrent_file.torrent_file)
     download_path = format_download_path_pattern(

@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
 from Harvest.utils import get_filename_from_content_disposition
-from plugins.bibliotik.exceptions import BibliotikException, BibliotikLoginException
+from plugins.bibliotik.exceptions import BibliotikException, BibliotikLoginException, BibliotikTorrentNotFoundException
 from plugins.bibliotik.models import BibliotikThrottledRequest, BibliotikClientConfig
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class BibliotikClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers = HEADERS
-        self.throttler = DatabaseSyncedThrottler(BibliotikThrottledRequest, 5, 10)
+        self.throttler = DatabaseSyncedThrottler(BibliotikThrottledRequest, 5, 5)
         self.config = None
 
     @property
@@ -144,7 +144,6 @@ class BibliotikClient:
 
                 self.throttler.throttle_request(url='{} {}'.format(method, url))
                 resp = self.session.request(method, url, **kwargs)
-                resp.raise_for_status()
         else:
             logger.debug('No login credentials found, attempting fresh login')
             self._login()
@@ -153,7 +152,11 @@ class BibliotikClient:
             resp = self.session.request(method, url, **kwargs)
             if resp.status_code == 401:
                 raise BibliotikException('API returned redirect after fresh login')
-            resp.raise_for_status()
+
+        is_not_found_redirect = resp.status_code == 302 and resp.headers.get('Location', '').startswith('/log/?search')
+        if resp.status_code == 404 or is_not_found_redirect:
+            raise BibliotikTorrentNotFoundException()
+        resp.raise_for_status()
 
         return resp
 

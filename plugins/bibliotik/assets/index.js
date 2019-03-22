@@ -7,7 +7,8 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 
 class BibliotikPlugin {
-    static pluginName = 'Bibliotik.me Plugin';
+    static pluginName = 'bibliotik';
+    static displayName = 'Bibliotik.me Plugin';
 
     static mainMenuItems = [];
 

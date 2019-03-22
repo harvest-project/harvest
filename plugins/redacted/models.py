@@ -5,6 +5,7 @@ from django.db import models
 
 from Harvest.throttling import ThrottledRequest
 from plugins.redacted.exceptions import RedactedException
+from torrents.fields import InfoHashField
 from torrents.models import TorrentInfo
 
 
@@ -87,7 +88,7 @@ class RedactedTorrent(models.Model):
 
     torrent_info = models.OneToOneField(TorrentInfo, models.CASCADE, related_name='redacted_torrent')
     torrent_group = models.ForeignKey(RedactedTorrentGroup, models.PROTECT)
-    info_hash = models.CharField(max_length=40)
+    info_hash = InfoHashField(db_index=True)
     media = models.CharField(max_length=64)
     format = models.CharField(max_length=64)
     encoding = models.CharField(max_length=64)

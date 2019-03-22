@@ -10,6 +10,7 @@ import {AddTorrentFromTracker} from 'torrents/assets/components/AddTorrentFromTr
 import {TorrentDetailsDisplay} from 'torrents/assets/components/TorrentDetailsDisplay';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 import {TorrentStatus} from 'torrents/assets/utils';
+import {pluginsByName} from '../../../home/assets/PluginRegistry';
 
 const iconError = <Icon type="close-circle" style={{color: 'red', fontSize: 18}}/>;
 const iconDownloading = <Icon type="download" style={{color: '#1890ff', fontSize: 18}}/>;
@@ -62,32 +63,31 @@ export class Torrents extends React.Component {
                 title: 'ID',
                 dataIndex: 'id',
                 sorter: true,
+                width: 90,
             },
             {
                 title: 'Realm',
                 dataIndex: 'realm',
                 render: data => <span>{this.context.getRealmById(data).name}</span>,
+                width: 80,
             },
             {
                 key: 'status',
                 title: '',
                 render: renderIcon,
                 sorter: true,
+                width: 40,
             },
             {
+                key: 'name',
                 title: 'Name',
-                dataIndex: 'name',
-                render: data => <div style={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                }}>
-                    {data}
-                </div>,
+                render: this.renderNameColumn.bind(this),
             },
             {
                 title: 'Size',
                 dataIndex: 'size',
                 render: data => formatBytes(data).replace(' ', '\u00a0'),
+                width: 100,
             },
             {
                 title: 'Progress',
@@ -136,6 +136,22 @@ export class Torrents extends React.Component {
         });
 
         this.queryIndex = 0; // Used to avoid duplicate / out-of-order AJAX queries
+    }
+
+    renderNameColumn(data, record) {
+        let content = record.name;
+        if (record.torrent_info && record.torrent_info.metadata) {
+            const MetadataRenderer = this.metadataColumnRenderers[record.realm];
+            if (MetadataRenderer) {
+                content = <span>
+                    <Tooltip title={'Original Name: ' + record.name}><Icon type="info-circle"/></Tooltip>
+                    <MetadataRenderer torrentInfo={record.torrent_info}/>
+                </span>;
+            }
+        }
+        return <div style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>
+            {content}
+        </div>;
     }
 
     componentDidMount() {
@@ -273,6 +289,15 @@ export class Torrents extends React.Component {
     }
 
     render() {
+        // TODO: Do not recompute this on every render, but only when realm changes.
+        this.metadataColumnRenderers = {};
+        for (const [name, plugin] of Object.entries(pluginsByName)) {
+            const realm = this.context.getRealmByName(name);
+            if (plugin.metadataColumnRenderer && realm) {
+                this.metadataColumnRenderers[realm.id] = plugin.metadataColumnRenderer;
+            }
+        }
+
         return <div>
             <Timer interval={3000} onInterval={() => this.refreshTorrents()}/>
 

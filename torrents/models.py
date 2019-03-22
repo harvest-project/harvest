@@ -1,6 +1,7 @@
 from django.db import models
 
 from torrents.exceptions import AlcazarNotConfiguredException
+from torrents.fields import InfoHashField
 
 
 class Realm(models.Model):
@@ -49,7 +50,7 @@ class TorrentInfo(models.Model):
     # If the original is deleted, instead of deleting it from DB, we can just mark it as is_deleted=True
     is_deleted = models.BooleanField()
     # Info hash of the torrent inside.
-    info_hash = models.CharField(max_length=40, db_index=True)
+    info_hash = InfoHashField(db_index=True)
     # Tracker-specific torrent identifier. In most cases this is a torrent_id in some for or another.
     tracker_id = models.CharField(max_length=65536)
     # Date when this information was fetched (or updated).
@@ -101,7 +102,7 @@ class Torrent(models.Model):
     torrent_info = models.OneToOneField(TorrentInfo, models.PROTECT, null=True, related_name='torrent')
 
     client = models.CharField(max_length=64)
-    info_hash = models.CharField(max_length=40, db_index=True)
+    info_hash = InfoHashField(db_index=True)
     status = models.IntegerField(choices=STATUS_CHOICES)
     download_path = models.CharField(max_length=65536)
     name = models.TextField(null=True)

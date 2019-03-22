@@ -5,9 +5,11 @@ import {RedactedUrls} from 'plugins/redacted/assets/RedactedUrls';
 import {Routes} from 'plugins/redacted/assets/Routes';
 import React from 'react';
 import {Link} from 'react-router-dom';
+import {MetadataColumnDisplay} from "./controls/MetadataColumnDisplay";
 
 class RedactedPlugin {
-    static pluginName = 'Redacted.ch Plugin';
+    static pluginName = 'redacted';
+    static displayName = 'Redacted.ch Plugin';
 
     static mainMenuItems = [];
 
@@ -21,6 +23,8 @@ class RedactedPlugin {
     ];
 
     static routes = Routes;
+
+    static metadataColumnRenderer = MetadataColumnDisplay;
 }
 
 registerPlugin(RedactedPlugin);

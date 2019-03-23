@@ -179,8 +179,11 @@ class BibliotikClient:
 
             self.config = None
 
-        raise BibliotikException('Unable to fetch torrent data from Bibliotik: {}'.format(
-            request_exception)) from request_exception
+        if isinstance(request_exception, BibliotikException):
+            raise request_exception
+        else:
+            raise BibliotikException('Unable to fetch torrent data from Bibliotik: {}'.format(
+                request_exception)) from request_exception
 
     def get_index(self):
         r = self._request('GET', self.index_url, allow_redirects=False)

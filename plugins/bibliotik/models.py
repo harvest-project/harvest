@@ -51,7 +51,7 @@ class BibliotikThrottledRequest(ThrottledRequest, models.Model):
 
 
 class BibliotikTorrent(models.Model):
-    CATEGORY_BOOKS = 'Ebooks'
+    CATEGORY_EBOOKS = 'Ebooks'
     CATEGORY_APPLICATIONS = 'Applications'
     CATEGORY_ARTICLES = 'Articles'
     CATEGORY_AUDIOBOOKS = 'Audiobooks'
@@ -60,7 +60,7 @@ class BibliotikTorrent(models.Model):
     CATEGORY_MAGAZINES = 'Magazines'
 
     CATEGORY_CHOICES = (
-        (CATEGORY_BOOKS, CATEGORY_BOOKS),
+        (CATEGORY_EBOOKS, CATEGORY_EBOOKS),
         (CATEGORY_APPLICATIONS, CATEGORY_APPLICATIONS),
         (CATEGORY_ARTICLES, CATEGORY_ARTICLES),
         (CATEGORY_AUDIOBOOKS, CATEGORY_AUDIOBOOKS),
@@ -84,13 +84,14 @@ class BibliotikTorrent(models.Model):
     category = models.CharField(max_length=32, choices=CATEGORY_CHOICES)
     format = models.CharField(max_length=16)
     retail = models.BooleanField(default=False)
-    pages = models.IntegerField()
+    pages = models.IntegerField(null=True)
     language = models.CharField(max_length=32, choices=LANGUAGE_CHOICES)
-    isbn = models.CharField(max_length=16)
+    isbn = models.CharField(max_length=16, null=True)
     cover_url = models.TextField()
     tags = models.TextField()
     publisher = models.TextField()
     year = models.IntegerField(null=True)
-    author = models.TextField()
+    joined_authors = models.TextField()
+    authors_json = models.TextField()
     title = models.TextField()
     size = models.BigIntegerField()

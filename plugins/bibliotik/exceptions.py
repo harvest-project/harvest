@@ -9,5 +9,5 @@ class BibliotikLoginException(BibliotikException):
     pass
 
 
-class BibliotikTorrentNotFoundException(TorrentNotFoundException):
+class BibliotikTorrentNotFoundException(TorrentNotFoundException, BibliotikException):
     pass

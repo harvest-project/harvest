@@ -22,9 +22,10 @@ class BibliotikTrackerPlugin(BaseTracker):
 
     @transaction.atomic
     def on_torrent_info_updated(self, torrent_info):
-        try:
-            torrent = BibliotikTorrent.objects.select_for_update().get(id=torrent_info.tracker_id)
-        except BibliotikTorrent.DoesNotExist:
-            torrent = BibliotikTorrent()
-        html_parser.update_torrent_from_html(torrent, torrent_info.raw_response)
-        torrent.save()
+        # try:
+        #     torrent = BibliotikTorrent.objects.select_for_update().get(id=torrent_info.tracker_id)
+        # except BibliotikTorrent.DoesNotExist:
+        #     torrent = BibliotikTorrent()
+        # html_parser.update_torrent_from_html(torrent, torrent_info.raw_response)
+        # torrent.save()
+        pass

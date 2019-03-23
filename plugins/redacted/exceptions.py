@@ -1,4 +1,4 @@
-from trackers.exceptions import TrackerException
+from trackers.exceptions import TrackerException, TorrentNotFoundException
 
 
 class RedactedException(TrackerException):
@@ -9,7 +9,7 @@ class RedactedLoginException(RedactedException):
     pass
 
 
-class RedactedBadTorrentIdException(RedactedException):
+class RedactedTorrentNotFoundException(TorrentNotFoundException, RedactedException):
     pass
 
 

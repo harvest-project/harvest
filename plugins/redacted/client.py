@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
 from Harvest.utils import get_filename_from_content_disposition
-from plugins.redacted.exceptions import RedactedBadTorrentIdException, RedactedRateLimitExceededException, \
+from plugins.redacted.exceptions import RedactedTorrentNotFoundException, RedactedRateLimitExceededException, \
     RedactedException, RedactedLoginException
 from plugins.redacted.models import RedactedThrottledRequest, RedactedClientConfig
 
@@ -184,7 +184,7 @@ class RedactedClient:
             data = resp.json()
             if data['status'] != 'success':
                 if data['error'] == 'bad id parameter':
-                    raise RedactedBadTorrentIdException('Bad torrent: {}'.format(data))
+                    raise RedactedTorrentNotFoundException()
                 elif data['error'] == 'rate limit exceeded':
                     raise RedactedRateLimitExceededException(data)
                 raise RedactedException('Unknown Redacted API error: {}'.format(data))

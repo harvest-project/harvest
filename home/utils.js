@@ -1,5 +1,3 @@
-import prettysize from 'prettysize';
-
 export function formatDateTimeString(dateTimeString) {
     return new Intl.DateTimeFormat(undefined, {
         year: 'numeric',
@@ -11,8 +9,27 @@ export function formatDateTimeString(dateTimeString) {
     }).format(new Date(dateTimeString));
 }
 
+const bytesSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
 export function formatBytes(bytes) {
-    return prettysize(bytes, {places: 2});
+    if (bytes < 1000) {
+        return Math.round(bytes) + ' B';
+    }
+
+    let suffix = 0;
+    while (bytes >= 1000) {
+        suffix++;
+        bytes /= 1000;
+    }
+    let decimals;
+    if (bytes < 10) {
+        decimals = 2;
+    } else if (bytes < 100) {
+        decimals = 1;
+    } else {
+        decimals = 0;
+    }
+    return `${bytes.toFixed(decimals)} ${bytesSuffixes[suffix]}`;
 }
 
 // The static fields are hoisted and due to a bug, the context shows up in the HOC. This works around it.

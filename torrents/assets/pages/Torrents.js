@@ -96,6 +96,18 @@ export class Torrents extends React.Component {
                 width: 140,
             },
             {
+                title: 'Down',
+                dataIndex: 'download_rate',
+                render: data => data > 0 ? formatBytes(data) + '/s' : '',
+                width: 80,
+            },
+            {
+                title: 'Up',
+                dataIndex: 'upload_rate',
+                render: data => data > 0 ? formatBytes(data) + '/s' : '',
+                width: 80,
+            },
+            {
                 key: 'error',
                 title: 'Error',
                 width: 140,

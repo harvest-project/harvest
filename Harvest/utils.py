@@ -48,3 +48,20 @@ class CORSBrowserExtensionView(APIView):
                 response['Access-Control-Allow-Headers'] = request_headers
 
         return self.response
+
+
+def chunks(iterable, n):
+    chunk = []
+    for item in iterable:
+        chunk.append(item)
+        if len(chunk) >= n:
+            yield chunk
+            chunk = []
+    if len(chunk):
+        yield chunk
+
+
+def qs_chunks(qs, n):
+    ids = list(qs.values_list('id', flat=True))
+    for ids_chunk in chunks(ids, n):
+        yield qs.model.objects.filter(pk__in=ids_chunk)

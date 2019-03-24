@@ -74,7 +74,7 @@ def _parse_language_pages(torrent, soup):
         if not tag:
             raise BibliotikHtmlParseException('Unable to find p#details_content_info')
         match = re.match(
-            r'^(?P<language>{})(, \d+ hours? \d+ minutes?)?(, (?P<pages>\d+) pages)?(, (Unabridged|Abridged))$'.format(
+            r'^(?P<language>{})(, \d+ hours?( \d+ minutes?)?)?(, (?P<pages>\d+) pages)?(, (Unabridged|Abridged))$'.format(
                 LANGUAGE_REGEX),
             tag.text.strip())
         if not match:

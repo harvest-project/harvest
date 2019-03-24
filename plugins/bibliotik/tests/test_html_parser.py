@@ -94,3 +94,25 @@ class HtmlParserTests(TestCase):
         self.assertEqual(json.loads(torrent.authors_json), [{'id': 775, 'name': 'Jean Baudrillard'}])
         self.assertEqual(torrent.title, 'Forget Foucault (Foreign Agents)')
         self.assertEqual(torrent.size, 2200000)
+
+    def test_audiobook_590771(self):
+        torrent = self._get_torrent('590771.html')
+
+        self.assertEqual(torrent.category, BibliotikTorrent.CATEGORY_AUDIOBOOKS)
+        self.assertEqual(torrent.format, 'M4B 64 kbps')
+        self.assertFalse(torrent.retail)
+        self.assertEqual(torrent.pages, None)
+        self.assertEqual(torrent.language, 'English')
+        self.assertEqual(torrent.isbn, None)
+        self.assertEqual(
+            torrent.cover_url,
+            'https://imagecache.bibliotik.me/?url=ssl%3Am.media-amazon.com%2Fimages%2FI%2F51s1X5B91gL.jpg&w=220&t=fitup',
+        )
+        self.assertEqual(torrent.tags, 'nonfiction, history, biography, collectibles, rare books')
+        self.assertEqual(torrent.publisher, 'Penguin Audio')
+        self.assertEqual(torrent.year, 2019)
+        self.assertEqual(torrent.joined_authors, 'Margaret Leslie Davis')
+        self.assertEqual(json.loads(torrent.authors_json), [{'id': 144964, 'name': 'Margaret Leslie Davis'}])
+        self.assertEqual(torrent.title,
+                         'The Lost Gutenberg: The Astounding Story of One Book\'s Five-Hundred-Year Odyssey')
+        self.assertEqual(torrent.size, 174970000)

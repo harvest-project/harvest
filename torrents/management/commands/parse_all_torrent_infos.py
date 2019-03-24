@@ -18,7 +18,7 @@ class Command(BaseCommand):
             print('Realm does not exist.')
             return
 
-        for ti_batch in qs_chunks(TorrentInfo.objects.filter(realm=realm), 1000):
+        for ti_batch in qs_chunks(TorrentInfo.objects.filter(realm=realm, id__gte=3100), 1000):
             print('Process batch')
             with transaction.atomic():
                 for ti in ti_batch:

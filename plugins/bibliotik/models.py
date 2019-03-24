@@ -75,6 +75,9 @@ class BibliotikTorrent(models.Model):
     LANGUAGE_CHOICES = tuple((l, l) for l in LANGUAGES)
 
     EBOOK_FORMATS = ['EPUB', 'PDF', 'MOBI', 'AZW3', 'DJVU', 'CBR', 'CHM', 'TXT']
+    AUDIOBOOK_FORMATS = ['MP3', 'M4A', 'M4B']
+    AUDIOBOOK_BITRATES = ['32 kbps', 'V8', '48 kbps', '64 kbps', '96 kbps', '128 kbps', 'V4', '160 kbps',
+                          '192 kbps', '224 kbps', 'V2', '256 kbps', 'V0', '320 kbps']
 
     fetched_datetime = models.DateTimeField()
     is_deleted = models.BooleanField()

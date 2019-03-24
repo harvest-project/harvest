@@ -3,12 +3,14 @@ from django.db import transaction
 from plugins.bibliotik import html_parser
 from plugins.bibliotik.client import BibliotikClient
 from plugins.bibliotik.models import BibliotikTorrent
+from plugins.bibliotik.serializers import BibliotikTorrentInfoMetadataSerializer
 from trackers.models import FetchTorrentResult, BaseTracker
 
 
 class BibliotikTrackerPlugin(BaseTracker):
     name = 'bibliotik'
     display_name = 'Bibliotik.me'
+    torrent_info_metadata_serializer = BibliotikTorrentInfoMetadataSerializer
 
     def fetch_torrent(self, tracker_id):
         client = BibliotikClient()

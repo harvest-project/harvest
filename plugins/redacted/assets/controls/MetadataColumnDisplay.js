@@ -13,7 +13,7 @@ export class MetadataColumnDisplay extends React.Component {
             {` ${group.joined_artists} - ${group.name}`}
             <span style={{fontStyle: 'italic', color: 'gray'}}>
                 &nbsp;{` ${torrent.remaster_year}`}
-                {torrent.remaster_year !== group.year ? ` (${group.year})` : ''}`
+                {torrent.remaster_year !== group.year ? ` (${group.year})` : ''}
                 {` ${torrent.media} - ${torrent.format} - ${torrent.encoding}`}
             </span>
         </span>;

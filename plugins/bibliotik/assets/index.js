@@ -5,6 +5,7 @@ import bibliotik from 'plugins/bibliotik/assets/images/bibliotik.png';
 import {Routes} from 'plugins/bibliotik/assets/Routes';
 import React from 'react';
 import {Link} from 'react-router-dom';
+import {MetadataColumnDisplay} from 'plugins/bibliotik/assets/controls/MetadataColumnDisplay';
 
 class BibliotikPlugin {
     static pluginName = 'bibliotik';
@@ -22,6 +23,8 @@ class BibliotikPlugin {
     ];
 
     static routes = Routes;
+
+    static metadataColumnRenderer = MetadataColumnDisplay;
 }
 
 registerPlugin(BibliotikPlugin);

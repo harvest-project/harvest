@@ -9,6 +9,7 @@ from trackers.registry import TrackerRegistry
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('tracker')
+        parser.add_argument('--start-id')
 
     def handle(self, *args, **options):
         bibliotik = TrackerRegistry.get_plugin(options['tracker'])
@@ -18,7 +19,8 @@ class Command(BaseCommand):
             print('Realm does not exist.')
             return
 
-        for ti_batch in qs_chunks(TorrentInfo.objects.filter(realm=realm), 1000):
+        start_id = options.get('start_id') or 1
+        for ti_batch in qs_chunks(TorrentInfo.objects.filter(realm=realm, id__gte=start_id), 1000):
             print('Process batch')
             with transaction.atomic():
                 for ti in ti_batch:

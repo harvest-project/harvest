@@ -11,10 +11,14 @@ function discoverPlugins() {
         if (pluginName.startsWith('_') || pluginName.startsWith('.')) {
             continue;
         }
+        const indexJsPath = path.resolve(pluginDir, 'assets', 'index.js');
+        if (!fs.existsSync(indexJsPath)) {
+            continue;
+        }
         plugins.push({
             name: pluginName,
             path: pluginDir,
-            entryPath: path.resolve(pluginDir, 'assets', 'index.js'),
+            entryPath: indexJsPath,
         });
     }
     return plugins;

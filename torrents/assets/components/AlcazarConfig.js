@@ -1,6 +1,5 @@
 import {Button, Checkbox, Col, Form, Input, message, Row} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
-import {Timer} from 'home/assets/controls/Timer';
 import {HarvestContext} from 'home/assets/context';
 import React from 'react';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
@@ -27,9 +26,11 @@ export class AlcazarConfig extends React.Component {
             isDhtEnabled: false,
             localPortPoolsFmt: '',
             peerPortPoolsFmt: '',
+            cleanDirectoriesOnRemove: false,
+            cleanTorrentFileOnRemove: false,
 
             isSaving: false,
-        }
+        };
     }
 
     componentDidMount() {
@@ -52,22 +53,10 @@ export class AlcazarConfig extends React.Component {
                 isDhtEnabled: data.is_dht_enabled,
                 localPortPoolsFmt: data.local_port_pools_fmt,
                 peerPortPoolsFmt: data.peer_port_pools_fmt,
+                cleanDirectoriesOnRemove: data.clean_directories_on_remove,
+                cleanTorrentFileOnRemove: data.clean_torrent_file_on_remove,
             });
         });
-    }
-
-    // Fired by the timer to refresh the config data
-    async refreshAlcazarConfig() {
-        // let data;
-        // try {
-        //     data = await TorrentsAPI.getAlcazarClientConfig();
-        // } catch (response) {
-        //     await APIHelper.showResponseError(response, 'Failed to refresh config');
-        //     return;
-        // }
-        // this.setState({
-        //     config: data,
-        // });
     }
 
     async saveAlcazarConfig() {
@@ -79,6 +68,8 @@ export class AlcazarConfig extends React.Component {
                 is_dht_enabled: this.state.isDhtEnabled,
                 local_port_pools_fmt: this.state.localPortPoolsFmt,
                 peer_port_pools_fmt: this.state.peerPortPoolsFmt,
+                clean_directories_on_remove: this.state.cleanDirectoriesOnRemove,
+                clean_torrent_file_on_remove: this.state.cleanTorrentFileOnRemove,
             });
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to save settings');
@@ -90,32 +81,12 @@ export class AlcazarConfig extends React.Component {
         message.success('Saved Alcazar settings');
     }
 
-    async testConnection() {
-        // this.setState({isTesting: true});
-        // try {
-        //     const response = await TorrentsAPI.testAlcazarConnection();
-        //     if (response.success) {
-        //         this.setState({isTesting: false, testResult: true, testMessage: 'Successful connection to Alcazar'});
-        //     } else {
-        //         this.setState({isTesting: false, testResult: false, testMessage: response.detail});
-        //     }
-        // } catch (exception) {
-        //     this.setState({
-        //         isTesting: false,
-        //         testResult: false,
-        //         testMessage: <ResponseErrorDisplay response={exception} additionalMessage="Connection failed"/>,
-        //     });
-        // }
-    }
-
     render() {
         return <Row gutter={24}>
-            <Timer interval={1000} onInterval={() => this.refreshAlcazarConfig()}/>
-
             <Col sm={24} md={12} lg={10}>
                 <Form layout="vertical" onSubmit={e => {
                     e.preventDefault();
-                    this.saveAlcazarConfig()
+                    this.saveAlcazarConfig();
                 }}>
                     <Form.Item
                         label="API Port:"
@@ -166,6 +137,34 @@ export class AlcazarConfig extends React.Component {
                     >
                         <Input type="text" value={this.state.peerPortPoolsFmt}
                                onChange={event => this.setState({peerPortPoolsFmt: event.target.value})}/>
+                    </Form.Item>
+
+                    <Form.Item
+                        {...fieldLayout}
+                        help="When removing a torrent, delete all directories that are empty (or would be empty after
+                        cleaned with the &quot;Clean torrent file on remove&quot; option) going up the filesystem tree
+                        until a non-empty directories is encountered"
+                    >
+                        <Checkbox checked={this.state.cleanDirectoriesOnRemove}
+                                  onChange={event => this.setState({
+                                      cleanDirectoriesOnRemove: event.target.checked,
+                                  })}>
+                            Clean Directories On Remove
+                        </Checkbox>
+                    </Form.Item>
+
+                    <Form.Item
+                        {...fieldLayout}
+                        help="When cleaning the directories for a remove torrent, also remove a single .torrent file
+                        in the directory if present, also a ReleaseInfo2.txt, if present. Do not touch the directory
+                        if there are other files present."
+                    >
+                        <Checkbox checked={this.state.cleanTorrentFileOnRemove}
+                                  onChange={event => this.setState({
+                                      cleanTorrentFileOnRemove: event.target.checked,
+                                  })}>
+                            Clean Torrent File On Remove
+                        </Checkbox>
                     </Form.Item>
 
                     <Form.Item {...submitLayout}>

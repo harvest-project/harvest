@@ -45,6 +45,11 @@ def get_plugins_list():
             )]
 
 
+def module_name_to_app_name(module_name):
+    parts = module_name.split('_')
+    return ''.join(part.capitalize() for part in parts)
+
+
 PLUGINS = get_plugins_list()
 
 # Application definition
@@ -65,7 +70,8 @@ INSTALLED_APPS = [
     'torrents.apps.TorrentsConfig',
     'trackers.apps.TrackersConfig',
 ]
-INSTALLED_APPS += ['plugins.{}.apps.{}Config'.format(plugin_name, plugin_name.capitalize()) for plugin_name in PLUGINS]
+INSTALLED_APPS += ['plugins.{}.apps.{}Config'.format(
+    plugin_name, module_name_to_app_name(plugin_name)) for plugin_name in PLUGINS]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

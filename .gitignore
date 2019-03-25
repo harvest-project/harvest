@@ -14,3 +14,7 @@ postgres-data
 playbook.retry
 /django_env
 /alcazard/
+
+/plugins/*
+!/plugins/redacted/
+!/plugins/bibliotik/

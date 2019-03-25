@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 
 from plugins.bibliotik.models import BibliotikTorrent
 
+HTML_PARSER = 'html5lib'
+
 SIZE_REGEX = r'(?P<size>[\d,.]+ (B|KB|MB|GB))'
 LANGUAGE_REGEX = '|'.join(re.escape(lang) for lang in BibliotikTorrent.LANGUAGES)
 EBOOK_FORMATS_REGEX = '|'.join(re.escape(format) for format in BibliotikTorrent.EBOOK_FORMATS)
@@ -141,7 +143,7 @@ def _parse_cover_url(torrent, soup):
 
 
 def update_torrent_from_html(torrent, html):
-    soup = BeautifulSoup(html, 'html5lib')
+    soup = BeautifulSoup(html, HTML_PARSER)
     _parse_category(torrent, soup)
     _parse_title(torrent, soup)
     _parse_authors(torrent, soup)
@@ -150,3 +152,18 @@ def update_torrent_from_html(torrent, html):
     _parse_tags(torrent, soup)
     _parse_retail_format_size(torrent, soup)
     _parse_cover_url(torrent, soup)
+
+
+def parse_search_results(html):
+    soup = BeautifulSoup(html, HTML_PARSER)
+    table_tag = soup.find('table', id='torrents_table')
+    results = []
+    for row_tag in table_tag.find_all('tr', class_='torrent'):
+        row_id = row_tag['id']
+        if not row_id.startswith('torrent-'):
+            raise Exception('Invalid row_id {}'.format(row_id))
+        results.append({
+            'tracker_id': int(row_id[len('torrent-'):]),
+            'title': row_tag.find('span', class_='title').text.strip()
+        })
+    return results

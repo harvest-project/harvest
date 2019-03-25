@@ -193,6 +193,10 @@ class BibliotikClient:
         r = self._request('GET', self.get_torrent_url(torrent_id), allow_redirects=False)
         return r.text
 
+    def search(self, query):
+        r = self._request('GET', self.torrents_url, params={'search': query})
+        return r.text
+
     def get_torrent_file(self, torrent_id):
         """Downloads the torrent at torrent_id using the authkey and passkey"""
 

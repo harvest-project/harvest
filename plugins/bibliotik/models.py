@@ -84,7 +84,7 @@ class BibliotikTorrent(models.Model):
 
     torrent_info = models.OneToOneField(TorrentInfo, models.CASCADE, related_name='bibliotik_torrent')
     info_hash = InfoHashField(db_index=True)
-    category = models.CharField(max_length=32, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=32, choices=CATEGORY_CHOICES, db_index=True)
     format = models.CharField(max_length=16, null=True)
     retail = models.BooleanField(default=False)
     pages = models.IntegerField(null=True)

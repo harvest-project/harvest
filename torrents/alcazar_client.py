@@ -95,7 +95,7 @@ def create_or_update_torrent_from_alcazar(realm, torrent_info_id, torrent_state)
 class AlcazarRemoteException(APIException):
     def __init__(self, message, response=None):
         self.status_code = 500
-        if response is not None and response.status_code in {400, 404}:  # Exceptions that we forward in our API
+        if response is not None and response.status_code in {400, 404, 409}:  # Exceptions that we forward in our API
             self.status_code = response.status_code
         super().__init__(message)
 

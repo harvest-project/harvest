@@ -69,9 +69,12 @@ class BibliotikTorrent(models.Model):
         (CATEGORY_MAGAZINES, CATEGORY_MAGAZINES),
     )
 
-    LANGUAGES = ['English', 'Irish', 'German', 'French', 'Spanish', 'Italian', 'Latin', 'Japanese',
-                 'Danish', 'Swedish', 'Norwegian', 'Dutch', 'Russian', 'Polish', 'Portuguese', 'Greek',
-                 'Turkish', 'Hungarian', 'Korean', 'Chinese', 'Thai', 'Indonesian', 'Arabic']
+    LANGUAGES = ['English', 'Irish', 'German', 'French', 'Spanish', 'Italian', 'Latin', 'Hebrew', 'Hindi', 'Japanese',
+                 'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Dutch', 'Russian', 'Polish', 'Portuguese', 'Greek',
+                 'Catalan', 'Turkish', 'Hungarian', 'Bulgarian', 'Czech', 'Slovak', 'Serbian', 'Croatian', 'Macedonian',
+                 'Ukrainian', 'Romanian', 'Korean', 'Chinese', 'Thai', 'Indonesian', 'Tagalog', 'Arabic', 'Bengali',
+                 'Slovenian', 'Esperanto', 'Inuktitut', 'Tamil']
+
     LANGUAGE_CHOICES = tuple((l, l) for l in LANGUAGES)
 
     EBOOK_FORMATS = ['EPUB', 'PDF', 'MOBI', 'AZW3', 'DJVU', 'CBR', 'CHM', 'TXT']

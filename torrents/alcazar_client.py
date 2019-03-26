@@ -7,6 +7,7 @@ import urllib.parse
 import django
 import requests
 from django.db import transaction
+from iso8601 import iso8601
 from requests import Session
 from rest_framework.exceptions import APIException
 
@@ -52,7 +53,7 @@ def _update_torrent_from_alcazar(torrent, torrent_state):
     torrent.download_rate = torrent_state['download_rate']
     torrent.upload_rate = torrent_state['upload_rate']
     torrent.progress = torrent_state['progress']
-    torrent.added_datetime = torrent_state['date_added']
+    torrent.added_datetime = iso8601.parse_date(torrent_state['date_added'])
     torrent.error = torrent_state['error']
     torrent.tracker_error = torrent_state['tracker_error']
 

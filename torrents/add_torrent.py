@@ -5,6 +5,7 @@ from rest_framework.exceptions import APIException
 from torrents.alcazar_client import AlcazarClient, create_or_update_torrent_from_alcazar
 from torrents.download_locations import format_download_path_pattern
 from torrents.models import TorrentInfo, TorrentFile, Realm, Torrent
+from trackers.exceptions import TorrentNotFoundException
 from trackers.utils import TorrentFileInfo
 
 
@@ -15,7 +16,22 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
             return torrent_info
 
     fetch_datetime = timezone.now()
-    fetch_torrent_result = tracker.fetch_torrent(tracker_id)
+
+    # After fetching, if the torrent does not exist, but we have it in the DB, mark it as deleted
+    try:
+        fetch_torrent_result = tracker.fetch_torrent(tracker_id)
+    except TorrentNotFoundException:
+        try:
+            torrent_info = TorrentInfo.objects.get(realm=realm, tracker_id=tracker_id)
+            torrent_info.is_deleted = True
+            torrent_info.fetched_datetime = fetch_datetime
+            torrent_info.save(update_fields=('fetched_datetime', 'is_deleted',))
+            tracker.on_torrent_info_updated(torrent_info)
+            return torrent_info
+        except TorrentInfo.DoesNotExist:
+            pass
+        raise
+
     info_hash = TorrentFileInfo(fetch_torrent_result.torrent_file).info_hash
     with transaction.atomic():
         torrent_info, _ = TorrentInfo.objects.update_or_create(

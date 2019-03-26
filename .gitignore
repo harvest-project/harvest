@@ -1,5 +1,11 @@
 __pycache__/
 .DS_Store
+.ipynb_checkpoints/
+.venv
+.vscode
+postgres-data
+playbook.retry
+.vagrant
 
 /.idea/
 /db.sqlite3
@@ -7,13 +13,9 @@ __pycache__/
 /node_modules/
 /static/
 /dist/
-.venv
-.vscode
-postgres-data
-.vagrant
-playbook.retry
 /django_env
 /alcazard/
+/scratch/
 
 /plugins/*
 !/plugins/redacted/

@@ -24,7 +24,7 @@ class BibliotikClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers = HEADERS
-        self.throttler = DatabaseSyncedThrottler(BibliotikThrottledRequest, 5, 5)
+        self.throttler = DatabaseSyncedThrottler(BibliotikThrottledRequest, 8, 5)
         self.config = None
 
     @property

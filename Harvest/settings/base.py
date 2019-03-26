@@ -133,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = env.str('DJANGO_TIME_ZONE', 'UTC')
 
 USE_I18N = True
 
@@ -180,7 +180,7 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+            'level': env.str('DJANGO_LOG_LEVEL', 'DEBUG'),
         },
     },
 }

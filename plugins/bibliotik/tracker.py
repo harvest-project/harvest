@@ -17,7 +17,7 @@ class BibliotikTrackerPlugin(BaseTracker):
         torrent_html = client.get_torrent(tracker_id)
         torrent_filename, torrent_file = client.get_torrent_file(tracker_id)
         return FetchTorrentResult(
-            raw_response=torrent_html,
+            raw_response=torrent_html.encode(),
             torrent_filename=torrent_filename,
             torrent_file=torrent_file,
         )
@@ -36,5 +36,5 @@ class BibliotikTrackerPlugin(BaseTracker):
             return
         torrent.fetched_datetime = torrent_info.fetched_datetime
         torrent.is_deleted = torrent_info.is_deleted
-        html_parser.update_torrent_from_html(torrent, torrent_info.raw_response)
+        html_parser.update_torrent_from_html(torrent, bytes(torrent_info.raw_response).decode())
         torrent.save()

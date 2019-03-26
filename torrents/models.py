@@ -56,7 +56,7 @@ class TorrentInfo(models.Model):
     # Date when this information was fetched (or updated).
     fetched_datetime = models.DateTimeField()
     # Tracker plugin specific raw tracker data - raw API response or HTML if scraping.
-    raw_response = models.TextField()
+    raw_response = models.BinaryField()
 
     class Meta:
         index_together = (

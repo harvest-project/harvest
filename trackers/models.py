@@ -1,5 +1,7 @@
 class FetchTorrentResult:
     def __init__(self, raw_response, torrent_filename, torrent_file):
+        if not isinstance(raw_response, bytes):
+            raise Exception('raw_response must contain a bytes instance')
         self.raw_response = raw_response
         self.torrent_filename = torrent_filename
         self.torrent_file = torrent_file

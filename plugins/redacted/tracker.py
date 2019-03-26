@@ -82,14 +82,14 @@ class RedactedTrackerPlugin(BaseTracker):
         torrent_info = client.get_torrent(tracker_id)
         torrent_filename, torrent_file = client.get_torrent_file(tracker_id)
         return FetchTorrentResult(
-            raw_response=json.dumps(torrent_info),
+            raw_response=json.dumps(torrent_info).encode(),
             torrent_filename=torrent_filename,
             torrent_file=torrent_file,
         )
 
     @transaction.atomic
     def on_torrent_info_updated(self, torrent_info):
-        parsed_data = json.loads(torrent_info.raw_response)
+        parsed_data = json.loads(bytes(torrent_info.raw_response).decode())
 
         try:
             torrent_group = RedactedTorrentGroup.objects.select_for_update().get(id=parsed_data['group']['id'])

@@ -112,7 +112,7 @@ class Torrent(models.Model):
     download_rate = models.BigIntegerField(null=True)
     upload_rate = models.BigIntegerField(null=True)
     progress = models.FloatField(null=True)
-    added_datetime = models.DateTimeField(null=True)
+    added_datetime = models.DateTimeField(null=True, db_index=True)
     error = models.TextField(null=True, db_index=True)
     tracker_error = models.TextField(null=True, db_index=True)
 

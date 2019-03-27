@@ -38,10 +38,6 @@ class BibliotikClientConfig(models.Model):
         self.cookies = pickle.dumps([c for c in jar])
 
     @classmethod
-    def get_locked_config(cls):
-        return cls.objects.select_for_update().get()
-
-    @classmethod
     def get_config(cls):
         return cls.objects.get()
 

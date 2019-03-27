@@ -15,6 +15,7 @@ import os
 import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 env = environ.Env()
@@ -106,8 +107,11 @@ WSGI_APPLICATION = 'Harvest.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+DEFAULT_DB_CONNECTION_STRING = 'sqlite:///db.sqlite3?timeout=30'
+
 DATABASES = {
-    'default': env.db('DJANGO_DB', default='sqlite:///db.sqlite3?timeout=30'),
+    'default': env.db('DJANGO_DB', default=DEFAULT_DB_CONNECTION_STRING),
+    'control': env.db('DJANGO_DB', default=DEFAULT_DB_CONNECTION_STRING),
 }
 
 # Password validation

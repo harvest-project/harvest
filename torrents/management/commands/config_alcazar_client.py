@@ -17,13 +17,13 @@ class Command(BaseCommand):
         parser.add_argument('--base-url', default='http://localhost:7001/')
         parser.add_argument('--token', default='')
 
+    @transaction.atomic()
     def handle(self, *args, **options):
-        with transaction.atomic():
-            try:
-                config = AlcazarClientConfig.get_locked_config()
-            except AlcazarNotConfiguredException:
-                config = AlcazarClientConfig()
+        try:
+            config = AlcazarClientConfig.objects.select_for_update().get()
+        except AlcazarNotConfiguredException:
+            config = AlcazarClientConfig()
 
-            config.base_url = options['base_url']
-            config.token = options['token']
-            config.save()
+        config.base_url = options['base_url']
+        config.token = options['token']
+        config.save()

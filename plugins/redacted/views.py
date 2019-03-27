@@ -13,7 +13,7 @@ class Config(TransactionAPIView, RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         try:
-            return RedactedClientConfig.get_locked_config()
+            return RedactedClientConfig.objects.select_for_update().get()
         except RedactedClientConfig.DoesNotExist:
             return RedactedClientConfig()
 
@@ -36,7 +36,7 @@ class ConnectionTest(APIView):
 
 class ClearLoginData(TransactionAPIView, APIView):
     def post(self, request):
-        config = RedactedClientConfig.get_locked_config()
+        config = RedactedClientConfig.objects.select_for_update().get()
         config.last_login_failed = False
         config.clear_login_data()
         config.save()

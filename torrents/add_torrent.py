@@ -9,6 +9,7 @@ from trackers.exceptions import TorrentNotFoundException
 from trackers.utils import TorrentFileInfo
 
 
+@transaction.atomic
 def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
     if not force_fetch:
         torrent_info = TorrentInfo.objects.filter(realm=realm, tracker_id=tracker_id).first()
@@ -33,32 +34,31 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
         raise
 
     info_hash = TorrentFileInfo(fetch_torrent_result.torrent_file).info_hash
-    with transaction.atomic():
-        torrent_info, _ = TorrentInfo.objects.update_or_create(
-            realm=realm,
-            tracker_id=tracker_id,
-            defaults={
-                'is_deleted': False,
-                'info_hash': info_hash,
-                'fetched_datetime': fetch_datetime,
-                'raw_response': fetch_torrent_result.raw_response,
-            },
-        )
-        TorrentFile.objects.update_or_create(
-            torrent_info=torrent_info,
-            defaults={
-                'fetched_datetime': fetch_datetime,
-                'torrent_filename': fetch_torrent_result.torrent_filename,
-                'torrent_file': fetch_torrent_result.torrent_file,
-            },
-        )
-        try:
-            torrent = Torrent.objects.get(realm=realm, info_hash=info_hash)
-            torrent.torrent_info = torrent_info
-            torrent.save(update_fields=('torrent_info',))
-        except Torrent.DoesNotExist:
-            pass
-        tracker.on_torrent_info_updated(torrent_info)
+    torrent_info, _ = TorrentInfo.objects.update_or_create(
+        realm=realm,
+        tracker_id=tracker_id,
+        defaults={
+            'is_deleted': False,
+            'info_hash': info_hash,
+            'fetched_datetime': fetch_datetime,
+            'raw_response': fetch_torrent_result.raw_response,
+        },
+    )
+    TorrentFile.objects.update_or_create(
+        torrent_info=torrent_info,
+        defaults={
+            'fetched_datetime': fetch_datetime,
+            'torrent_filename': fetch_torrent_result.torrent_filename,
+            'torrent_file': fetch_torrent_result.torrent_file,
+        },
+    )
+    try:
+        torrent = Torrent.objects.get(realm=realm, info_hash=info_hash)
+        torrent.torrent_info = torrent_info
+        torrent.save(update_fields=('torrent_info',))
+    except Torrent.DoesNotExist:
+        pass
+    tracker.on_torrent_info_updated(torrent_info)
     return torrent_info
 
 

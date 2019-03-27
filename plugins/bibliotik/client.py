@@ -1,11 +1,10 @@
 import logging
 
 import requests
-from django.db import transaction
 from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
-from Harvest.utils import get_filename_from_content_disposition
+from Harvest.utils import get_filename_from_content_disposition, control_transaction
 from plugins.bibliotik.exceptions import BibliotikException, BibliotikLoginException, BibliotikTorrentNotFoundException
 from plugins.bibliotik.models import BibliotikThrottledRequest, BibliotikClientConfig
 
@@ -24,7 +23,7 @@ class BibliotikClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers = HEADERS
-        self.throttler = DatabaseSyncedThrottler(BibliotikThrottledRequest, 8, 5)
+        self.throttler = DatabaseSyncedThrottler(BibliotikClientConfig, BibliotikThrottledRequest, 8, 5)
         self.config = None
 
     @property
@@ -53,34 +52,30 @@ class BibliotikClient:
         resp = requests.get(self.torrents_url, cookies=jar)
         return resp.status_code == 200
 
+    @control_transaction()
     def accept_cookies_if_ok(self, jar):
-        # If we're in a transaction, we can lose login/throttling data due to outside exceptions
-        if not transaction.get_autocommit():
-            raise BibliotikException('You cannot make a Bibliotik request inside a transaction.')
+        config = BibliotikClientConfig.objects.using('control').select_for_update().get()
 
-        with transaction.atomic():
-            config = BibliotikClientConfig.get_locked_config()
+        logger.debug('Trying if new cookies offered work.')
 
-            logger.debug('Trying if new cookies offered work.')
-
-            if self._test_cookies(jar):
-                logger.info('New cookies offered work. Saving and returning.')
-                config.cookie_jar = jar
-                config.login_datetime = timezone.now()
-                config.last_login_failed = False
-                config.save()
-                return config
-
-            logger.debug('Trying to see if our cookies work.')
-
-            if config.cookies and self._test_cookies(config.cookie_jar):
-                logger.debug('Our cookies work, nothing to do.')
-                return config
-
-            logger.debug('No cookies work. Clearing login data.')
-            config.clear_login_data()
+        if self._test_cookies(jar):
+            logger.info('New cookies offered work. Saving and returning.')
+            config.cookie_jar = jar
+            config.login_datetime = timezone.now()
+            config.last_login_failed = False
             config.save()
             return config
+
+        logger.debug('Trying to see if our cookies work.')
+
+        if config.cookies and self._test_cookies(config.cookie_jar):
+            logger.debug('Our cookies work, nothing to do.')
+            return config
+
+        logger.debug('No cookies work. Clearing login data.')
+        config.clear_login_data()
+        config.save()
+        return config
 
     def _login(self):
         if not self.config.is_server_side_login_enabled:
@@ -160,30 +155,21 @@ class BibliotikClient:
 
         return resp
 
+    @control_transaction()
     def _request(self, method, url, **kwargs):
-        # If we're in a transaction, we can lose login/throttling data due to outside exceptions
-        if not transaction.get_autocommit():
-            raise BibliotikException('You cannot make a Bibliotik request inside a transaction.')
+        try:
+            self.config = BibliotikClientConfig.objects.using('control').select_for_update().get()
+        except BibliotikClientConfig.DoesNotExist:
+            raise BibliotikException('Client config is missing. Please configure your account through settings.')
 
-        # Open transaction, commit regardless of exceptions and rethrow if any
-        with transaction.atomic():
-            try:
-                self.config = BibliotikClientConfig.get_locked_config()
-            except BibliotikClientConfig.DoesNotExist:
-                raise BibliotikException('Client config is missing. Please configure your account through settings.')
-
-            try:
-                return self.__request(method, url, **kwargs)
-            except Exception as exc:
-                request_exception = exc
-
+        try:
+            return self.__request(method, url, **kwargs)
+        except BibliotikException:
+            raise
+        except Exception as ex:
+            raise BibliotikException('Unable to perform Bibliotik request: {}'.format(ex))
+        finally:
             self.config = None
-
-        if isinstance(request_exception, BibliotikException):
-            raise request_exception
-        else:
-            raise BibliotikException('Unable to fetch torrent data from Bibliotik: {}'.format(
-                request_exception)) from request_exception
 
     def get_index(self):
         r = self._request('GET', self.index_url, allow_redirects=False)

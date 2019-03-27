@@ -22,7 +22,7 @@ class Config(TransactionAPIView, RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         try:
-            return BibliotikClientConfig.get_locked_config()
+            return BibliotikClientConfig.objects.select_for_update().get()
         except BibliotikClientConfig.DoesNotExist:
             return BibliotikClientConfig(
                 is_server_side_login_enabled=True,
@@ -49,7 +49,7 @@ class ConnectionTest(APIView):
 
 class ClearLoginData(TransactionAPIView, APIView):
     def post(self, request):
-        config = BibliotikClientConfig.get_locked_config()
+        config = BibliotikClientConfig.objects.select_for_update().get()
         config.last_login_failed = False
         config.clear_login_data()
         config.save()

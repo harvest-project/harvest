@@ -2,11 +2,10 @@ import logging
 import pickle
 
 import requests
-from django.db import transaction
 from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
-from Harvest.utils import get_filename_from_content_disposition
+from Harvest.utils import get_filename_from_content_disposition, control_transaction
 from plugins.redacted.exceptions import RedactedTorrentNotFoundException, RedactedRateLimitExceededException, \
     RedactedException, RedactedLoginException
 from plugins.redacted.models import RedactedThrottledRequest, RedactedClientConfig
@@ -26,7 +25,7 @@ class RedactedClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers = HEADERS
-        self.throttler = DatabaseSyncedThrottler(RedactedThrottledRequest, 5, 10)
+        self.throttler = DatabaseSyncedThrottler(RedactedClientConfig, RedactedThrottledRequest, 5, 10)
         self.config = None
 
     @property
@@ -149,27 +148,21 @@ class RedactedClient:
 
         return resp
 
+    @control_transaction()
     def _request(self, method, url, **kwargs):
-        # If we're in a transaction, we can lose login/throttling data due to outside exceptions
-        if not transaction.get_autocommit():
-            raise RedactedException('You cannot make a Redacted request inside a transaction.')
+        try:
+            self.config = RedactedClientConfig.objects.using('control').select_for_update().get()
+        except RedactedClientConfig.DoesNotExist:
+            raise RedactedException('Client config is missing. Please configure your account through settings.')
 
-        # Open transaction, commit regardless of exceptions and rethrow if any
-        with transaction.atomic():
-            try:
-                self.config = RedactedClientConfig.get_locked_config()
-            except RedactedClientConfig.DoesNotExist:
-                raise RedactedException('Client config is missing. Please configure your account through settings.')
-
-            try:
-                return self.__request(method, url, **kwargs)
-            except Exception as exc:
-                request_exception = exc
-
+        try:
+            return self.__request(method, url, **kwargs)
+        except RedactedException:
+            raise
+        except Exception as ex:
+            raise RedactedException('Unable to perform Redacted request: {}'.format(ex))
+        finally:
             self.config = None
-
-        # Will be set if we get to here, otherwise we return above
-        raise request_exception
 
     def _ajax_request(self, action, **kwargs):
         params = {

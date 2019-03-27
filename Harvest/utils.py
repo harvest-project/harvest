@@ -1,4 +1,5 @@
 import re
+from contextlib import contextmanager
 
 from django.db import transaction
 from rest_framework.response import Response
@@ -65,3 +66,15 @@ def qs_chunks(qs, n):
     ids = list(qs.values_list('id', flat=True))
     for ids_chunk in chunks(ids, n):
         yield qs.model.objects.filter(pk__in=ids_chunk)
+
+
+@contextmanager
+def control_transaction():
+    exc = None
+    with transaction.atomic(using='control'):
+        try:
+            yield
+        except Exception as e:
+            exc = e
+    if exc is not None:
+        raise exc

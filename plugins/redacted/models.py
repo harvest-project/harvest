@@ -28,10 +28,6 @@ class RedactedClientConfig(models.Model):
         self.authkey = None
         self.passkey = None
 
-    @classmethod
-    def get_locked_config(cls):
-        return cls.objects.select_for_update().get()
-
 
 class RedactedThrottledRequest(ThrottledRequest, models.Model):
     url = models.CharField(max_length=2048)  # Used for debugging purposes to watch what requests are going through

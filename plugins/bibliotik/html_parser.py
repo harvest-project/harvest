@@ -66,7 +66,10 @@ def _parse_language_pages(torrent, soup):
         if not tag:
             raise BibliotikHtmlParseException('Unable to find p#details_content_info')
         match = re.match(
-            r'^(?P<language>{})(, (?P<pages>\d+) pages)?(, Supplementary material included)?$'.format(LANGUAGE_REGEX),
+            r'^(?P<language>{})'
+            r'(, (?P<pages>\d+) pages)?'
+            r'(, Supplementary material included)?'
+            r'$'.format(LANGUAGE_REGEX),
             tag.text.strip())
         if not match:
             raise BibliotikHtmlParseException('Unable to match language_pages')
@@ -76,8 +79,11 @@ def _parse_language_pages(torrent, soup):
         if not tag:
             raise BibliotikHtmlParseException('Unable to find p#details_content_info')
         match = re.match(
-            r'^(?P<language>{})(, \d+ hours?( \d+ minutes?)?)?(, (?P<pages>\d+) pages)?(, (Unabridged|Abridged))$'.format(
-                LANGUAGE_REGEX),
+            r'^(?P<language>{})'
+            r'(, \d+ hours?( \d+ minutes?)?)?'
+            r'(, (?P<pages>\d+) pages)?'
+            r'(, (Unabridged|Abridged))'
+            r'$'.format(LANGUAGE_REGEX),
             tag.text.strip())
         if not match:
             raise BibliotikHtmlParseException('Unable to match audio book language_pages {}'.format(tag.text.strip()))

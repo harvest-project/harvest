@@ -40,6 +40,10 @@ class RedactedClient:
     def torrent_file_url(self):
         return 'https://{}/torrents.php'.format(DOMAIN)
 
+    @property
+    def log_url(self):
+        return 'https://{}/log.php'.format(DOMAIN)
+
     def _login(self):
         logger.debug('Attempting login with username {}'.format(self.config.username))
 
@@ -211,3 +215,9 @@ class RedactedClient:
         else:
             raise RedactedException('Unable to fetch torrent - received {} {}'.format(
                 r.status_code, r.headers['content-type']))
+
+    def get_site_log(self, page):
+        r = self._request('GET', self.log_url, params={'page': page}, allow_redirects=False)
+        if r.status_code != 200:
+            raise RedactedException('Log.php returned status code {}.'.format(200))
+        return r.text

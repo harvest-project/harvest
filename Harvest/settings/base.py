@@ -114,6 +114,10 @@ DATABASES = {
     'control': env.db('DJANGO_DB', default=DEFAULT_DB_CONNECTION_STRING),
 }
 
+DATABASES['control']['TEST'] = {
+    'MIRROR': 'default',
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 

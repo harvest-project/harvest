@@ -6,12 +6,14 @@ import {HomeRoutes} from 'home/assets/HomeRoutes';
 import logo from 'home/assets/images/logo.png';
 import {MainMenu} from 'home/assets/menu/MainMenu';
 import {PluginRoutes} from 'home/assets/PluginRoutes';
-import {capitalizeWord} from 'home/utils';
+import {capitalizeWord} from 'home/assets/utils';
 import React from 'react';
 import {withRouter} from 'react-router-dom';
 import {SettingsRoutes} from 'settings/assets/SettingsRoutes';
 import {TorrentsRoutes} from 'torrents/assets/TorrentsRoutes';
 import styles from './LayoutBase.less';
+import {MonitoringRoutes} from 'monitoring/assets/MonitoringRoutes';
+import {ErrorBoundary} from 'home/assets/components/ErrorBoundary';
 
 const {Header, Sider, Content, Footer} = Layout;
 
@@ -76,10 +78,13 @@ export class LayoutBase extends React.Component {
                                 {this.renderBreadcrumbItems()}
                             </Breadcrumb>
                             <div style={{padding: 24, background: '#fff'}}>
-                                <HomeRoutes/>
-                                <SettingsRoutes/>
-                                <TorrentsRoutes/>
-                                <PluginRoutes/>
+                                <ErrorBoundary>
+                                    <HomeRoutes/>
+                                    <MonitoringRoutes/>
+                                    <SettingsRoutes/>
+                                    <TorrentsRoutes/>
+                                    <PluginRoutes/>
+                                </ErrorBoundary>
                             </div>
                         </MainPageSpinner>
                     </Content>

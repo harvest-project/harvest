@@ -3,7 +3,7 @@ import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
-import {formatBytes} from 'home/utils';
+import {formatBytes} from 'home/assets/utils';
 import React from 'react';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 import styles from './HarvestHeader.less';

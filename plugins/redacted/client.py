@@ -1,16 +1,15 @@
-import logging
 import pickle
 
 import requests
 from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
-from Harvest.utils import get_filename_from_content_disposition, control_transaction
+from Harvest.utils import get_filename_from_content_disposition, control_transaction, get_logger
 from plugins.redacted.exceptions import RedactedTorrentNotFoundException, RedactedRateLimitExceededException, \
     RedactedException, RedactedLoginException
 from plugins.redacted.models import RedactedThrottledRequest, RedactedClientConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 HEADERS = {
     'Content-type': 'application/x-www-form-urlencoded',
@@ -45,7 +44,7 @@ class RedactedClient:
         return 'https://{}/log.php'.format(DOMAIN)
 
     def _login(self):
-        logger.debug('Attempting login with username {}'.format(self.config.username))
+        logger.debug('Attempting login with username {}.', self.config.username)
 
         if self.config.last_login_failed:
             logger.debug('Refusing to retry failed login attempt.')
@@ -64,7 +63,7 @@ class RedactedClient:
         # Login is not subject to the normal API rate limiting
         r = self.session.post(self.login_url, data=data, allow_redirects=False)
         if r.status_code != 302:
-            logger.debug('Login failed, returned status {}'.format(r.status_code))
+            logger.debug('Login failed, returned status {}.', r.status_code)
 
             if '<form class="auth_form" name="2fa" id="2fa"' in r.text:
                 logger.debug('Login failed: 2FA unsupported.')
@@ -73,7 +72,7 @@ class RedactedClient:
                 logger.debug('Login failed: incorrect username/password.')
                 raise RedactedLoginException('Incorrect Redact username/password.')
             else:
-                logger.debug('Login failed: unknown reason')
+                logger.debug('Login failed: unknown reason.')
                 raise RedactedLoginException('Unknown error logging in.')
 
         # Working outside of the normal __request cycling since this is a special case
@@ -93,10 +92,10 @@ class RedactedClient:
         self.config.passkey = self.passkey
         self.config.save()
 
-        logger.info('Login succeeded with username {}, credentials stored'.format(self.config.username))
+        logger.info('Login succeeded with username {}, credentials stored.', self.config.username)
 
     def __request(self, method, url, **kwargs):
-        logger.info('Requesting {} {}'.format(method, url))
+        logger.info('Requesting {} {}.', method, url)
 
         def get_request_kwargs():
             result = {
@@ -118,7 +117,7 @@ class RedactedClient:
             return result
 
         if self.config.cookies:
-            logger.debug('Found cached login credentials')
+            logger.debug('Found cached login credentials.')
 
             self.session.cookies.clear()
             for cookie in pickle.loads(self.config.cookies):
@@ -141,7 +140,7 @@ class RedactedClient:
                 resp = self.session.request(**get_request_kwargs())
                 resp.raise_for_status()
         else:
-            logger.debug('No login credentials found, attempting fresh login')
+            logger.debug('No login credentials found, attempting fresh login.')
             self._login()
 
             self.throttler.throttle_request(url='{} {}'.format(method, url))

@@ -1,13 +1,13 @@
-import logging
 import time
 from itertools import chain
 
+from Harvest.utils import get_logger
 from torrents.alcazar_client import update_torrent_from_alcazar, \
     create_or_update_torrent_from_alcazar
 from torrents.models import Torrent, Realm, TorrentInfo
 from torrents.signals import torrent_removed
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AlcazarEventProcessor:
@@ -43,7 +43,7 @@ class AlcazarEventProcessor:
             t.info_hash: t for t in Torrent.objects.filter(realm=realm, info_hash__in=updated_info_hashes)}
         added_torrents_states = []
 
-        logger.debug('Matched {} Torrent objects for updating.'.format(len(existing_torrents)))
+        logger.debug('Matched {} Torrent objects for updating.', len(existing_torrents))
 
         num_updated = 0
         for updated_state in chain(events['added'], events['updated']):
@@ -54,8 +54,8 @@ class AlcazarEventProcessor:
                 if update_torrent_from_alcazar(torrent, updated_state):
                     num_updated += 1
 
-        logger.debug('Actually updated {} in DB.'.format(num_updated))
-        logger.debug('Matched {} new states for adding.'.format(len(added_torrents_states)))
+        logger.debug('Actually updated {} in DB.', num_updated)
+        logger.debug('Matched {} new states for adding.', len(added_torrents_states))
 
         cls._process_added_torrents(realm, added_torrents_states)
 
@@ -71,7 +71,7 @@ class AlcazarEventProcessor:
             if not realm:
                 realm, _ = Realm.objects.get_or_create(name=realm_name)
 
-            logger.debug('Processing events for realm {}.'.format(realm_name))
+            logger.debug('Processing events for realm {}.', realm_name)
             cls._process_events(realm, batch)
 
-        logger.debug('Completed alcazar update in {}.'.format(time.time() - start))
+        logger.debug('Completed alcazar update in {:.3f}.', time.time() - start)

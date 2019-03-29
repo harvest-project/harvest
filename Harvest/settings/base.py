@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'Harvest',
     'home.apps.HomeConfig',
     'settings.apps.SettingsConfig',
+    'monitoring.apps.MonitoringConfig',
     'torrents.apps.TorrentsConfig',
     'trackers.apps.TrackersConfig',
 ]

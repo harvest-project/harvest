@@ -4,7 +4,7 @@ import {HomeAPI} from 'home/assets/api/HomeAPI';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {Timer} from 'home/assets/controls/Timer';
-import {formatBytes} from 'home/utils';
+import {formatBytes} from 'home/assets/utils';
 import {observer} from 'mobx-react';
 import React from 'react';
 import styles from './Dashboard.less';

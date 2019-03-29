@@ -5,6 +5,7 @@ import {plugins} from 'home/assets/PluginRegistry';
 import React from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import {TorrentsUrls} from 'torrents/assets/TorrentsUrls';
+import {MonitoringUrls} from 'monitoring/assets/MonitoringUrls';
 
 const {SubMenu} = Menu;
 
@@ -41,6 +42,13 @@ export class MainMenu extends React.Component {
                 <Link to={HomeUrls.dashboard}>
                     <Icon type="home"/>
                     <span>Dashboard</span>
+                </Link>
+            </Menu.Item>
+
+            <Menu.Item key={MonitoringUrls.monitoring}>
+                <Link to={MonitoringUrls.monitoring}>
+                    <Icon type="safety"/>
+                    <span>Monitoring</span>
                 </Link>
             </Menu.Item>
 

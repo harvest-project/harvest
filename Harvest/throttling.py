@@ -1,13 +1,13 @@
-import logging
+from datetime import timedelta
 from datetime import timedelta
 from time import sleep
 
 from django.db import models
 from django.utils import timezone
 
-from Harvest.utils import control_transaction
+from Harvest.utils import control_transaction, get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ThrottledRequest(models.Model):
@@ -34,6 +34,6 @@ class DatabaseSyncedThrottler:
         if len(requests) >= self.num_requests:
             sleep_time = self.per_seconds - (current_datetime - requests[0].datetime).total_seconds()
             if sleep_time > 0:
-                logger.info('Throttling request by {} for {}'.format(sleep_time, self.model._meta.label))
+                logger.info('Throttling request by {} for {}', sleep_time, self.model._meta.label)
                 sleep(sleep_time)
         self.model.objects.using('control').create(datetime=timezone.now(), **request_params)

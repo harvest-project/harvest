@@ -1,25 +1,20 @@
-import {Button, Icon, Table} from 'antd';
+import {Button, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
-import {formatBytes, toJSONPretty} from 'home/utils';
+import {formatBytes, toJSONPretty} from 'home/assets/utils';
 import React from 'react';
 import {AddClient} from 'torrents/assets/components/AddClient';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
-
-const ICONS = {
-    green: <Icon type="check-circle" style={{color: '#52c41a'}}/>,
-    yellow: <Icon type="warning" style={{color: '#ddc000'}}/>,
-    red: <Icon type="close-circle" style={{color: 'red'}}/>,
-};
+import {StatusIcon} from 'home/assets/controls/StatusGreenIcon';
 
 export class AlcazarInstances extends React.Component {
     static contextType = HarvestContext;
     static columns = [
         {
-            key: 'status',
+            dataIndex: 'status',
             title: '',
-            render: (data, record, index) => ICONS[record.status],
+            render: data => <StatusIcon status={data}/>,
         },
         {
             title: 'Name',
@@ -64,7 +59,7 @@ export class AlcazarInstances extends React.Component {
             firstLoad: false,
             clients: [],
             addClientVisible: false,
-        }
+        };
     }
 
     componentDidMount() {

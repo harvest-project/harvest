@@ -1,12 +1,11 @@
-import logging
-
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from Harvest.utils import get_logger
 from torrents.exceptions import AlcazarNotConfiguredException
 from torrents.models import AlcazarClientConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Command(BaseCommand):

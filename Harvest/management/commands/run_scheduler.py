@@ -8,8 +8,9 @@ from huey.consumer_options import ConsumerConfig
 from huey.consumer_options import OptionParserHandler
 
 from Harvest.huey_scheduler import HarvestHueyScheduler
+from Harvest.utils import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Command(BaseCommand):

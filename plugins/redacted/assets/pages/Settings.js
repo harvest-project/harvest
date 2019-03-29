@@ -4,7 +4,7 @@ import {Timer} from 'home/assets/controls/Timer';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {ResponseErrorDisplay} from 'home/assets/controls/ResponseErrorDisplay';
-import {formatDateTimeString} from 'home/utils';
+import {formatDateTimeStringHuman} from 'home/assets/utils';
 import {RedactedAPI} from 'plugins/redacted/assets/RedactedAPI';
 import React from 'react';
 
@@ -166,7 +166,7 @@ export class Settings extends React.Component {
                 <DivRow size="medium">
                     Last Login Date:{' '}
                     {this.state.config && this.state.config.login_datetime ?
-                        formatDateTimeString(this.state.config.login_datetime) : '-'}<br/>
+                        formatDateTimeStringHuman(this.state.config.login_datetime) : '-'}<br/>
 
                     Last Login: {this.renderLastLogin()}
                 </DivRow>

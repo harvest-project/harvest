@@ -132,7 +132,7 @@ class TorrentView(APIView):
         torrent = self.get_object(*args, **kwargs)
         torrent.delete()
         try:
-            remove_torrent(torrent)
+            remove_torrent(torrent=torrent)
         except AlcazarRemoteException as exc:
             if exc.status_code == 404:
                 return Response({
@@ -188,7 +188,11 @@ class AddTorrentFromFile(APIView):
             realm = Realm.objects.get(name=realm_name)
         except Realm.DoesNotExist:
             raise RealmNotFoundException(realm_name)
-        added_torrent = add_torrent_from_file(realm, torrent_file, download_path_pattern)
+        added_torrent = add_torrent_from_file(
+            realm=realm,
+            torrent_file=torrent_file,
+            download_path_pattern=download_path_pattern,
+        )
         return Response(TorrentSerializer(added_torrent).data)
 
 
@@ -199,7 +203,12 @@ class AddTorrentFromTracker(APIView):
         download_path_pattern = request.data['download_path']
 
         tracker = TrackerRegistry.get_plugin(tracker_name, self.__class__.__name__)
-        added_torrent = add_torrent_from_tracker(tracker, tracker_id, download_path_pattern)
+        added_torrent = add_torrent_from_tracker(
+            tracker=tracker,
+            tracker_id=tracker_id,
+            download_path_pattern=download_path_pattern,
+            force_fetch=True,
+        )
         return Response(TorrentSerializer(added_torrent).data)
 
 

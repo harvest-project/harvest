@@ -1,5 +1,4 @@
 import base64
-import logging
 import os
 import threading
 import urllib.parse
@@ -11,11 +10,12 @@ from iso8601 import iso8601
 from requests import Session
 from rest_framework.exceptions import APIException
 
+from Harvest.utils import get_logger
 from torrents import signals
 from torrents.models import AlcazarClientConfig, Torrent
 from trackers.utils import TorrentFileInfo
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def alcazar_torrent_equals(torrent, torrent_state):
@@ -86,7 +86,7 @@ def create_or_update_torrent_from_alcazar(realm, torrent_info_id, torrent_state)
         torrent = Torrent.objects.get(realm=realm, info_hash=torrent_state['info_hash'])
 
         if torrent.torrent_info_id is None and torrent.torrent_info_id != torrent_info_id:
-            logger.warning('Discovered unlinked torrent {}, linking to {}.'.format(torrent.info_hash, torrent_info_id))
+            logger.warning('Discovered unlinked torrent {}, linking to {}.', torrent.info_hash, torrent_info_id)
             torrent.torrent_info_id = torrent_info_id
             torrent.save()
             signals.torrent_updated.send(torrent)

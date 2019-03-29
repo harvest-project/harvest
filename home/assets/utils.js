@@ -1,4 +1,4 @@
-export function formatDateTimeString(dateTimeString) {
+export function formatDateTimeStringHuman(dateTimeString) {
     return new Intl.DateTimeFormat(undefined, {
         year: 'numeric',
         month: 'numeric',
@@ -7,6 +7,18 @@ export function formatDateTimeString(dateTimeString) {
         minute: 'numeric',
         second: 'numeric',
     }).format(new Date(dateTimeString));
+}
+
+export function formatDateStringHuman(dateTimeString) {
+    return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+    }).format(new Date(dateTimeString));
+}
+
+export function formatDateTimeStringISO(dateTimeString) {
+    return dateTimeString.substring(0, 10) + ' ' + dateTimeString.substring(11, 19);
 }
 
 const bytesSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];

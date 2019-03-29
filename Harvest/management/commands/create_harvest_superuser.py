@@ -1,11 +1,12 @@
-import logging
 import sys
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 
-logger = logging.getLogger(__name__)
+from Harvest.utils import get_logger
+
+logger = get_logger(__name__)
 
 
 class Command(BaseCommand):
@@ -24,7 +25,7 @@ class Command(BaseCommand):
                 email=None,
                 password=options['password'],
             )
-            logger.info('User {} created.'.format(options['username']))
+            logger.info('User {} created.', options['username'])
         except IntegrityError:
             if not options['exists_ok']:
                 print('User {} already exists!'.format(options['username']))

@@ -5,7 +5,6 @@ import {AlcazarInstances} from 'torrents/assets/components/AlcazarInstances';
 
 
 export class AlcazarSettings extends React.Component {
-
     render() {
         return <Tabs>
             <Tabs.TabPane tab="Config" key="config"><AlcazarConfig/></Tabs.TabPane>

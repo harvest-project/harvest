@@ -1,14 +1,12 @@
-import logging
-
 import requests
 from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
-from Harvest.utils import get_filename_from_content_disposition, control_transaction
+from Harvest.utils import get_filename_from_content_disposition, control_transaction, get_logger
 from plugins.bibliotik.exceptions import BibliotikException, BibliotikLoginException, BibliotikTorrentNotFoundException
 from plugins.bibliotik.models import BibliotikThrottledRequest, BibliotikClientConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 HEADERS = {
     'Content-type': 'application/x-www-form-urlencoded',
@@ -81,7 +79,7 @@ class BibliotikClient:
         if not self.config.is_server_side_login_enabled:
             raise BibliotikException('Server requires login, but server-side login is disabled.')
 
-        logger.debug('Attempting login with username {}'.format(self.config.username))
+        logger.debug('Attempting login with username {}.', self.config.username)
 
         if self.config.last_login_failed:
             logger.debug('Refusing to retry failed login attempt.')
@@ -100,13 +98,13 @@ class BibliotikClient:
         # Login is not subject to the normal API rate limiting
         r = self.session.post(self.login_url, data=data, allow_redirects=False)
         if r.status_code != 302:
-            logger.debug('Login failed, returned status {}'.format(r.status_code))
+            logger.debug('Login failed, returned status {}.', r.status_code)
 
             if 'Wrong username/password.' in r.text:
                 logger.debug('Login failed: incorrect username/password.')
                 raise BibliotikLoginException('Incorrect Bibliotik username/password.')
             else:
-                logger.debug('Login failed: unknown reason')
+                logger.debug('Login failed: unknown reason.')
                 raise BibliotikLoginException('Unknown error logging in.')
 
         self.config.last_login_failed = False
@@ -114,13 +112,13 @@ class BibliotikClient:
         self.config.cookie_jar = self.session.cookies
         self.config.save()
 
-        logger.info('Login succeeded with username {}, credentials stored'.format(self.config.username))
+        logger.info('Login succeeded with username {}, credentials stored.', self.config.username)
 
     def __request(self, method, url, **kwargs):
-        logger.info('Requesting {} {}'.format(method, url))
+        logger.info('Requesting {} {}', method, url)
 
         if self.config.cookies:
-            logger.debug('Found cached login credentials')
+            logger.debug('Found cached login credentials.')
 
             self.session.cookies = self.config.cookie_jar
 
@@ -140,7 +138,7 @@ class BibliotikClient:
                 self.throttler.throttle_request(url='{} {}'.format(method, url))
                 resp = self.session.request(method, url, **kwargs)
         else:
-            logger.debug('No login credentials found, attempting fresh login')
+            logger.debug('No login credentials found, attempting fresh login.')
             self._login()
 
             self.throttler.throttle_request(url='{} {}'.format(method, url))

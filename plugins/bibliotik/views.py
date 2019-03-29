@@ -1,4 +1,3 @@
-import logging
 import pickle
 from http import cookiejar
 
@@ -7,12 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Harvest.cookie_utils import cookie_to_dict, cookie_from_dict
-from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView
+from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView, get_logger
 from plugins.bibliotik.client import BibliotikClient
 from plugins.bibliotik.models import BibliotikClientConfig
 from plugins.bibliotik.serializers import BibliotikClientConfigSerializer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Config(TransactionAPIView, RetrieveUpdateDestroyAPIView):

@@ -1,7 +1,7 @@
 import {Form, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
-import {formatBytes} from 'home/utils';
+import {formatBytes} from 'home/assets/utils';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';

@@ -1,7 +1,9 @@
 from django.db import transaction
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.exceptions import APIException
 
+from monitoring.decorators import log_exceptions, log_successes
 from torrents.alcazar_client import AlcazarClient, create_or_update_torrent_from_alcazar
 from torrents.download_locations import format_download_path_pattern
 from torrents.models import TorrentInfo, TorrentFile, Realm, Torrent
@@ -62,16 +64,19 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
     return torrent_info
 
 
-def add_torrent_from_tracker(tracker, tracker_id, download_path_pattern, *, force_fetch=True):
+@log_exceptions('Error adding torrent {tracker_id} from {tracker.name} in {download_path_pattern}: {exc}.')
+@log_successes('Added torrent {tracker_id} from {tracker.name} in {download_path_pattern}.')
+def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, force_fetch=True):
     try:
         realm = Realm.objects.get(name=tracker.name)
     except Realm.DoesNotExist:
         raise APIException('Realm for tracker {} not found. Please create one by adding an instance.'.format(
-            tracker.name), 400)
+            tracker.name), status.HTTP_400_BAD_REQUEST)
     try:
         torrent_info = TorrentInfo.objects.get(realm=realm, tracker_id=tracker_id, is_deleted=False)
-        Torrent.objects.get(realm=realm, info_hash=torrent_info.info_hash)
-        raise APIException('Torrent already exists and is present in a client.', 400)
+        torrent = Torrent.objects.get(realm=realm, info_hash=torrent_info.info_hash)
+        raise APIException('Torrent already exists and is present in client {}.'.format(
+            torrent.client), status.HTTP_400_BAD_REQUEST)
     except (TorrentInfo.DoesNotExist, Torrent.DoesNotExist):
         pass
 
@@ -92,7 +97,9 @@ def add_torrent_from_tracker(tracker, tracker_id, download_path_pattern, *, forc
     return torrent
 
 
-def add_torrent_from_file(realm, torrent_file, download_path_pattern):
+@log_exceptions('Error adding torrent file to {realm.name} in {download_path_pattern}: {exc}.')
+@log_successes('Added torrent file to {realm.name} to {download_path_pattern}.')
+def add_torrent_from_file(*, realm, torrent_file, download_path_pattern):
     client = AlcazarClient()
     download_path = format_download_path_pattern(
         download_path_pattern,

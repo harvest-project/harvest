@@ -3,7 +3,7 @@ import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {Timer} from 'home/assets/controls/Timer';
-import {formatBytes} from 'home/utils';
+import {formatBytes} from 'home/assets/utils';
 import React from 'react';
 import {AddTorrentFromFile} from 'torrents/assets/components/AddTorrentFromFile';
 import {AddTorrentFromTracker} from 'torrents/assets/components/AddTorrentFromTracker';
@@ -180,7 +180,7 @@ export class Torrents extends React.Component {
         });
 
         const queryIndex = ++this.queryIndex;
-        let data, orderBy = 'id';
+        let data, orderBy = '';
 
         if (this.state.sortedInfo) {
             orderBy = this.state.sortedInfo.columnKey;

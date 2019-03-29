@@ -1,5 +1,5 @@
 import {Alert, Button, Col, Popconfirm, Progress, Row, Statistic, Tooltip} from 'antd';
-import {formatBytes} from 'home/utils';
+import {formatBytes, formatDateStringHuman, formatDateTimeStringISO} from 'home/assets/utils';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {getTorrentStatusDisplay, shortenInfoHash} from 'torrents/assets/utils';
@@ -42,7 +42,7 @@ export class TorrentDetailsDisplay extends React.Component {
                 <Statistic title="Upload Speed" value={formatBytes(t.upload_rate) + '/s'}/>
             </Col>
             <Col xs={8}>
-                <Statistic title="Date Added" value={t.added_datetime}/>
+                <Statistic title="Date Added" value={formatDateStringHuman(t.added_datetime)}/>
             </Col>
 
             {t.error ?

@@ -13,6 +13,7 @@ main_patterns = [
     path('admin/', admin.site.urls),
     path('api/', include('home.urls')),
     path('api/settings/', include('settings.urls')),
+    path('api/monitoring/', include('monitoring.urls')),
     path('api/torrents/', include('torrents.urls')),
     path('api/trackers/', include('trackers.urls')),
     path('docs/', include_docs_urls(title='Harvest API')),

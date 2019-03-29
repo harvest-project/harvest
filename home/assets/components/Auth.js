@@ -3,7 +3,7 @@ import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
 import {HarvestContext} from 'home/assets/context';
 import {Login} from 'home/assets/pages/Login';
-import {clearContextType} from 'home/utils';
+import {clearContextType} from 'home/assets/utils';
 import {observer} from 'mobx-react';
 import React from 'react';
 import {withRouter} from 'react-router-dom';

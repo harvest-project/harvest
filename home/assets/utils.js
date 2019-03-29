@@ -1,4 +1,9 @@
+const blankValue = '–'; // n dash character
+
 export function formatDateTimeStringHuman(dateTimeString) {
+    if (!dateTimeString) {
+        return blankValue;
+    }
     return new Intl.DateTimeFormat(undefined, {
         year: 'numeric',
         month: 'numeric',
@@ -10,6 +15,9 @@ export function formatDateTimeStringHuman(dateTimeString) {
 }
 
 export function formatDateStringHuman(dateTimeString) {
+    if (!dateTimeString) {
+        return blankValue;
+    }
     return new Intl.DateTimeFormat(undefined, {
         year: 'numeric',
         month: 'numeric',
@@ -18,6 +26,9 @@ export function formatDateStringHuman(dateTimeString) {
 }
 
 export function formatDateTimeStringISO(dateTimeString) {
+    if (!dateTimeString) {
+        return blankValue;
+    }
     return dateTimeString.substring(0, 10) + ' ' + dateTimeString.substring(11, 19);
 }
 

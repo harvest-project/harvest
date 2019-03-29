@@ -28,6 +28,7 @@ export class AlcazarConfig extends React.Component {
             peerPortPoolsFmt: '',
             cleanDirectoriesOnRemove: false,
             cleanTorrentFileOnRemove: false,
+            enableFilePreallocation: false,
 
             isSaving: false,
         };
@@ -55,6 +56,7 @@ export class AlcazarConfig extends React.Component {
                 peerPortPoolsFmt: data.peer_port_pools_fmt,
                 cleanDirectoriesOnRemove: data.clean_directories_on_remove,
                 cleanTorrentFileOnRemove: data.clean_torrent_file_on_remove,
+                enableFilePreallocation: data.enable_file_preallocation,
             });
         });
     }
@@ -70,6 +72,7 @@ export class AlcazarConfig extends React.Component {
                 peer_port_pools_fmt: this.state.peerPortPoolsFmt,
                 clean_directories_on_remove: this.state.cleanDirectoriesOnRemove,
                 clean_torrent_file_on_remove: this.state.cleanTorrentFileOnRemove,
+                enable_file_preallocation: this.state.enableFilePreallocation,
             });
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to save settings');
@@ -111,7 +114,7 @@ export class AlcazarConfig extends React.Component {
                     <Form.Item
                         {...fieldLayout}
                         help="Enable or disable DHT. For private torrents, DHT is not used and disabling it can save
-                        resources"
+                        resources. Requires restart."
                     >
                         <Checkbox checked={this.state.isDhtEnabled}
                                   onChange={event => this.setState({isDhtEnabled: event.target.checked})}>
@@ -123,7 +126,8 @@ export class AlcazarConfig extends React.Component {
                         label="Local Port Pools:"
                         {...fieldLayout}
                         help="Ports that are used for local communication with clients. Preferably not opened to the
-                        world (firewalled). Example: 9091-9191. You can add more ranges, use commas to separate them."
+                        world (firewalled). Example: 9091-9191. You can add more ranges, use commas to separate them.
+                        Requires restart."
                     >
                         <Input type="text" value={this.state.localPortPoolsFmt}
                                onChange={event => this.setState({localPortPoolsFmt: event.target.value})}/>
@@ -133,7 +137,7 @@ export class AlcazarConfig extends React.Component {
                         label="Peer Port Pools:"
                         {...fieldLayout}
                         help="Ports that clients can listen on for peers. Need to be opened in the firewall and port
-                        forwarded, if behind NAT."
+                        forwarded, if behind NAT. Requires restart."
                     >
                         <Input type="text" value={this.state.peerPortPoolsFmt}
                                onChange={event => this.setState({peerPortPoolsFmt: event.target.value})}/>
@@ -164,6 +168,20 @@ export class AlcazarConfig extends React.Component {
                                       cleanTorrentFileOnRemove: event.target.checked,
                                   })}>
                             Clean Torrent File On Remove
+                        </Checkbox>
+                    </Form.Item>
+
+                    <Form.Item
+                        {...fieldLayout}
+                        help="Fully preallocate all files when starting a torrent. Reduces fragmentation, but requires
+                        all files to be written to disk when a torrent is added. If disabled, sparse files are used.
+                        Requires restart."
+                    >
+                        <Checkbox checked={this.state.enableFilePreallocation}
+                                  onChange={event => this.setState({
+                                      enableFilePreallocation: event.target.checked,
+                                  })}>
+                            Enable File Preallocation
                         </Checkbox>
                     </Form.Item>
 

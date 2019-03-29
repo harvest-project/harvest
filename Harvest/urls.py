@@ -5,9 +5,8 @@ from rest_framework.documentation import include_docs_urls
 
 from home import views as home_views
 
-plugin_patterns = [
-    path('api/plugins/{}/'.format(plugin_name), include('plugins.{}.urls'.format(plugin_name)))
-    for plugin_name in settings.PLUGINS]
+plugin_patterns = [path(plugin.urls_prefix, include(plugin.urls_module_path))
+                   for plugin in settings.PLUGINS]
 
 main_patterns = [
     path('admin/', admin.site.urls),

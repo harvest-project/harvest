@@ -45,17 +45,17 @@ export class MainMenu extends React.Component {
                 </Link>
             </Menu.Item>
 
-            <Menu.Item key={MonitoringUrls.monitoring}>
-                <Link to={MonitoringUrls.monitoring}>
-                    <Icon type="safety"/>
-                    <span>Monitoring</span>
-                </Link>
-            </Menu.Item>
-
             <Menu.Item key={TorrentsUrls.torrents}>
                 <Link to={TorrentsUrls.torrents}>
                     <Icon type="bars"/>
                     <span>Torrents</span>
+                </Link>
+            </Menu.Item>
+
+            <Menu.Item key={MonitoringUrls.monitoring}>
+                <Link to={MonitoringUrls.monitoring}>
+                    <Icon type="safety"/>
+                    <span>Monitoring</span>
                 </Link>
             </Menu.Item>
 

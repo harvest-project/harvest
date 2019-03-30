@@ -25,6 +25,10 @@ class BibliotikPlugin {
     static routes = Routes;
 
     static metadataColumnRenderer = MetadataColumnDisplay;
+
+    static getTorrentUrl(torrentInfo) {
+        return `https://bibliotik.me/torrents/${torrentInfo.tracker_id}`;
+    }
 }
 
 registerPlugin(BibliotikPlugin);

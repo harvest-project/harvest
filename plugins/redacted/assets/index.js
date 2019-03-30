@@ -5,7 +5,7 @@ import {RedactedUrls} from 'plugins/redacted/assets/RedactedUrls';
 import {Routes} from 'plugins/redacted/assets/Routes';
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {MetadataColumnDisplay} from "./controls/MetadataColumnDisplay";
+import {MetadataColumnDisplay} from './controls/MetadataColumnDisplay';
 
 class RedactedPlugin {
     static pluginName = 'redacted';
@@ -25,6 +25,10 @@ class RedactedPlugin {
     static routes = Routes;
 
     static metadataColumnRenderer = MetadataColumnDisplay;
+
+    static getTorrentUrl(torrentInfo) {
+        return `https://redacted.ch/torrents.php?torrentid=${torrentInfo.tracker_id}`;
+    }
 }
 
 registerPlugin(RedactedPlugin);

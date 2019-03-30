@@ -151,18 +151,30 @@ export class Torrents extends React.Component {
     }
 
     renderNameColumn(data, record) {
-        let content = record.name;
-        if (record.torrent_info && record.torrent_info.metadata) {
-            const MetadataRenderer = this.metadataColumnRenderers[record.realm];
-            if (MetadataRenderer) {
-                content = <span>
+        let content = record.name,
+            plugin = this.pluginsByRealm[record.realm],
+            externalLink = null;
+        if (record.torrent_info && plugin && plugin.getTorrentUrl) {
+            externalLink = <a
+                href={plugin.getTorrentUrl(record.torrent_info)}
+                target="_blank"
+                onClick={e => e.stopPropagation()}
+            >
+                &nbsp;<Icon type="link"/>
+            </a>;
+        }
+        if (record.torrent_info && record.torrent_info.metadata && plugin && plugin.metadataColumnRenderer) {
+            const MetadataRenderer = plugin.metadataColumnRenderer;
+            content = (
+                <span>
                     <Tooltip title={'Original Name: ' + record.name}><Icon type="info-circle"/></Tooltip>
                     <MetadataRenderer torrentInfo={record.torrent_info}/>
-                </span>;
-            }
+                </span>
+            );
         }
         return <div style={{overflow: 'hidden', textOverflow: 'ellipsis'}}>
             {content}
+            {externalLink}
         </div>;
     }
 
@@ -302,11 +314,11 @@ export class Torrents extends React.Component {
 
     render() {
         // TODO: Do not recompute this on every render, but only when realm changes.
-        this.metadataColumnRenderers = {};
+        this.pluginsByRealm = {};
         for (const [name, plugin] of Object.entries(pluginsByName)) {
             const realm = this.context.getRealmByName(name);
-            if (plugin.metadataColumnRenderer && realm) {
-                this.metadataColumnRenderers[realm.id] = plugin.metadataColumnRenderer;
+            if (realm) {
+                this.pluginsByRealm[realm.id] = plugin;
             }
         }
 

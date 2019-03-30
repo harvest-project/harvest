@@ -56,7 +56,7 @@ class MusicMetadata:
     }
 
     def __init__(self, title=None, edition_year=None, edition_title=None, edition_record_label=None,
-                 edition_catalog_number=None, format=None, media=None, bitrate=None, additional_data=None):
+                 edition_catalog_number=None, format=None, media=None, encoding=None, additional_data=None):
         self.title = title
         self.edition_year = edition_year
         self.edition_title = edition_title
@@ -65,20 +65,20 @@ class MusicMetadata:
 
         self.format = format
         self.media = media
-        self.bitrate = bitrate
+        self.encoding = encoding
 
         self.additional_data = additional_data
 
 
 class MusicMetadataSerializer(serializers.Serializer):
-    title = serializers.CharField()
-    edition_year = serializers.IntegerField()
-    edition_title = serializers.CharField()
-    edition_record_label = serializers.CharField()
-    edition_catalog_number = serializers.CharField()
+    title = serializers.CharField(allow_null=True, allow_blank=True)
+    edition_year = serializers.IntegerField(allow_null=True)
+    edition_title = serializers.CharField(allow_null=True, allow_blank=True)
+    edition_record_label = serializers.CharField(allow_null=True, allow_blank=True)
+    edition_catalog_number = serializers.CharField(allow_null=True, allow_blank=True)
 
-    format = serializers.CharField()
-    media = serializers.CharField()
-    bitrate = serializers.CharField()
+    format = serializers.CharField(allow_null=True, allow_blank=True)
+    media = serializers.CharField(allow_null=True, allow_blank=True)
+    encoding = serializers.CharField(allow_null=True, allow_blank=True)
 
-    additional_data = serializers.JSONField()
+    additional_data = serializers.JSONField(allow_null=True)

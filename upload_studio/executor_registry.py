@@ -10,7 +10,10 @@ class _ExecutorRegistry:
         self.executors[executor_class.name] = executor_class
 
     def get_executor(self, name):
-        return self.executors[name]
+        try:
+            return self.executors[name]
+        except KeyError:
+            raise Exception('Executor {} not found. Are you missing a plugin?'.format(name))
 
 
 ExecutorRegistry = _ExecutorRegistry()

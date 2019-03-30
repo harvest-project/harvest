@@ -34,6 +34,22 @@ class RedactedThrottledRequest(ThrottledRequest, models.Model):
 
 
 class RedactedTorrentGroup(models.Model):
+    RELEASE_TYPE_ALBUM = 1
+    RELEASE_TYPE_SOUNDTRACK = 3
+    RELEASE_TYPE_EP = 5
+    RELEASE_TYPE_ANTHOLOGY = 6
+    RELEASE_TYPE_COMPILATION = 7
+    RELEASE_TYPE_SINGLE = 9
+    RELEASE_TYPE_LIVE_ALBUM = 11
+    RELEASE_TYPE_REMIX = 13
+    RELEASE_TYPE_BOOTLEG = 14
+    RELEASE_TYPE_INTERVIEW = 15
+    RELEASE_TYPE_MIXTAPE = 16
+    RELEASE_TYPE_DEMO = 17
+    RELEASE_TYPE_CONCERT_RECORDING = 18
+    RELEASE_TYPE_DJ_MIX = 19
+    RELEASE_TYPE_UNKNOWN = 21
+
     fetched_datetime = models.DateTimeField()
     is_deleted = models.BooleanField()
 

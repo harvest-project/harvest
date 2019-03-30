@@ -116,3 +116,10 @@ class HtmlParserTests(TestCase):
         self.assertEqual(torrent.title,
                          'The Lost Gutenberg: The Astounding Story of One Book\'s Five-Hundred-Year Odyssey')
         self.assertEqual(torrent.size, 174970000)
+
+    def test_audiobook_375080(self):
+        torrent = self._get_torrent('375080.html')
+
+        self.assertEqual(torrent.category, BibliotikTorrent.CATEGORY_AUDIOBOOKS)
+        self.assertEqual(torrent.format, 'MP3 64 kbps')
+        self.assertEqual(torrent.title, 'Dr. York, Miss Winnie, and the Typhoid Shot')

@@ -1,7 +1,9 @@
+import json
 import os
+import shutil
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 
 
 class Project(models.Model):
@@ -33,6 +35,9 @@ class Project(models.Model):
         super().__init__(*args, **kwargs)
         self._steps = None
 
+    def __str__(self):
+        return 'Project(id={}, name={})'.format(self.id, self.name)
+
     @property
     def steps(self):
         if self._steps is None:
@@ -53,7 +58,18 @@ class Project(models.Model):
 
     @property
     def data_path(self):
-        return os.path.join(settings.MEDIA, 'upload_project_{}'.format(self.id))
+        return os.path.join(settings.MEDIA_ROOT, 'upload_project_{}'.format(self.id))
+
+    @transaction.atomic()
+    def reset(self):
+        self.current_step = 0
+        for step in self.steps:
+            step.status = self.STATUS_PENDING
+            step.reset_messages()
+        self.save_steps()
+        self.save()
+        if os.path.exists(self.data_path):
+            shutil.rmtree(self.data_path)
 
 
 class ProjectStep(models.Model):
@@ -61,8 +77,22 @@ class ProjectStep(models.Model):
     index = models.IntegerField()
     status = models.CharField(max_length=64, choices=Project.STATUS_CHOICES, default=Project.STATUS_PENDING)
     executor_name = models.CharField(max_length=64)
-    executor_kwargs_json = models.TextField()
+    executor_kwargs_json = models.TextField(default='{}')
     metadata_json = models.TextField()
+
+    @property
+    def executor_kwargs(self):
+        return json.loads(self.executor_kwargs_json)
+
+    @executor_kwargs.setter
+    def executor_kwargs(self, value):
+        self.executor_kwargs_json = json.dumps(value)
+
+    @property
+    def description(self):
+        from upload_studio.executor_registry import ExecutorRegistry
+        kwargs = json.loads(self.executor_kwargs_json)
+        return ExecutorRegistry.get_executor(self.executor_name).description.format(**kwargs)
 
     @property
     def path(self):
@@ -71,6 +101,10 @@ class ProjectStep(models.Model):
     @property
     def data_path(self):
         return os.path.join(self.path, 'data')
+
+    def reset_messages(self):
+        self.projectstepwarning_set.all().delete()
+        self.projectsteperror_set.all().delete()
 
 
 class ProjectStepWarning(models.Model):

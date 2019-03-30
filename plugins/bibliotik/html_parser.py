@@ -80,7 +80,7 @@ def _parse_language_pages(torrent, soup):
             raise BibliotikHtmlParseException('Unable to find p#details_content_info')
         match = re.match(
             r'^(?P<language>{})'
-            r'(, \d+ hours?( \d+ minutes?)?)?'
+            r',?( \d+ hours?)?( \d+ minutes?)?'
             r'(, (?P<pages>\d+) pages)?'
             r'(, (Unabridged|Abridged))'
             r'$'.format(LANGUAGE_REGEX),

@@ -1,9 +1,11 @@
-import {Table} from 'antd';
+import {Alert, Col, Icon, Row, Table, Timeline} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
 import React from 'react';
 import {UploadStudioAPI} from 'upload_studio/assets/UploadStudioAPI';
+import {TextBr} from 'home/assets/controls/TextBr';
+import {DivRow} from 'home/assets/controls/DivRow';
 
 export class Project extends React.Component {
     static contextType = HarvestContext;
@@ -11,31 +13,8 @@ export class Project extends React.Component {
     constructor(props) {
         super(props);
 
-        this.columns = [
-            {
-                title: 'ID',
-                dataIndex: 'id',
-                sorter: true,
-                width: 90,
-            },
-            {
-                title: 'Status',
-                dataIndex: 'status',
-                width: 80,
-            },
-            {
-                title: 'Type',
-                dataIndex: 'executor_name',
-                width: 100,
-            },
-            {
-                title: 'Params',
-                dataIndex: 'executor_kwargs',
-            },
-        ];
-
         this.state = {
-            loading: false,
+            project: null,
         };
 
         this.onRow = record => ({
@@ -44,18 +23,10 @@ export class Project extends React.Component {
     }
 
     componentDidMount() {
-        this.refreshProject(true);
+        this.context.trackLoadingAsync(async () => this.refreshProject());
     }
 
     async refreshProject(modalLoading = false) {
-        if (!modalLoading && this.state.loading) {
-            return; // Do not supersede a modal (main) loading request
-        }
-
-        this.setState({
-            loading: modalLoading,
-        });
-
         let data;
 
         try {
@@ -66,26 +37,77 @@ export class Project extends React.Component {
         }
 
         this.setState({
-            loading: false,
             project: data,
         });
+    }
 
+    getTimelineItemParams(step) {
+        switch (step.status) {
+            case 'pending':
+                return {color: 'blue'};
+            case 'running':
+                return {
+                    dot: <Icon type="play-circle"/>,
+                    style: {fontSize: '16px'},
+                };
+            case 'warnings':
+            case 'errors':
+                return {color: 'red'};
+            case 'complete':
+            case 'finished':
+                return {color: 'green'};
+        }
+        return {};
+    }
+
+    renderStepActions(step) {
+        if (step.status === '') {
+
+        }
     }
 
     render() {
+        const proj = this.state.project;
+        if (!proj) {
+            return null;
+        }
         return <div>
             <Timer interval={3000} onInterval={() => this.refreshProject()}/>
 
-            <h2>Project {this.state.project ? this.state.project.name : '-'}</h2>
+            <h2>Project {proj.name}</h2>
 
-            <Table
-                size="small"
-                dataSource={this.state.project ? this.state.project.steps : []}
-                loading={this.state.loading}
-                columns={this.columns}
-                rowKey="id"
-                onRow={this.onRow}
-            />
-        </div>;
-    }
-}
+            <Row gutter={24}>
+                <Col xs={24} lg={8}>
+                    <Timeline style={{marginTop: 16}}>
+                        {proj.steps.map(step => (
+                            <Timeline.Item key={step.id} {...this.getTimelineItemParams(step)}>
+                                <h4 style={{fontWeight: step.index === proj.current_step ? 'bold' : 'normal'}}>
+                                    {step.executor_name}
+                                </h4>
+                                <p>{step.description}</p>
+                                {step.warnings.map(warning => (
+                                    <Alert type="warning" message={<span>warning.message</span>}/>
+                                ))}
+                                {step.errors.map(error => (
+                                    <Alert type="error" message={<TextBr text={error.message}/>}/>
+                                ))}
+                                {this.renderStepActions(step)}
+                            </Timeline.Item>
+                        ))}
+                    </Timeline>
+                </Col>
+                <Col xs={24} lg={16}>
+                    <Table
+                        size="small"
+                        columns={[
+                            {title: 'Path', dataIndex: 'path'},
+                        ]}
+                        dataSource={proj.files}
+                        pagination={false}
+                    />
+                </Col>
+            </Row>
+            <
+            /div>;;
+            }
+            };

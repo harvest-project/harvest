@@ -1,10 +1,12 @@
-import json
 import traceback
 
 from django.db import transaction
 
+from Harvest.utils import get_logger
 from upload_studio.executor_registry import ExecutorRegistry
 from upload_studio.models import Project, ProjectStepError
+
+logger = get_logger(__name__)
 
 
 class StepsRunner:
@@ -12,6 +14,9 @@ class StepsRunner:
         self.project = project
 
     def _run_one_guarded(self, step):
+        logger.info('Project({}) {} running step({}) {} with kwargs {}.',
+                    self.project.id, self.project.name, step.id, step.executor_name, step.executor_kwargs)
+
         step.status = Project.STATUS_RUNNING
         step.save(using='control', update_fields=('status',))
         with transaction.atomic():
@@ -25,7 +30,7 @@ class StepsRunner:
                 project=self.project,
                 step=step,
                 prev_step=prev_step,
-                **json.loads(step.executor_kwargs),
+                **step.executor_kwargs,
             )
             executor.run()
 
@@ -34,6 +39,8 @@ class StepsRunner:
         try:
             self._run_one_guarded(step)
         except Exception as ex:
+            logger.exception('Project({}) {} crashed running step({}) {} with kwargs {}.',
+                             self.project.id, self.project.name, step.id, step.executor_name, step.executor_kwargs)
             with transaction.atomic():
                 step.projectsteperror_set.all().delete()
                 ProjectStepError.objects.create(
@@ -48,6 +55,8 @@ class StepsRunner:
         while True:
             step = self.run_one()
             if step.status != Project.STATUS_COMPLETE:
+                logger.info('Project({}) {} stopping run all due to step({}) {} status {}.',
+                            self.project.id, self.project.name, step.id, step.executor_name, step.status)
                 break
             self.project.current_step += 1
             self.project.save()

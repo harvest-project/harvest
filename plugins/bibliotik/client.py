@@ -1,4 +1,5 @@
 import requests
+from django.conf import settings
 from django.utils import timezone
 
 from Harvest.throttling import DatabaseSyncedThrottler
@@ -21,7 +22,12 @@ class BibliotikClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers = HEADERS
-        self.throttler = DatabaseSyncedThrottler(BibliotikClientConfig, BibliotikThrottledRequest, 8, 5)
+        self.throttler = DatabaseSyncedThrottler(
+            BibliotikClientConfig,
+            BibliotikThrottledRequest,
+            settings.BIBLIOTIK_RATE_LIMIT_NUM_REQUESTS,
+            settings.BIBLIOTIK_RATE_LIMIT_PER_SECONDS,
+        )
         self.config = None
 
     @property

@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'monitoring.apps.MonitoringConfig',
     'torrents.apps.TorrentsConfig',
     'trackers.apps.TrackersConfig',
+    'upload_studio.apps.UploadStudioConfig',
 ]
 INSTALLED_APPS += [plugin.app_config_path for plugin in PLUGINS]
 

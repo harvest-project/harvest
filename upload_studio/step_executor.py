@@ -8,6 +8,7 @@ from rest_framework.renderers import JSONRenderer
 
 from upload_studio.models import ProjectStep, Project, ProjectStepWarning, ProjectStepError
 from upload_studio.upload_metadata import MusicMetadata, MusicMetadataSerializer
+from upload_studio.utils import copytree_into
 
 
 class StepAbortException(Exception):
@@ -22,14 +23,6 @@ class StepExecutor:
 
         data = JSONParser().parse(BytesIO(self.step.metadata_json.encode()))
         self.metadata = MusicMetadata(**MusicMetadataSerializer(data=data).validated_data)
-
-    @property
-    def path(self):
-        return os.path.join(self.project.data_path, 'step_{}'.format(self.step.id))
-
-    @property
-    def data_path(self):
-        return os.path.join(self.path, 'data')
 
     def add_warning(self, message):
         try:
@@ -47,13 +40,18 @@ class StepExecutor:
         ProjectStepError.objects.create(step=self.step, message=message)
         raise StepAbortException()
 
+    def clean_work_area(self):
+        if os.path.exists(self.step.data_path):
+            shutil.rmtree(self.step.data_path)
+        os.makedirs(self.step.data_path)
+
+    def copy_prev_step_files(self):
+        copytree_into(self.prev_step.data_path, self.step.data_path)
+
     def handle_run(self):
         raise NotImplementedError()
 
     def run(self):
-        if os.path.exists(self.data_path):
-            shutil.rmtree(self.data_path)
-
         self.step.projectsteperror_set.all().delete()
         try:
             self.handle_run()

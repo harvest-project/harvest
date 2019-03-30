@@ -20,14 +20,14 @@ class Project(models.Model):
         (STATUS_FINISHED, STATUS_FINISHED),
     )
 
-    MEDIA_MUSIC = 'music'
+    MEDIA_TYPE_MUSIC = 'music'
     MEDIA_TYPE_CHOICES = (
-        (MEDIA_MUSIC, MEDIA_MUSIC),
+        (MEDIA_TYPE_MUSIC, MEDIA_TYPE_MUSIC),
     )
 
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
-    current_step = models.IntegerField()
+    current_step = models.IntegerField(default=0)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,13 +40,16 @@ class Project(models.Model):
         return self._steps
 
     def save_steps(self):
-        for index, step in self.steps:
+        for index, step in enumerate(self.steps):
+            step.project = self
             step.index = index
             step.save()
 
     @property
     def status(self):
-        return self.steps[self.current_step].status
+        if 0 <= self.current_step < len(self.steps):
+            return self.steps[self.current_step].status
+        return self.STATUS_COMPLETE
 
     @property
     def data_path(self):
@@ -56,10 +59,18 @@ class Project(models.Model):
 class ProjectStep(models.Model):
     project = models.ForeignKey(Project, models.CASCADE)
     index = models.IntegerField()
-    status = models.CharField(max_length=64)
+    status = models.CharField(max_length=64, choices=Project.STATUS_CHOICES, default=Project.STATUS_PENDING)
     executor_name = models.CharField(max_length=64)
     executor_kwargs_json = models.TextField()
     metadata_json = models.TextField()
+
+    @property
+    def path(self):
+        return os.path.join(self.project.data_path, 'step_{}'.format(self.id))
+
+    @property
+    def data_path(self):
+        return os.path.join(self.path, 'data')
 
 
 class ProjectStepWarning(models.Model):

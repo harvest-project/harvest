@@ -62,12 +62,20 @@ class StepExecutor:
         raise StepAbortException(Project.STATUS_ERRORS)
 
     def clean_work_area(self):
-        if os.path.exists(self.step.data_path):
+        try:
             shutil.rmtree(self.step.data_path)
+        except FileNotFoundError:
+            pass
         os.makedirs(self.step.data_path)
 
-    def copy_prev_step_files(self):
-        copytree_into(self.prev_step.data_path, self.step.data_path)
+    def copy_prev_step_files(self, exclude_areas=None):
+        if not self.prev_step:
+            self.raise_error('No previous step to copy files from.')
+        exclude_areas = exclude_areas if exclude_areas is not None else {}
+        for area in os.listdir(self.prev_step.path):
+            if area in exclude_areas:
+                continue
+            copytree_into(self.prev_step.get_area_path(area), self.step.get_area_path(area))
 
     def handle_run(self):
         raise NotImplementedError()

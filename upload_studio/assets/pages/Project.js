@@ -1,11 +1,13 @@
-import {Alert, Col, Icon, Row, Table, Timeline} from 'antd';
+import {Alert, Button, Col, Icon, Popconfirm, Row, Table, Timeline} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
 import React from 'react';
+import {Redirect} from 'react-router-dom';
 import {UploadStudioAPI} from 'upload_studio/assets/UploadStudioAPI';
 import {TextBr} from 'home/assets/controls/TextBr';
 import {DivRow} from 'home/assets/controls/DivRow';
+import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
 
 export class Project extends React.Component {
     static contextType = HarvestContext;
@@ -15,12 +17,18 @@ export class Project extends React.Component {
 
         this.state = {
             project: null,
+            isDeleted: false,
         };
 
         this.onRow = record => ({
             onClick: () => this.selectRow(record),
         });
     }
+
+    get disableAll() {
+        return !this.state.project || this.state.project.is_locked || this.state.project.is_finished;
+    }
+
 
     componentDidMount() {
         this.context.trackLoadingAsync(async () => this.refreshProject());
@@ -39,6 +47,44 @@ export class Project extends React.Component {
         this.setState({
             project: data,
         });
+    }
+
+    async projectDelete() {
+        try {
+            await UploadStudioAPI.deleteProject(this.state.project.id);
+            this.setState({
+                isDeleted: true,
+            });
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+    }
+
+    async projectResetToStep(step) {
+        try {
+            await UploadStudioAPI.postProjectResetToStep(this.state.project.id, step);
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+        await this.context.trackLoadingAsync(async () => this.refreshProject());
+    }
+
+    async projectRunAll() {
+        try {
+            await UploadStudioAPI.postProjectRunAll(this.state.project.id);
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+        await this.context.trackLoadingAsync(async () => this.refreshProject());
+    }
+
+    async projectRunOne() {
+        try {
+            await UploadStudioAPI.postProjectRunOne(this.state.project.id);
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+        await this.context.trackLoadingAsync(async () => this.refreshProject());
     }
 
     getTimelineItemParams(step) {
@@ -61,20 +107,65 @@ export class Project extends React.Component {
     }
 
     renderStepActions(step) {
-        if (step.status === '') {
-
+        const proj = this.state.project;
+        const canReset = !proj.is_finished &&
+            proj.steps.filter(s => s.index <= step.index).every(s => s.status === 'complete');
+        const group = <Button.Group>
+            {canReset ? (
+                <Popconfirm title="Delete all files for steps after this and reset to here?"
+                            onConfirm={() => this.projectResetToStep(step.index)}>
+                    <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset To Here</Button>
+                </Popconfirm>
+            ) : null}
+        </Button.Group>;
+        if (!React.Children.count(group.props.children)) {
+            return null;
         }
+        return group;
     }
 
     render() {
+        if (this.state.isDeleted) {
+            return <Redirect to={UploadStudioUrls.projects}/>;
+        }
+
         const proj = this.state.project;
         if (!proj) {
             return null;
         }
+
         return <div>
             <Timer interval={3000} onInterval={() => this.refreshProject()}/>
 
-            <h2>Project {proj.name}</h2>
+            <h2>
+                Project {proj.name}
+                {' '}
+                {proj.is_locked ? <Icon type="lock"/> : null}
+                {proj.is_finished ? <Icon type="file-done"/> : null}
+            </h2>
+
+            <DivRow>
+                <Button.Group>
+                    <Button type="primary" htmlType="button" disabled={this.disableAll}
+                            onClick={() => this.projectRunAll()}>
+                        Run All
+                    </Button>
+                    <Button type="default" htmlType="button" disabled={this.disableAll}
+                            onClick={() => this.projectRunOne()}>
+                        Run One
+                    </Button>
+                    <Popconfirm title="Delete all files and reset from start?"
+                                onConfirm={() => this.projectResetToStep(0)}>
+                        <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset</Button>
+                    </Popconfirm>
+                    <Popconfirm title="Delete project including all files?"
+                                onConfirm={() => this.projectDelete()}>
+                        <Button type="danger" htmlType="button" disabled={this.disableAll && !proj.is_finished}>
+                            Delete
+                        </Button>
+                    </Popconfirm>
+                </Button.Group>
+            </DivRow>
 
             <Row gutter={24}>
                 <Col xs={24} lg={8}>
@@ -84,12 +175,16 @@ export class Project extends React.Component {
                                 <h4 style={{fontWeight: step.index === proj.current_step ? 'bold' : 'normal'}}>
                                     {step.executor_name}
                                 </h4>
-                                <p>{step.description}</p>
+                                <DivRow><TextBr text={step.description}/></DivRow>
                                 {step.warnings.map(warning => (
-                                    <Alert type="warning" message={<span>warning.message</span>}/>
+                                    <DivRow>
+                                        <Alert type="warning" message={<span>warning.message</span>}/>
+                                    </DivRow>
                                 ))}
                                 {step.errors.map(error => (
-                                    <Alert type="error" message={<TextBr text={error.message}/>}/>
+                                    <DivRow>
+                                        <Alert type="error" message={<TextBr text={error.message}/>}/>
+                                    </DivRow>
                                 ))}
                                 {this.renderStepActions(step)}
                             </Timeline.Item>
@@ -107,7 +202,6 @@ export class Project extends React.Component {
                     />
                 </Col>
             </Row>
-            <
-            /div>;;
-            }
-            };
+        </div>;
+    }
+}

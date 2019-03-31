@@ -1,3 +1,4 @@
+from django.db import transaction, OperationalError
 from rest_framework import serializers
 
 from upload_studio.models import Project, ProjectStep, ProjectStepWarning, ProjectStepError
@@ -39,6 +40,22 @@ class ProjectStepSerializer(serializers.ModelSerializer):
 class ProjectDeepSerializer(serializers.ModelSerializer):
     steps = ProjectStepSerializer(many=True)
     files = serializers.SerializerMethodField()
+    is_locked = serializers.SerializerMethodField()
+    current_step = serializers.SerializerMethodField()
+
+    def get_current_step(self, obj):
+        step = obj.next_step
+        if step:
+            return step.index
+        return None
+
+    def get_is_locked(self, obj):
+        with transaction.atomic():
+            try:
+                Project.objects.select_for_update(nowait=True).get(id=obj.id)
+                return False
+            except OperationalError:
+                return True
 
     def get_files(self, obj):
         complete_steps = [s for s in obj.steps if s.status == Project.STATUS_COMPLETE]

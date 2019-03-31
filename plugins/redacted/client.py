@@ -1,4 +1,5 @@
 import pickle
+import re
 
 import requests
 from django.utils import timezone
@@ -42,6 +43,10 @@ class RedactedClient:
     @property
     def log_url(self):
         return 'https://{}/log.php'.format(DOMAIN)
+
+    @property
+    def upload_url(self):
+        return 'https://{}/upload.php'.format(DOMAIN)
 
     def _login(self):
         logger.debug('Attempting login with username {}.', self.config.username)
@@ -220,3 +225,12 @@ class RedactedClient:
         if r.status_code != 200:
             raise RedactedException('Log.php returned status code {}.'.format(200))
         return r.text
+
+    def get_announce(self):
+        r = self._request('GET', self.upload_url, allow_redirects=False)
+        if r.status_code != 200:
+            raise RedactedException('Upload.php returned status code {}'.format(200))
+        match = re.search(r'value\=\"([^"]*/announce)\"', r.text)
+        if not match:
+            raise RedactedException('Unable to match announce url in HTML')
+        return match.group(1)

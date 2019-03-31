@@ -5,6 +5,8 @@ import shutil
 from django.conf import settings
 from django.db import models, transaction
 
+from upload_studio.exceptions import ProjectFinishedException
+
 
 class Project(models.Model):
     STATUS_PENDING = 'pending'
@@ -29,7 +31,7 @@ class Project(models.Model):
 
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
-    current_step = models.IntegerField(default=0)
+    is_finished = models.BooleanField(default=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,6 +46,21 @@ class Project(models.Model):
             self._steps = list(self.projectstep_set.order_by('index').all())
         return self._steps
 
+    def raise_if_finished(self):
+        if self.is_finished:
+            raise ProjectFinishedException()
+
+    @property
+    def next_step(self):
+        for step in self.steps:
+            if step.status in {self.STATUS_PENDING, self.STATUS_WARNINGS, self.STATUS_ERRORS, self.STATUS_RUNNING}:
+                return step
+            elif step.status == self.STATUS_COMPLETE:
+                continue
+            elif step.status == self.STATUS_FINISHED:
+                return None
+        return None
+
     def save_steps(self):
         for index, step in enumerate(self.steps):
             step.project = self
@@ -52,8 +69,11 @@ class Project(models.Model):
 
     @property
     def status(self):
-        if 0 <= self.current_step < len(self.steps):
-            return self.steps[self.current_step].status
+        if self.is_finished:
+            return self.STATUS_FINISHED
+        next_step = self.next_step
+        if next_step:
+            return next_step.status
         return self.STATUS_COMPLETE
 
     @property
@@ -61,15 +81,21 @@ class Project(models.Model):
         return os.path.join(settings.MEDIA_ROOT, 'upload_project_{}'.format(self.id))
 
     @transaction.atomic()
-    def reset(self):
-        self.current_step = 0
-        for step in self.steps:
+    def reset(self, step_index=0):
+        self.raise_if_finished()
+        for step in self.steps[step_index:]:
             step.status = self.STATUS_PENDING
+            try:
+                shutil.rmtree(step.path)
+            except FileNotFoundError:
+                pass
             step.reset_messages()
         self.save_steps()
-        self.save()
-        if os.path.exists(self.data_path):
-            shutil.rmtree(self.data_path)
+        if step_index == 0:
+            try:
+                os.rmdir(self.data_path)
+            except FileNotFoundError:
+                pass
 
 
 class ProjectStep(models.Model):
@@ -98,9 +124,12 @@ class ProjectStep(models.Model):
     def path(self):
         return os.path.join(self.project.data_path, 'step_{}'.format(self.id))
 
+    def get_area_path(self, area_name):
+        return os.path.join(self.path, area_name)
+
     @property
     def data_path(self):
-        return os.path.join(self.path, 'data')
+        return self.get_area_path('data')
 
     def reset_messages(self):
         self.projectstepwarning_set.all().delete()

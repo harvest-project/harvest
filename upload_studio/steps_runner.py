@@ -10,8 +10,15 @@ logger = get_logger(__name__)
 
 
 class StepsRunner:
-    def __init__(self, project):
-        self.project = project
+    def __init__(self, project_id):
+        self.project_id = project_id
+        self.project = None
+
+    def get_prev_step(self, step):
+        try:
+            return self.project.steps[self.project.steps.index(step) - 1]
+        except IndexError:
+            return None
 
     def _run_one_guarded(self, step):
         logger.info('Project({}) {} running step({}) {} with kwargs {}.',
@@ -20,9 +27,8 @@ class StepsRunner:
         step.status = Project.STATUS_RUNNING
         step.save(using='control', update_fields=('status',))
         with transaction.atomic():
-            prev_step = None
-            if self.project.current_step > 0:
-                prev_step = self.project.steps[self.project.current_step - 1]
+            prev_step = self.get_prev_step(step)
+            if prev_step:
                 step.metadata_json = prev_step.metadata_json
 
             executor_class = ExecutorRegistry.get_executor(step.executor_name)
@@ -34,8 +40,13 @@ class StepsRunner:
             )
             executor.run()
 
+    @transaction.atomic
     def run_one(self):
-        step = self.project.steps[self.project.current_step]
+        self.project = Project.objects.select_for_update().get(id=self.project_id)
+        self.project.raise_if_finished()
+        step = self.project.next_step
+        if step is None:
+            return None
         try:
             self._run_one_guarded(step)
         except Exception as ex:
@@ -49,17 +60,16 @@ class StepsRunner:
                 )
                 step.status = Project.STATUS_ERRORS
                 step.save()
+        self.project = None
         return step
 
     def run_all(self):
         while True:
             step = self.run_one()
-            if step.status != Project.STATUS_COMPLETE:
-                logger.info('Project({}) {} stopping run all due to step({}) {} status {}.',
-                            self.project.id, self.project.name, step.id, step.executor_name, step.status)
+            if step is None:
+                logger.info('Project {} went through all steps.', self.project_id)
                 break
-            self.project.current_step += 1
-            self.project.save()
-
-
-StepsRunner(Project())
+            if step.status != Project.STATUS_COMPLETE:
+                logger.info('Project {} stopping run all due to step({}) {} status {}.',
+                            self.project.id, step.id, step.executor_name, step.status)
+                break

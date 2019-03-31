@@ -8,4 +8,22 @@ export const UploadStudioAPI = new class {
     async getProject(projectId) {
         return await APIHelper.get(`/api/upload_studio/projects/${projectId}`);
     }
+
+    async deleteProject(projectId) {
+        return await APIHelper.delete(`/api/upload_studio/projects/${projectId}`);
+    }
+
+    async postProjectResetToStep(projectId, step) {
+        return await APIHelper.post(`/api/upload_studio/projects/${projectId}/reset-to-step`, {
+            jsonBody: {step},
+        });
+    }
+
+    async postProjectRunAll(projectId, step) {
+        return await APIHelper.post(`/api/upload_studio/projects/${projectId}/run-all`);
+    }
+
+    async postProjectRunOne(projectId, step) {
+        return await APIHelper.post(`/api/upload_studio/projects/${projectId}/run-one`);
+    }
 };

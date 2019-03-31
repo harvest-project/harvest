@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from Harvest.utils import get_logger
-from upload_studio.models import Project
 from upload_studio.steps_runner import StepsRunner
 
 logger = get_logger(__name__)
@@ -16,6 +15,5 @@ class Command(BaseCommand):
 
     @transaction.atomic()
     def handle(self, *args, **options):
-        project = Project.objects.get(id=options['project_id'])
-        runner = StepsRunner(project)
+        runner = StepsRunner(options['project_id'])
         runner.run_all()

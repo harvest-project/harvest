@@ -40,11 +40,7 @@ class TorrentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Torrent
-        fields = (
-            'id', 'realm', 'torrent_info', 'info_hash', 'status', 'download_path', 'name', 'size', 'downloaded',
-            'uploaded', 'download_rate', 'upload_rate', 'progress', 'added_datetime', 'error', 'tracker_error',
-            'client',
-        )
+        fields = '__all__'
 
 
 class DownloadLocationSerializer(serializers.ModelSerializer):
@@ -52,5 +48,4 @@ class DownloadLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DownloadLocation
-        fields = ('id', 'realm', 'pattern')
-        depth = 1
+        fields = '__all__'

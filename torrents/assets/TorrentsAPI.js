@@ -95,6 +95,12 @@ export const TorrentsAPI = new class {
         });
     }
 
+    async patchDownloadLocation(downloadLocationId, data) {
+        return await APIHelper.patch(`/api/torrents/download-locations/${downloadLocationId}`, {
+            jsonBody: data,
+        });
+    }
+
     async deleteDownloadLocation(downloadLocationId) {
         return await APIHelper.delete(`/api/torrents/download-locations/${downloadLocationId}`);
     }

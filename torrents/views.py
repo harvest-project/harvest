@@ -213,10 +213,21 @@ class AddTorrentFromTracker(APIView):
 
 
 class DownloadLocations(ListCreateAPIView):
-    queryset = DownloadLocation.objects.all()
+    queryset = DownloadLocation.objects.all().order_by('pattern')
     serializer_class = DownloadLocationSerializer
+
+    def create(self, request, *args, **kwargs):
+        if not DownloadLocation.objects.filter(realm_id=request.data['realm'], is_preferred=True).exists():
+            request.data['is_preferred'] = True
+        return super().create(request, *args, **kwargs)
 
 
 class DownloadLocationView(RetrieveUpdateDestroyAPIView):
     queryset = DownloadLocation.objects.all()
     serializer_class = DownloadLocationSerializer
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        obj = serializer.instance
+        if obj.is_preferred:
+            DownloadLocation.objects.filter(realm_id=obj.realm_id).exclude(id=obj.id).update(is_preferred=False)

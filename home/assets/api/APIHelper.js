@@ -62,6 +62,12 @@ export class APIHelper {
         return this._wrapResponse(await fetch(input, init));
     }
 
+    static async patch(input, init = {}) {
+        init.method = 'PATCH';
+        input = this._addConfig(input, init);
+        return this._wrapResponse(await fetch(input, init));
+    }
+
     static async delete(input, init = {}) {
         init.method = 'DELETE';
         input = this._addConfig(input, init);

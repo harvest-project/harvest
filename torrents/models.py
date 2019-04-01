@@ -1,3 +1,5 @@
+import random
+
 from django.db import models
 
 from torrents.exceptions import AlcazarNotConfiguredException
@@ -10,7 +12,14 @@ class Realm(models.Model):
     name = models.CharField(max_length=64, unique=True)
 
     def get_preferred_download_location(self):
-        return self.download_locations.order_by('?').first()
+        download_locations = list(self.download_locations.all())
+        preferred = [d for d in download_locations if d.is_preferred]
+        if preferred:
+            return random.choice(preferred)
+        elif download_locations:
+            return random.choice(download_locations)
+        else:
+            return None
 
     class Meta:
         ordering = ('name',)
@@ -128,6 +137,7 @@ class DownloadLocation(models.Model):
 
     realm = models.ForeignKey(Realm, models.CASCADE, related_name='download_locations')
     pattern = models.CharField(max_length=65536)
+    is_preferred = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (('realm', 'pattern'),)

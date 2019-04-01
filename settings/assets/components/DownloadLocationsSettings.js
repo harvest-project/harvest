@@ -1,4 +1,4 @@
-import {Button, message, Modal, Popconfirm, Table} from 'antd';
+import {Button, Icon, message, Modal, Popconfirm, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
@@ -22,13 +22,23 @@ export class DownloadLocationsSettings extends React.Component {
             },
             {
                 dataIndex: 'pattern',
+                render: (data, record) => (
+                    <span>
+                        {record.is_preferred ? <Icon type="right-circle"/> : null}
+                        {' '}{data}
+                    </span>
+                ),
             },
             {
                 key: 'actions',
                 title: 'Actions',
-                width: 80,
-                render: (text, record) => (
+                width: 150,
+                render: (data, record) => (
                     <div>
+                        {!record.is_preferred ? <a onClick={() => this.patchLocationIsDefault(record.id)}>
+                            Mark&nbsp;Default
+                        </a> : null}
+                        {' '}
                         <Popconfirm title="Are you sure?" onConfirm={() => this.deleteLocation(record.id)}>
                             <a>Delete</a>
                         </Popconfirm>
@@ -41,7 +51,7 @@ export class DownloadLocationsSettings extends React.Component {
             addToRealm: null,
             addToTracker: null,
             addPattern: '',
-        }
+        };
     }
 
     getRealmLocations(realm) {
@@ -57,6 +67,15 @@ export class DownloadLocationsSettings extends React.Component {
     async deleteLocation(locationId) {
         try {
             await TorrentsAPI.deleteDownloadLocation(locationId);
+            this.context.downloadLocations = await TorrentsAPI.getDownloadLocations();
+        } catch (response) {
+            await APIHelper.showResponseError(response, 'Error deleting location');
+        }
+    }
+
+    async patchLocationIsDefault(locationId) {
+        try {
+            await TorrentsAPI.patchDownloadLocation(locationId, {is_preferred: true});
             this.context.downloadLocations = await TorrentsAPI.getDownloadLocations();
         } catch (response) {
             await APIHelper.showResponseError(response, 'Error deleting location');

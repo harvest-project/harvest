@@ -21,9 +21,9 @@ ALLOWED_SAMPLE_RATES = {44100, 48000}
 ALLOWED_BITS_PER_SAMPLE = {16}
 ALLOWED_CHANNELS = {2}
 LAME_BITRATE_SETTINGS = {
-    MusicMetadata.BITRATE_320: ['--cbr', '-b', '320'],
-    MusicMetadata.BITRATE_V0: ['-V', '0'],
-    MusicMetadata.BITRATE_V2: ['-V', '2'],
+    MusicMetadata.ENCODING_320: ['--cbr', '-b', '320'],
+    MusicMetadata.ENCODING_V0: ['-V', '0'],
+    MusicMetadata.ENCODING_V2: ['-V', '2'],
 }
 
 
@@ -132,6 +132,8 @@ class LAMETranscoderExecutor(StepExecutor):
         executor = ThreadPoolExecutor(max_workers=max_workers)
         logger.info('{} starting transcode processes with {} workers.'.format(self.project, max_workers))
         list(executor.map(execute_subprocess_chain, chains, timeout=300))
+        logger.info('{} starting copy tags.'.format(self.project))
+        list(executor.map(self.FileInfo.copy_tags, self.audio_files, timeout=300))
 
     def check_output_files(self):
         for file in self.audio_files:
@@ -144,7 +146,6 @@ class LAMETranscoderExecutor(StepExecutor):
 
     def handle_run(self):
         self.check_prerequisites()
-        self.clean_work_area()
         self.init_audio_files()
         self.check_audio_files()
         self.transcode_audio_files()

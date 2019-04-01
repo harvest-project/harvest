@@ -66,7 +66,7 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
 
 @log_exceptions('Error adding torrent {tracker_id} from {tracker.name} in {download_path_pattern}: {exc}.')
 @log_successes('Added torrent {tracker_id} from {tracker.name} in {return.download_path}, took {time_taken:.3f} s.')
-def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, force_fetch=True):
+def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, force_fetch=True, store_files_hook=None):
     try:
         realm = Realm.objects.get(name=tracker.name)
     except Realm.DoesNotExist:
@@ -88,6 +88,8 @@ def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, forc
         torrent_file_bytes,
         torrent_info,
     )
+    if store_files_hook:
+        store_files_hook(torrent_info, download_path)
     added_state = client.add_torrent(
         realm.name,
         torrent_file_bytes,

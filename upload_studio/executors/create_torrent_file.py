@@ -5,6 +5,7 @@ from subprocess import CalledProcessError
 import bencode
 
 from Harvest.utils import get_logger
+from trackers.utils import TorrentFileInfo
 from upload_studio.step_executor import StepExecutor
 from upload_studio.utils import list_abs_files
 
@@ -17,12 +18,14 @@ class CreateTorrentFileExecutor(StepExecutor):
     name = 'create_torrent_files'
     description = 'Creates a .torrent file.'
 
-    def __init__(self, *args, torrent_name, announce, extra_info_keys=None, **kwargs):
+    def __init__(self, *args, announce, extra_info_keys=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.torrent_name = torrent_name
         self.announce = announce
         self.extra_info_keys = extra_info_keys
-        self.torrent_file_path = os.path.join(self.step.get_area_path('torrent_file'), self.torrent_name + '.torrent')
+
+    @property
+    def torrent_file_path(self):
+        return os.path.join(self.step.get_area_path('torrent_file'), self.metadata.torrent_name + '.torrent')
 
     def check_prerequisites(self):
         try:
@@ -33,7 +36,7 @@ class CreateTorrentFileExecutor(StepExecutor):
     def clean_temp_hidden_files(self):
         for file in list_abs_files(self.step.data_path):
             if os.path.basename(file).startswith('.') or file.lower() in BAD_FILES:
-                logger.info('{} removing bad file {}.'.format(self.project, file))
+                logger.info('{} removing bad file {}.', self.project, file)
                 os.remove(file)
 
     def create_torrent(self):
@@ -42,11 +45,11 @@ class CreateTorrentFileExecutor(StepExecutor):
             'mktorrent',
             '-a', self.announce,
             '-p',
-            '-n', self.torrent_name,
+            '-n', self.metadata.torrent_name,
             '-o', self.torrent_file_path,
             self.step.data_path
         ]
-        logger.info('{} creating .torrent file with command: {}'.format(self.project, args))
+        logger.info('{} creating .torrent file with command: {}', self.project, args)
         try:
             subprocess.check_output(args, encoding='utf-8', stderr=subprocess.STDOUT)
         except CalledProcessError as exc:
@@ -55,15 +58,20 @@ class CreateTorrentFileExecutor(StepExecutor):
     def add_extra_info_keys(self):
         if not self.extra_info_keys:
             return
-        logger.info('{} adding extra info keys {}.'.format(self.project, self.extra_info_keys))
+        logger.info('{} adding extra info keys {}.', self.project, self.extra_info_keys)
         with open(self.torrent_file_path, 'rb') as f:
             meta_info = bencode.bdecode(f.read())
         meta_info['info'].update(self.extra_info_keys)
         with open(self.torrent_file_path, 'wb') as f:
             f.write(bencode.bencode(meta_info))
 
+    def record_additional_metadata(self):
+        torrent_file_info = TorrentFileInfo.from_file(self.torrent_file_path)
+        self.metadata.torrent_info_hash = torrent_file_info.info_hash
+
     def handle_run(self):
         self.copy_prev_step_files()
         self.clean_temp_hidden_files()
         self.create_torrent()
         self.add_extra_info_keys()
+        self.record_additional_metadata()

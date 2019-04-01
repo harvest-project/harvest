@@ -2,12 +2,19 @@ from rest_framework import serializers
 
 
 class MusicMetadata:
-    FORMAT_FLAC = 'FLAC'
+    # Currently matching the settings in Gazelle
     FORMAT_MP3 = 'MP3'
-    FORMATS = {
-        FORMAT_FLAC,
-        FORMAT_MP3,
-    }
+    FORMAT_FLAC = 'FLAC'
+    FORMAT_AAC = 'AAC'
+    FORMAT_AC3 = 'AC3'
+    FORMAT_DTS = 'DTS'
+    FORMAT_CHOICES = (
+        (FORMAT_MP3, FORMAT_MP3),
+        (FORMAT_FLAC, FORMAT_FLAC),
+        (FORMAT_AAC, FORMAT_AAC),
+        (FORMAT_AC3, FORMAT_AC3),
+        (FORMAT_DTS, FORMAT_DTS),
+    )
 
     MEDIA_CD = 'CD'
     MEDIA_DVD = 'DVD'
@@ -18,45 +25,46 @@ class MusicMetadata:
     MEDIA_CASSETTE = 'Cassette'
     MEDIA_WEB = 'WEB'
     MEDIA_BLU_RAY = 'Blu-Ray'
-    MEDIAS = {
-        MEDIA_CD,
-        MEDIA_DVD,
-        MEDIA_VINYL,
-        MEDIA_SOUNDBOARD,
-        MEDIA_SACD,
-        MEDIA_DAT,
-        MEDIA_CASSETTE,
-        MEDIA_WEB,
-        MEDIA_BLU_RAY,
-    }
+    MEDIA_CHOICES = (
+        (MEDIA_CD, MEDIA_CD),
+        (MEDIA_DVD, MEDIA_DVD),
+        (MEDIA_VINYL, MEDIA_VINYL),
+        (MEDIA_SOUNDBOARD, MEDIA_SOUNDBOARD),
+        (MEDIA_SACD, MEDIA_SACD),
+        (MEDIA_DAT, MEDIA_DAT),
+        (MEDIA_CASSETTE, MEDIA_CASSETTE),
+        (MEDIA_WEB, MEDIA_WEB),
+        (MEDIA_BLU_RAY, MEDIA_BLU_RAY),
+    )
 
-    BITRATE_192 = '192'
-    BITRATE_APS = 'APS (VBR)'
-    BITRATE_V2 = 'V2 (VBR)'
-    BITRATE_V1 = 'V1 (VBR)'
-    BITRATE_256 = '256'
-    BITRATE_APX = 'APX (VBR)'
-    BITRATE_V0 = 'V0 (VBR)'
-    BITRATE_320 = '320'
-    BITRATE_LOSSLESS = 'Lossless'
-    BITRATE_24BIT_LOSSLESS = '24bit Lossless'
-    BITRATE_OTHER = 'Other'
-    BITRATE = {
-        BITRATE_192,
-        BITRATE_APS,
-        BITRATE_V2,
-        BITRATE_V1,
-        BITRATE_256,
-        BITRATE_APX,
-        BITRATE_V0,
-        BITRATE_320,
-        BITRATE_LOSSLESS,
-        BITRATE_24BIT_LOSSLESS,
-        BITRATE_OTHER,
-    }
+    ENCODING_192 = '192'
+    ENCODING_APS = 'APS (VBR)'
+    ENCODING_V2 = 'V2 (VBR)'
+    ENCODING_V1 = 'V1 (VBR)'
+    ENCODING_256 = '256'
+    ENCODING_APX = 'APX (VBR)'
+    ENCODING_V0 = 'V0 (VBR)'
+    ENCODING_320 = '320'
+    ENCODING_LOSSLESS = 'Lossless'
+    ENCODING_24BIT_LOSSLESS = '24bit Lossless'
+    ENCODING_OTHER = 'Other'
+    ENCODING_CHOICES = (
+        (ENCODING_192, ENCODING_192),
+        (ENCODING_APS, ENCODING_APS),
+        (ENCODING_V2, ENCODING_V2),
+        (ENCODING_V1, ENCODING_V1),
+        (ENCODING_256, ENCODING_256),
+        (ENCODING_APX, ENCODING_APX),
+        (ENCODING_V0, ENCODING_V0),
+        (ENCODING_320, ENCODING_320),
+        (ENCODING_LOSSLESS, ENCODING_LOSSLESS),
+        (ENCODING_24BIT_LOSSLESS, ENCODING_24BIT_LOSSLESS),
+        (ENCODING_OTHER, ENCODING_OTHER),
+    )
 
     def __init__(self, title=None, edition_year=None, edition_title=None, edition_record_label=None,
-                 edition_catalog_number=None, format=None, media=None, encoding=None, additional_data=None):
+                 edition_catalog_number=None, format=None, media=None, encoding=None, torrent_name=None,
+                 torrent_info_hash=None, additional_data=None):
         self.title = title
         self.edition_year = edition_year
         self.edition_title = edition_title
@@ -67,7 +75,13 @@ class MusicMetadata:
         self.media = media
         self.encoding = encoding
 
+        self.torrent_name = torrent_name
+        self.torrent_info_hash = torrent_info_hash
         self.additional_data = additional_data
+
+    @property
+    def format_is_lossy(self):
+        return self.format != MusicMetadata.FORMAT_FLAC
 
 
 class MusicMetadataSerializer(serializers.Serializer):
@@ -81,4 +95,6 @@ class MusicMetadataSerializer(serializers.Serializer):
     media = serializers.CharField(allow_null=True, allow_blank=True)
     encoding = serializers.CharField(allow_null=True, allow_blank=True)
 
+    torrent_name = serializers.CharField(allow_null=True, allow_blank=True)
+    torrent_info_hash = serializers.CharField(allow_null=True, allow_blank=True)
     additional_data = serializers.JSONField(allow_null=True)

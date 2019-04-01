@@ -45,3 +45,7 @@ def execute_subprocess_chain(chain_args):
     for p in processes:
         if p.returncode != 0:
             raise Exception('Subprocess returned non-zero.')
+
+
+def strip_invalid_path_characters(path):
+    return ''.join(c for c in path if c not in r'\/:*?"<>|')

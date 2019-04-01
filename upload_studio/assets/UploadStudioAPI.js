@@ -26,4 +26,8 @@ export const UploadStudioAPI = new class {
     async postProjectRunOne(projectId, step) {
         return await APIHelper.post(`/api/upload_studio/projects/${projectId}/run-one`);
     }
+
+    async postProjectWarningAck(projectId, warningId) {
+        return await APIHelper.post(`/api/upload_studio/projects/${projectId}/warnings/${warningId}/ack`);
+    }
 };

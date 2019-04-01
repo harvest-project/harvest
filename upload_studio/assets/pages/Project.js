@@ -1,4 +1,4 @@
-import {Alert, Button, Col, Icon, Popconfirm, Row, Table, Timeline} from 'antd';
+import {Alert, Button, Col, Icon, Popconfirm, Row, Table, Timeline, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
@@ -124,6 +124,50 @@ export class Project extends React.Component {
         return group;
     }
 
+
+    async ackWarning(e, warning) {
+        e.preventDefault();
+        try {
+            await UploadStudioAPI.postProjectWarningAck(this.state.project.id, warning.id);
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+        await this.context.trackLoadingAsync(async () => this.refreshProject());
+    }
+
+    renderStep(step) {
+        const isCurrent = step.index === this.state.project.current_step;
+        return (
+            <Timeline.Item key={step.id} {...this.getTimelineItemParams(step)}>
+                <h4 style={{fontWeight: isCurrent ? 'bold' : 'normal'}}>
+                    {step.id} {step.executor_name}
+                </h4>
+                <DivRow><TextBr text={step.description}/></DivRow>
+                {step.warnings.map(warning => (
+                    <DivRow>
+                        <Alert type="warning" message={<span>
+                            {warning.message}
+                            {' '}
+                            {warning.acked ? <Icon type="check"/> :
+                                <a onClick={e => this.ackWarning(e, warning)}>Ack</a>}
+                        </span>}/>
+                    </DivRow>
+                ))}
+                {step.errors.map(error => (
+                    <DivRow>
+                        <Alert
+                            type="error"
+                            message={<div style={{overflowX: 'auto'}}>
+                                <TextBr text={error.message}/>
+                            </div>}
+                        />
+                    </DivRow>
+                ))}
+                {this.renderStepActions(step)}
+            </Timeline.Item>
+        );
+    }
+
     render() {
         if (this.state.isDeleted) {
             return <Redirect to={UploadStudioUrls.projects}/>;
@@ -138,10 +182,15 @@ export class Project extends React.Component {
             <Timer interval={3000} onInterval={() => this.refreshProject()}/>
 
             <h2>
-                Project {proj.name}
+                Project {proj.id}: {proj.name}
                 {' '}
-                {proj.is_locked ? <Icon type="lock"/> : null}
-                {proj.is_finished ? <Icon type="file-done"/> : null}
+                {proj.is_locked ? <Tooltip title="Project is locked because actions are being performed.">
+                    <Icon type="lock"/>
+                </Tooltip> : null}
+                {proj.is_finished ?
+                    <Tooltip title="Project is finished (all data has been deleted. No further actions are allowed.">
+                        <Icon type="file-done"/>
+                    </Tooltip> : null}
             </h2>
 
             <DivRow>
@@ -170,25 +219,7 @@ export class Project extends React.Component {
             <Row gutter={24}>
                 <Col xs={24} lg={8}>
                     <Timeline style={{marginTop: 16}}>
-                        {proj.steps.map(step => (
-                            <Timeline.Item key={step.id} {...this.getTimelineItemParams(step)}>
-                                <h4 style={{fontWeight: step.index === proj.current_step ? 'bold' : 'normal'}}>
-                                    {step.executor_name}
-                                </h4>
-                                <DivRow><TextBr text={step.description}/></DivRow>
-                                {step.warnings.map(warning => (
-                                    <DivRow>
-                                        <Alert type="warning" message={<span>warning.message</span>}/>
-                                    </DivRow>
-                                ))}
-                                {step.errors.map(error => (
-                                    <DivRow>
-                                        <Alert type="error" message={<TextBr text={error.message}/>}/>
-                                    </DivRow>
-                                ))}
-                                {this.renderStepActions(step)}
-                            </Timeline.Item>
-                        ))}
+                        {proj.steps.map(step => this.renderStep(step))}
                     </Timeline>
                 </Col>
                 <Col xs={24} lg={16}>

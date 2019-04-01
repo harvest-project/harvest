@@ -2,7 +2,7 @@ import os
 import shutil
 from io import BytesIO
 
-from psycopg2._psycopg import IntegrityError
+from django.db import IntegrityError, transaction
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
@@ -40,6 +40,7 @@ class StepExecutor:
     def completed_status(self):
         return Project.STATUS_COMPLETE
 
+    @transaction.atomic
     def add_warning(self, message):
         try:
             ProjectStepWarning.objects.create(step=self.step, message=message)
@@ -63,7 +64,7 @@ class StepExecutor:
 
     def clean_work_area(self):
         try:
-            shutil.rmtree(self.step.data_path)
+            shutil.rmtree(self.step.path)
         except FileNotFoundError:
             pass
         os.makedirs(self.step.data_path)
@@ -83,6 +84,7 @@ class StepExecutor:
     def run(self):
         self.step.projectsteperror_set.all().delete()
         try:
+            self.clean_work_area()
             self.handle_run()
             self.raise_warnings()  # In case a warning was added after the last raise_warnings
             self.step.status = self.completed_status

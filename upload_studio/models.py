@@ -5,6 +5,7 @@ import shutil
 from django.conf import settings
 from django.db import models, transaction
 
+from torrents.models import Torrent
 from upload_studio.exceptions import ProjectFinishedException
 
 
@@ -29,6 +30,7 @@ class Project(models.Model):
         (MEDIA_TYPE_MUSIC, MEDIA_TYPE_MUSIC),
     )
 
+    source_torrent = models.ForeignKey(Torrent, models.SET_NULL, null=True)
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
     is_finished = models.BooleanField(default=False)
@@ -80,6 +82,12 @@ class Project(models.Model):
     def data_path(self):
         return os.path.join(settings.MEDIA_ROOT, 'upload_project_{}'.format(self.id))
 
+    def delete_all_data(self):
+        try:
+            shutil.rmtree(self.data_path)
+        except FileNotFoundError:
+            pass
+
     @transaction.atomic()
     def reset(self, step_index=0):
         self.raise_if_finished()
@@ -92,10 +100,7 @@ class Project(models.Model):
             step.reset_messages()
         self.save_steps()
         if step_index == 0:
-            try:
-                os.rmdir(self.data_path)
-            except FileNotFoundError:
-                pass
+            self.delete_all_data()
 
 
 class ProjectStep(models.Model):
@@ -118,6 +123,7 @@ class ProjectStep(models.Model):
     def description(self):
         from upload_studio.executor_registry import ExecutorRegistry
         kwargs = json.loads(self.executor_kwargs_json)
+        kwargs['source_torrent'] = self.project.source_torrent
         return ExecutorRegistry.get_executor(self.executor_name).description.format(**kwargs)
 
     @property

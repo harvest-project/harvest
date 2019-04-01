@@ -4,7 +4,7 @@ from django.db import transaction
 
 from Harvest.utils import get_logger
 from upload_studio.executor_registry import ExecutorRegistry
-from upload_studio.models import Project, ProjectStepError
+from upload_studio.models import Project, ProjectStepError, ProjectStep
 
 logger = get_logger(__name__)
 
@@ -25,7 +25,9 @@ class StepsRunner:
                     self.project.id, self.project.name, step.id, step.executor_name, step.executor_kwargs)
 
         step.status = Project.STATUS_RUNNING
-        step.save(using='control', update_fields=('status',))
+        # No save(using=...) as that changes the db
+        ProjectStep.objects.using('control').filter(
+            id=step.id).update(status=step.status)
         with transaction.atomic():
             prev_step = self.get_prev_step(step)
             if prev_step:
@@ -71,5 +73,5 @@ class StepsRunner:
                 break
             if step.status != Project.STATUS_COMPLETE:
                 logger.info('Project {} stopping run all due to step({}) {} status {}.',
-                            self.project.id, step.id, step.executor_name, step.status)
+                            self.project_id, step.id, step.executor_name, step.status)
                 break

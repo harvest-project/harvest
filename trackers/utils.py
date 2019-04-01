@@ -10,3 +10,8 @@ class TorrentFileInfo:
         self.name = info['name']
         self.info_hash = hashlib.sha1(bencode.bencode(info)).hexdigest()
         self.is_multifile = 'files' in info
+
+    @classmethod
+    def from_file(cls, path):
+        with open(path, 'rb') as f:
+            return cls(f.read())

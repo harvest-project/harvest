@@ -1,5 +1,7 @@
 import html
 
+import bs4
+
 
 class JoinedArtistsBuilder(object):
     def __init__(self, joined_artists_builder=None):
@@ -90,3 +92,24 @@ def get_joined_artists(music_info):
         result.append(a['name'])
         result.append(a['join'])
     return ''.join(result)
+
+
+def get_shorter_joined_artists(music_info, group_name):
+    artists = get_joined_artists(music_info)
+    if len(artists) + len(group_name) > 80:
+        if music_info['artists']:
+            if len(music_info['artists']) > 1:
+                artists = 'Various Artists'
+            else:
+                artists = music_info['artists'][0]['name']
+        elif music_info['conductor']:
+            if len(music_info['conductor']) > 1:
+                artists = 'Various Conductors'
+            else:
+                artists = music_info['conductor'][0]['name']
+    return artists
+
+
+def extract_upload_errors(html):
+    soup = bs4.BeautifulSoup(html, 'html5lib')
+    return soup.find('p', attrs={'style': 'color: red; text-align: center;'}).text.strip()

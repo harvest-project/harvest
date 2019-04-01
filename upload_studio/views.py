@@ -5,7 +5,7 @@ from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 
 from Harvest.utils import TransactionAPIView
-from upload_studio.models import Project
+from upload_studio.models import Project, ProjectStepWarning
 from upload_studio.serializers import ProjectShallowSerializer, ProjectDeepSerializer
 from upload_studio.tasks import project_run_all, project_run_one
 
@@ -22,6 +22,7 @@ class ProjectView(RetrieveDestroyAPIView):
     @transaction.atomic
     def perform_destroy(self, instance):
         instance = self.queryset.select_for_update().get(id=instance.id)
+        instance.delete_all_data()
         instance.delete()
 
 
@@ -53,9 +54,24 @@ class ProjectResetToStep(ProjectMutatorView):
 
 class ProjectRunAll(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
-        project_run_all(self.kwargs['pk'])
+        project_run_all(self.project.id)
 
 
 class ProjectRunOne(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
-        project_run_one(self.kwargs['pk'])
+        project_run_one(self.project.id)
+
+
+class WarningAck(ProjectMutatorView):
+    def perform_work(self, request, **kwargs):
+        try:
+            warning = ProjectStepWarning.objects.get(step__project=self.project, id=kwargs['warning_id'])
+        except ProjectStepWarning.DoesNotExist:
+            raise APIException('Warning does not exist.', code=status.HTTP_404_NOT_FOUND)
+        if warning.acked:
+            raise APIException('Warning already acked.', code=status.HTTP_400_BAD_REQUEST)
+        warning.acked = True
+        warning.save()
+        step = self.project.next_step
+        if step and not step.projectstepwarning_set.filter(acked=False).exists():
+            project_run_all(self.project.id)

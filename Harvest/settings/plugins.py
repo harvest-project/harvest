@@ -1,8 +1,6 @@
 import importlib
 import os
 
-import sys
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -40,13 +38,16 @@ def get_plugins_list():
 
 PLUGINS = get_plugins_list()
 
-# Import all plugins' settings
-for plugin in PLUGINS:
-    try:
-        plugin_module = plugin.import_settings()
-    except ImportError:
-        continue
-    for attr in dir(plugin_module):
-        if attr == attr.upper():
-            value = getattr(plugin_module, attr)
-            setattr(sys.modules[__name__], attr, value)
+
+def get_plugins_settings():
+    settings = {}
+    for plugin in PLUGINS:
+        try:
+            plugin_module = plugin.import_settings()
+        except ImportError:
+            continue
+        for attr in dir(plugin_module):
+            if attr == attr.upper():
+                value = getattr(plugin_module, attr)
+                settings[attr] = value
+    return settings

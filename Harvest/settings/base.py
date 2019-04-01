@@ -1,6 +1,9 @@
+import os
+import sys
+
 import environ
 
-from .plugins import *
+from .plugins import PLUGINS, get_plugins_settings
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -155,7 +158,7 @@ LOGGING = {
 }
 
 HUEY = {
-    'name': 'Harvest',
+    'name': 'harvest',
     'always_eager': False,
     'blocking': True,
     'connection': {
@@ -164,10 +167,13 @@ HUEY = {
         'db': 0,
     },
     'consumer': {
-        'workers': 2,
+        'workers': env.int('DJANGO_HUEY_CONSUMER_WORKERS', 2),
         'worker_type': 'thread',
         'periodic': True,
     }
 }
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+for key, value in get_plugins_settings().items():
+    setattr(sys.modules[__name__], key, value)

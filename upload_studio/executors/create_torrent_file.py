@@ -70,6 +70,7 @@ class CreateTorrentFileExecutor(StepExecutor):
         self.metadata.torrent_info_hash = torrent_file_info.info_hash
 
     def handle_run(self):
+        self.check_prerequisites()
         self.copy_prev_step_files()
         self.clean_temp_hidden_files()
         self.create_torrent()

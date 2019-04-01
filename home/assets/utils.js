@@ -4,7 +4,7 @@ export function formatDateTimeStringHuman(dateTimeString) {
     if (!dateTimeString) {
         return blankValue;
     }
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat('en', {
         year: 'numeric',
         month: 'numeric',
         day: 'numeric',
@@ -18,10 +18,10 @@ export function formatDateStringHuman(dateTimeString) {
     if (!dateTimeString) {
         return blankValue;
     }
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat('en', {
         year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
     }).format(new Date(dateTimeString));
 }
 
@@ -29,7 +29,20 @@ export function formatDateTimeStringISO(dateTimeString) {
     if (!dateTimeString) {
         return blankValue;
     }
-    return dateTimeString.substring(0, 10) + ' ' + dateTimeString.substring(11, 19);
+    const parts = new Intl.DateTimeFormat('en', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    }).formatToParts(new Date(dateTimeString));
+    const keys = {};
+    for (const {type, value} of parts) {
+        keys[type] = value;
+    }
+    return `${keys.year}-${keys.month}-${keys.day} ${keys.hour}:${keys.minute}:${keys.second}`;
 }
 
 const bytesSuffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];

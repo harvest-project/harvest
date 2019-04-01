@@ -16,7 +16,7 @@ from upload_studio.utils import list_src_dst_files, execute_subprocess_chain
 logger = get_logger(__name__)
 
 FILES_TO_COPY = {'folder.jpg', 'folder.jpeg', 'cover.jpg', 'cover.jpeg', 'front.jpg', 'front.jpeg', 'front cover.jpg',
-                 'front cover.jpeg', 'art.jpg', 'art.jpeg'}
+                 'front cover.jpeg', 'art.jpg', 'art.jpeg', 'thumbnail.jpg', 'thumbnail.jpeg'}
 ALLOWED_SAMPLE_RATES = {44100, 48000}
 ALLOWED_BITS_PER_SAMPLE = {16}
 ALLOWED_CHANNELS = {2}
@@ -75,6 +75,7 @@ class LAMETranscoderExecutor(StepExecutor):
         for src_file, dst_file in list_src_dst_files(self.prev_step.data_path, self.step.data_path):
             if os.path.basename(src_file) in FILES_TO_COPY:
                 logger.info('Project {} copying file {} to {}.', self.project.id, src_file, dst_file)
+                os.makedirs(os.path.dirname(dst_file), exist_ok=True)
                 shutil.copy2(src_file, dst_file)
             elif src_file.endswith('.part'):
                 self.raise_error('Refusing to run with a .part file in source directory.')

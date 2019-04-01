@@ -63,9 +63,13 @@ def _update_torrent_from_alcazar(torrent, torrent_state):
 def update_torrent_from_alcazar(torrent, torrent_state):
     if alcazar_torrent_equals(torrent, torrent_state):
         return False
+    prev_progress = torrent.progress
     _update_torrent_from_alcazar(torrent, torrent_state)
     torrent.save()
-    signals.torrent_updated.send(torrent)
+    # Dispatch relevant signals
+    transaction.on_commit(lambda: signals.torrent_updated.send_robust(None, torrent=torrent))
+    if prev_progress != 1 and torrent.progress == 1:
+        transaction.on_commit(lambda: signals.torrent_finished.send_robust(None, torrent=torrent))
     return True
 
 
@@ -79,7 +83,7 @@ def create_or_update_torrent_from_alcazar(realm, torrent_info_id, torrent_state)
             )
             update_torrent_from_alcazar(torrent, torrent_state)
             torrent.save()
-            signals.torrent_added.send(torrent)
+            transaction.on_commit(lambda: signals.torrent_added.send_robust(None, torrent=torrent))
             return torrent, True
     except django.db.utils.IntegrityError:
         logger.info('IntegrityError creating torrent, it must have popped up. Retrieving existing.')
@@ -89,7 +93,7 @@ def create_or_update_torrent_from_alcazar(realm, torrent_info_id, torrent_state)
             logger.warning('Discovered unlinked torrent {}, linking to {}.', torrent.info_hash, torrent_info_id)
             torrent.torrent_info_id = torrent_info_id
             torrent.save()
-            signals.torrent_updated.send(torrent)
+            transaction.on_commit(lambda: signals.torrent_updated.send_robust(None, torrent))
 
         update_torrent_from_alcazar(torrent, torrent_state)
         return torrent, False

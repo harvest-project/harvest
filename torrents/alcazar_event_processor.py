@@ -1,6 +1,8 @@
 import time
 from itertools import chain
 
+from django.db import transaction
+
 from Harvest.utils import get_logger
 from torrents.alcazar_client import update_torrent_from_alcazar, \
     create_or_update_torrent_from_alcazar
@@ -18,7 +20,7 @@ class AlcazarEventProcessor:
         logger.debug('Matched {} Torrent objects for deletion.'.format(len(removed_info_hashes)))
         removed_torrents_qs.delete()
         for removed_info_hash in removed_info_hashes:
-            torrent_removed.send((realm, removed_info_hash))
+            transaction.on_commit(lambda: torrent_removed.send_robust(cls, realm=realm, info_hash=removed_info_hash))
 
     @classmethod
     def _process_added_torrents(cls, realm, added_torrent_states):
@@ -29,7 +31,12 @@ class AlcazarEventProcessor:
         info_hashes = [state['info_hash'] for state in added_torrent_states]
         torrent_info_ids = {
             item[0]: item[1] for item in
-            TorrentInfo.objects.filter(realm=realm, info_hash__in=info_hashes).values_list('info_hash', 'id')}
+            TorrentInfo.objects.filter(
+                realm=realm,
+                info_hash__in=info_hashes,
+                is_deleted=False,
+            ).values_list('info_hash', 'id')
+        }
 
         for added_state in added_torrent_states:
             create_or_update_torrent_from_alcazar(

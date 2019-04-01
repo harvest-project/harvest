@@ -4,6 +4,7 @@ import shutil
 
 from django.conf import settings
 from django.db import models, transaction
+from django.utils import timezone
 
 from torrents.models import Torrent
 from upload_studio.exceptions import ProjectFinishedException
@@ -30,10 +31,12 @@ class Project(models.Model):
         (MEDIA_TYPE_MUSIC, MEDIA_TYPE_MUSIC),
     )
 
+    created_datetime = models.DateTimeField(default=timezone.now)
     source_torrent = models.ForeignKey(Torrent, models.SET_NULL, null=True)
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
     is_finished = models.BooleanField(default=False)
+    finished_datetime = models.DateTimeField(null=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -101,6 +104,13 @@ class Project(models.Model):
         self.save_steps()
         if step_index == 0:
             self.delete_all_data()
+
+    @transaction.atomic()
+    def mark_finished(self):
+        shutil.rmtree(self.data_path)
+        self.is_finished = True
+        self.finished_datetime = timezone.now()
+        self.save()
 
 
 class ProjectStep(models.Model):

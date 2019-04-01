@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
+from torrents import signals
 from upload_studio.executor_registry import ExecutorRegistry
 
 
@@ -12,3 +13,6 @@ class UploadStudioConfig(AppConfig):
         ExecutorRegistry.register_executor(lame_transcode.LAMETranscoderExecutor)
         ExecutorRegistry.register_executor(create_torrent_file.CreateTorrentFileExecutor)
         ExecutorRegistry.register_executor(finish_upload.FinishUploadExecutor)
+
+        from .receivers import on_torrent_finished
+        signals.torrent_finished.connect(on_torrent_finished)

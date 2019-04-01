@@ -14,7 +14,5 @@ class FinishUploadExecutor(StepExecutor):
         return Project.STATUS_FINISHED
 
     def handle_run(self):
-        shutil.rmtree(self.project.data_path)
-        self.project.is_finished = True
-        self.project.save()
+        self.project.mark_finished()
         LogEntry.info('Finished upload studio {}.'.format(self.project))

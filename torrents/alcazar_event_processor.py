@@ -22,6 +22,10 @@ class AlcazarEventProcessor:
 
     @classmethod
     def _process_added_torrents(cls, realm, added_torrent_states):
+        # Short-circuit to avoid any queries
+        if not added_torrent_states:
+            return
+
         info_hashes = [state['info_hash'] for state in added_torrent_states]
         torrent_info_ids = {
             item[0]: item[1] for item in

@@ -9,6 +9,9 @@ class Realm(models.Model):
 
     name = models.CharField(max_length=64, unique=True)
 
+    def get_preferred_download_location(self):
+        return self.download_locations.order_by('?').first()
+
     class Meta:
         ordering = ('name',)
 

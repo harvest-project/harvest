@@ -34,6 +34,22 @@ class RedactedThrottledRequest(ThrottledRequest, models.Model):
 
 
 class RedactedTorrentGroup(models.Model):
+    RELEASE_TYPE_ALBUM = 1
+    RELEASE_TYPE_SOUNDTRACK = 3
+    RELEASE_TYPE_EP = 5
+    RELEASE_TYPE_ANTHOLOGY = 6
+    RELEASE_TYPE_COMPILATION = 7
+    RELEASE_TYPE_SINGLE = 9
+    RELEASE_TYPE_LIVE_ALBUM = 11
+    RELEASE_TYPE_REMIX = 13
+    RELEASE_TYPE_BOOTLEG = 14
+    RELEASE_TYPE_INTERVIEW = 15
+    RELEASE_TYPE_MIXTAPE = 16
+    RELEASE_TYPE_DEMO = 17
+    RELEASE_TYPE_CONCERT_RECORDING = 18
+    RELEASE_TYPE_DJ_MIX = 19
+    RELEASE_TYPE_UNKNOWN = 21
+
     fetched_datetime = models.DateTimeField()
     is_deleted = models.BooleanField()
 
@@ -47,10 +63,18 @@ class RedactedTorrentGroup(models.Model):
     time = models.DateTimeField()
     vanity_house = models.BooleanField()
     is_bookmarked = models.BooleanField()
-    music_info = models.TextField()
+    music_info_json = models.TextField()
     tags = models.TextField()
     wiki_body = models.TextField()
     wiki_image = models.CharField(max_length=65536)
+
+    @property
+    def music_info(self):
+        return json.loads(self.music_info_json)
+
+    @music_info.setter
+    def music_info(self, value):
+        self.music_info_json = json.dumps(value)
 
     def update_from_redacted_dict(self, fetched_datetime, data):
         if self.id and self.id != data['id']:
@@ -72,22 +96,81 @@ class RedactedTorrentGroup(models.Model):
         self.time = iso8601.parse_date(data['time'])
         self.vanity_house = data['vanityHouse']
         self.is_bookmarked = data['isBookmarked']
-        self.music_info = json.dumps(data['musicInfo'])
+        self.music_info = data['musicInfo']
         self.tags = ','.join(data['tags'])
         self.wiki_body = data['wikiBody']
         self.wiki_image = data['wikiImage']
 
 
 class RedactedTorrent(models.Model):
+    FORMAT_MP3 = 'MP3'
+    FORMAT_FLAC = 'FLAC'
+    FORMAT_AAC = 'AAC'
+    FORMAT_AC3 = 'AC3'
+    FORMAT_DTS = 'DTS'
+    FORMAT_CHOICES = (
+        (FORMAT_MP3, FORMAT_MP3),
+        (FORMAT_FLAC, FORMAT_FLAC),
+        (FORMAT_AAC, FORMAT_AAC),
+        (FORMAT_AC3, FORMAT_AC3),
+        (FORMAT_DTS, FORMAT_DTS),
+    )
+
+    MEDIA_CD = 'CD'
+    MEDIA_DVD = 'DVD'
+    MEDIA_VINYL = 'Vinyl'
+    MEDIA_SOUNDBOARD = 'Soundboard'
+    MEDIA_SACD = 'SACD'
+    MEDIA_DAT = 'DAT'
+    MEDIA_CASSETTE = 'Cassette'
+    MEDIA_WEB = 'WEB'
+    MEDIA_BLU_RAY = 'Blu-Ray'
+    MEDIA_CHOICES = (
+        (MEDIA_CD, MEDIA_CD),
+        (MEDIA_DVD, MEDIA_DVD),
+        (MEDIA_VINYL, MEDIA_VINYL),
+        (MEDIA_SOUNDBOARD, MEDIA_SOUNDBOARD),
+        (MEDIA_SACD, MEDIA_SACD),
+        (MEDIA_DAT, MEDIA_DAT),
+        (MEDIA_CASSETTE, MEDIA_CASSETTE),
+        (MEDIA_WEB, MEDIA_WEB),
+        (MEDIA_BLU_RAY, MEDIA_BLU_RAY),
+    )
+
+    ENCODING_192 = '192'
+    ENCODING_APS = 'APS (VBR)'
+    ENCODING_V2 = 'V2 (VBR)'
+    ENCODING_V1 = 'V1 (VBR)'
+    ENCODING_256 = '256'
+    ENCODING_APX = 'APX (VBR)'
+    ENCODING_V0 = 'V0 (VBR)'
+    ENCODING_320 = '320'
+    ENCODING_LOSSLESS = 'Lossless'
+    ENCODING_24BIT_LOSSLESS = '24bit Lossless'
+    ENCODING_OTHER = 'Other'
+    ENCODING_CHOICES = (
+        (ENCODING_192, ENCODING_192),
+        (ENCODING_APS, ENCODING_APS),
+        (ENCODING_V2, ENCODING_V2),
+        (ENCODING_V1, ENCODING_V1),
+        (ENCODING_256, ENCODING_256),
+        (ENCODING_APX, ENCODING_APX),
+        (ENCODING_V0, ENCODING_V0),
+        (ENCODING_320, ENCODING_320),
+        (ENCODING_LOSSLESS, ENCODING_LOSSLESS),
+        (ENCODING_24BIT_LOSSLESS, ENCODING_24BIT_LOSSLESS),
+        (ENCODING_OTHER, ENCODING_OTHER),
+    )
+
     fetched_datetime = models.DateTimeField()
     is_deleted = models.BooleanField()
 
     torrent_info = models.OneToOneField(TorrentInfo, models.CASCADE, related_name='redacted_torrent')
     torrent_group = models.ForeignKey(RedactedTorrentGroup, models.PROTECT)
     info_hash = InfoHashField(db_index=True)
-    media = models.CharField(max_length=64)
-    format = models.CharField(max_length=64)
-    encoding = models.CharField(max_length=64)
+    media = models.CharField(max_length=64, choices=MEDIA_CHOICES)
+    format = models.CharField(max_length=64, choices=FORMAT_CHOICES)
+    encoding = models.CharField(max_length=64, choices=ENCODING_CHOICES)
     remastered = models.BooleanField()
     remaster_year = models.IntegerField(null=True)
     remaster_title = models.CharField(max_length=65536, null=True)

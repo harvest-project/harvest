@@ -17,7 +17,7 @@ class RedactedTorrentGroupSerializer(serializers.ModelSerializer):
     joined_artists = serializers.SerializerMethodField()
 
     def get_joined_artists(self, obj):
-        return get_joined_artists(json.loads(obj.music_info))
+        return get_joined_artists(obj.music_info)
 
     class Meta:
         model = RedactedTorrentGroup

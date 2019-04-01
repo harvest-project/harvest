@@ -5,9 +5,9 @@ django-environ==0.4.5
 huey==1.11.0
 bencode.py==2.0.0
 psycopg2-binary==2.7.7
-Markdown==3.0.1
 redis==3.2.1
 coreapi==2.3.3
 iso8601==0.1.12
 beautifulsoup4==4.7.1
 html5lib==1.0.1
+mutagen==1.42.0

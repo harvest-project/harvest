@@ -6,6 +6,7 @@ import React from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import {TorrentsUrls} from 'torrents/assets/TorrentsUrls';
 import {MonitoringUrls} from 'monitoring/assets/MonitoringUrls';
+import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
 
 const {SubMenu} = Menu;
 
@@ -56,6 +57,13 @@ export class MainMenu extends React.Component {
                 <Link to={MonitoringUrls.monitoring}>
                     <Icon type="safety"/>
                     <span>Monitoring</span>
+                </Link>
+            </Menu.Item>
+
+            <Menu.Item key={UploadStudioUrls.projects}>
+                <Link to={UploadStudioUrls.projects}>
+                    <Icon type="upload"/>
+                    <span>Upload</span>
                 </Link>
             </Menu.Item>
 

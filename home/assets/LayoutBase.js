@@ -14,6 +14,7 @@ import {TorrentsRoutes} from 'torrents/assets/TorrentsRoutes';
 import styles from './LayoutBase.less';
 import {MonitoringRoutes} from 'monitoring/assets/MonitoringRoutes';
 import {ErrorBoundary} from 'home/assets/components/ErrorBoundary';
+import {UploadStudioRoutes} from 'upload_studio/assets/UploadStudioRoutes';
 
 const {Header, Sider, Content, Footer} = Layout;
 
@@ -83,6 +84,7 @@ export class LayoutBase extends React.Component {
                                     <MonitoringRoutes/>
                                     <SettingsRoutes/>
                                     <TorrentsRoutes/>
+                                    <UploadStudioRoutes/>
                                     <PluginRoutes/>
                                 </ErrorBoundary>
                             </div>

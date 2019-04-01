@@ -14,7 +14,7 @@ class PluginMeta:
         self.app_config_path = '{}.apps.{}'.format(self.module_path, self.app_config_name)
         self.settings_module_path = '{}.settings'.format(self.module_path)
         self.urls_module_path = '{}.urls'.format(self.module_path)
-        self.urls_prefix = 'api/plugins/{}/'.format(self.name)
+        self.urls_prefix = 'api/plugins/{}/'.format(self.name.replace('_', '-'))
 
     def __str__(self):
         return 'Plugin({})'.format(self.module_path)

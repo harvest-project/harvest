@@ -41,7 +41,7 @@ def get_download_location_context(torrent_file, torrent_info):
 class DownloadLocationFormatter(string.Formatter):
     def convert_field(self, value, conversion):
         value = super().convert_field(value, conversion)
-        value = value.replace('/', '_')
+        value = str(value).replace('/', '_')
         return value
 
 

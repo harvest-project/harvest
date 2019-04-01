@@ -1,4 +1,5 @@
 import pickle
+import re
 
 import requests
 from django.utils import timezone
@@ -6,8 +7,9 @@ from django.utils import timezone
 from Harvest.throttling import DatabaseSyncedThrottler
 from Harvest.utils import get_filename_from_content_disposition, control_transaction, get_logger
 from plugins.redacted.exceptions import RedactedTorrentNotFoundException, RedactedRateLimitExceededException, \
-    RedactedException, RedactedLoginException
+    RedactedException, RedactedLoginException, RedactedUploadException
 from plugins.redacted.models import RedactedThrottledRequest, RedactedClientConfig
+from plugins.redacted.utils import extract_upload_errors
 
 logger = get_logger(__name__)
 
@@ -42,6 +44,10 @@ class RedactedClient:
     @property
     def log_url(self):
         return 'https://{}/log.php'.format(DOMAIN)
+
+    @property
+    def upload_url(self):
+        return 'https://{}/upload.php'.format(DOMAIN)
 
     def _login(self):
         logger.debug('Attempting login with username {}.', self.config.username)
@@ -197,6 +203,12 @@ class RedactedClient:
     def get_torrent(self, torrent_id):
         return self._ajax_request('torrent', id=torrent_id)
 
+    def get_torrent_by_info_hash(self, info_hash):
+        return self._ajax_request('torrent', hash=info_hash.upper())
+
+    def get_torrent_group(self, group_id):
+        return self._ajax_request('torrentgroup', id=group_id)
+
     def get_torrent_file(self, torrent_id):
         """Downloads the torrent at torrent_id using the authkey and passkey"""
 
@@ -220,3 +232,37 @@ class RedactedClient:
         if r.status_code != 200:
             raise RedactedException('Log.php returned status code {}.'.format(200))
         return r.text
+
+    def get_announce(self):
+        r = self._request('GET', self.upload_url, allow_redirects=False)
+        if r.status_code != 200:
+            raise RedactedException('Upload.php returned status code {}'.format(200))
+        match = re.search(r'value\=\"([^"]*/announce)\"', r.text)
+        if not match:
+            raise RedactedException('Unable to match announce url in HTML')
+        return match.group(1)
+
+    def _perform_upload(self):
+        pass
+
+    def perform_upload(self, payload, torrent_file):
+        index = self.get_index()
+        payload['auth'] = index['authkey']
+
+        r = self._request(
+            'POST',
+            self.upload_url,
+            data=payload,
+            files={
+                'file_input': ('torrent.torrent', torrent_file),
+            },
+            headers={
+                'Content-Type': None,
+            },
+        )
+        if r.url == self.upload_url:
+            try:
+                errors = extract_upload_errors(r.text)
+            except Exception:
+                errors = 'Unable to automatically detect error. Check HTML file.'
+            raise RedactedUploadException(r.text, errors)

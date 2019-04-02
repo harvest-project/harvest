@@ -1,0 +1,50 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #ececec;
+    font-size: 16px;
+}
+
+.container {
+    background: white;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 24px 32px 32px 32px;
+    width: 540px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    grid-gap: 8px 8px;
+    align-items: center;
+}
+
+.container input[type="text"] {
+    width: 100%;
+    padding: 4px;
+    font-size: 16px;
+}
+
+#save, #test_connection {
+    width: 180px;
+    font-size: 14px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.help-text {
+    grid-column: 2;
+    margin-top: -6px;
+    margin-bottom: 2px;
+    color: #666666;
+    font-size: 12px;
+}
+
+.full-row {
+    grid-column: 1 / span 2;
+    text-align: center;
+}

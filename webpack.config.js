@@ -33,7 +33,7 @@ const entries = plugins.filter(p => p.hasAssets).map(p => p.assetsEntryPath).con
 const pluginExtensionConfigs = plugins.filter(p => fs.existsSync(p.extensionWebpackConfigPath))
     .map(p => require(p.extensionWebpackConfigPath));
 
-module.exports = pluginExtensionConfigs;[].concat([{
+module.exports = pluginExtensionConfigs.concat([{
     mode: 'development',
     entry: entries,
     resolve: {

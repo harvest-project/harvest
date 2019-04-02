@@ -27,7 +27,6 @@ function discoverPlugins() {
 const plugins = discoverPlugins();
 const entries = plugins.map(plugin => plugin.entryPath).concat([
     './home/assets/index.js',
-    // './home/assets/LayoutBase2.js',
 ]);
 
 module.exports = {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "Bibliotik Session Sync",
-  "description": "This extension provides Bibliotik session synchronization for Harvest.",
+  "name": "Harvest Bibliotik Plugin",
+  "description": "This extension provides Bibliotik integration for Harvest.",
   "version": "0.0.1",
   "permissions": [
     "storage",

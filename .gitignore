@@ -20,3 +20,4 @@ playbook.retry
 /plugins/*
 !/plugins/redacted/
 !/plugins/bibliotik/
+/plugins/**/dist/

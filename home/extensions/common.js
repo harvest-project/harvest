@@ -1,10 +1,13 @@
 import Noty from 'noty';
 
 export const messages = {
-    requestLogin: 'requestLogin',
-    loginSuccessful: 'loginSuccessful',
+    requestLogin: 'onRequestLogin',
+    loginSucceeded: 'loginSucceeded',
     loginFailed: 'loginFailed',
     loginDisabled: 'loginDisabled',
+    getTorrentStatuses: 'onGetTorrentStatuses',
+    getTorrentStatusesSuccess: 'getTorrentStatusesSuccess',
+    getTorrentStatusesError: 'getTorrentStatusesError',
 };
 
 export class NotyHelper {
@@ -51,40 +54,41 @@ export class PluginHelper {
         return url + endpoint;
     }
 
-    async performGET(endpoint, options) {
+    async fetch(endpoint, options) {
         const {url, token} = await this.fetchConfig();
-        const resp = await fetch(
-            this.getApiUrl(url, endpoint),
-            {
-                headers: {
-                    'Authorization': 'Token ' + token,
-                },
-                ...options,
-            },
-        );
+        options.headers = options.headers || {};
+        options.headers['Authorization'] = 'Token ' + token;
+        const resp = await fetch(this.getApiUrl(url, endpoint), options);
         if (resp.status < 200 || resp.status >= 300) {
             throw resp;
         }
         return resp.json();
     }
 
-    async performPUT(endpoint, options) {
-        const {url, token} = await this.fetchConfig();
-        const resp = await fetch(
-            this.getApiUrl(url, endpoint),
-            {
-                method: 'PUT',
+    async performGET(endpoint, options) {
+        return await this.fetch(endpoint, options);
+    }
+
+    async performPOST(endpoint, options) {
+        return await this.fetch(endpoint, {
+                method: 'POST',
                 headers: {
-                    'Authorization': 'Token ' + token,
                     'Content-Type': 'application/json',
                 },
                 ...options,
             },
         );
-        if (resp.status < 200 || resp.status >= 300) {
-            throw resp;
-        }
-        return resp.json();
+    }
+
+    async performPUT(endpoint, options) {
+        return await this.fetch(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                ...options,
+            },
+        );
     }
 
     getSessionCookie() {
@@ -200,14 +204,14 @@ export class PluginHelper {
         return 'Connection successful, cookies are synced.';
     }
 
-    async requestLoginHelper(sendResponse) {
+    async onRequestLogin(sendResponse) {
         let detail;
         try {
             const {autoLogin} = await this.fetchConfig();
             if (!autoLogin) {
                 sendResponse({type: messages.loginDisabled});
             } else if (await this.syncCookies()) {
-                sendResponse({type: messages.loginSuccessful});
+                sendResponse({type: messages.loginSucceeded});
             } else {
                 detail = 'No working cookies received from server.';
             }
@@ -227,8 +231,40 @@ export class PluginHelper {
         });
 
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.type && request.type === 'requestLogin') {
-                this.requestLoginHelper(sendResponse);
+            if (request.type && request.type === messages.requestLogin) {
+                this.onRequestLogin(sendResponse);
+                return true;
+            }
+        });
+    }
+
+    async onGetTorrentStatuses(request, sendResponse) {
+        try {
+            const response = await this.performPOST('/torrents/', {
+                body: JSON.stringify({
+                    realm_name: request.realmName,
+                    tracker_ids: request.torrentIds,
+                    page_size: 1000,
+                }),
+            });
+            sendResponse({
+                type: messages.getTorrentStatusesSuccess,
+                torrents: response,
+            });
+        } catch (exception) {
+            sendResponse({
+                type: messages.getTorrentStatusesError,
+                detail: exception.toString(),
+            });
+        }
+    }
+
+    hookTorrentStatuses() {
+        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+            console.log('receive message ' + request.type);
+            debugger;
+            if (request.type && request.type === messages.getTorrentStatuses) {
+                this.onGetTorrentStatuses(request, sendResponse);
                 return true;
             }
         });

@@ -8,7 +8,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from Harvest.utils import TransactionAPIView
+from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView
 from torrents.add_torrent import add_torrent_from_file, add_torrent_from_tracker, fetch_torrent
 from torrents.alcazar_client import AlcazarClient, AlcazarRemoteException
 from torrents.exceptions import RealmNotFoundException
@@ -72,12 +72,11 @@ class AlcazarClients(APIView):
 class TorrentsPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'page_size'
-    max_page_size = 500
 
 
-class Torrents(ListAPIView):
-    serializer_class = TorrentSerializer
+class Torrents(CORSBrowserExtensionView, ListAPIView):
     pagination_class = TorrentsPagination
+    serializer_class = TorrentSerializer
 
     FILTER_ALL = 'all'
     FILTER_ACTIVE = 'active'
@@ -94,17 +93,28 @@ class Torrents(ListAPIView):
         FILTER_ERRORS: lambda qs: qs.filter(Q(error__isnull=False) | Q(tracker_error__isnull=False)),
     }
 
+    def _get_param(self, name, default=None):
+        if name in self.request.query_params:
+            return self.request.query_params[name]
+        if name in self.request.data:
+            return self.request.data[name]
+        return default
+
     def _apply_status(self, qs, status):
         return self.FILTER_FUNCS[status](qs)
 
-    def _apply_realm(self, qs, realm_id):
+    def _apply_realm(self, qs, realm_id, realm_name):
+        if realm_name:
+            realm_id = Realm.objects.get(name=realm_name).id
         if realm_id:
             return qs.filter(realm_id=int(realm_id))
         return qs
 
-    def _apply_limit(self, qs, limit):
-        if limit:
-            return qs[:int(limit)]
+    def _apply_tracker_ids(self, qs, tracker_ids):
+        if isinstance(tracker_ids, str):
+            tracker_ids = tracker_ids.split(',')
+        if tracker_ids:
+            return qs.filter(torrent_info__tracker_id__in=tracker_ids)
         return qs
 
     def _apply_order_by(self, qs, order_by):
@@ -112,15 +122,25 @@ class Torrents(ListAPIView):
             return qs
         return qs.order_by(order_by)
 
+    def get_serializer_context(self):
+        return {
+            'serialize_metadata': bool(int(self._get_param('serialize_metadata', '1'))),
+        }
+
     def get_queryset(self):
         torrents = Torrent.objects.select_related(
             'realm',
             'torrent_info',
         ).order_by('-added_datetime')
-        torrents = self._apply_status(torrents, self.request.query_params.get('status'))
-        torrents = self._apply_realm(torrents, self.request.query_params.get('realm_id'))
-        torrents = self._apply_order_by(torrents, self.request.query_params.get('order_by'))
+        torrents = self._apply_status(torrents, self._get_param('status'))
+        torrents = self._apply_realm(torrents, self._get_param('realm_id'), self._get_param('realm_name'))
+        torrents = self._apply_tracker_ids(torrents, self._get_param('tracker_ids'))
+        torrents = self._apply_order_by(torrents, self._get_param('order_by'))
         return torrents
+
+    # Workaround to support both GET and POST requests in case filters are expected to be large
+    def post(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class TorrentView(APIView):

@@ -7,7 +7,7 @@ import {BibliotikHelper} from './bibliotik';
 class BibliotikLoginHelper extends BibliotikHelper {
     handleResponse(response) {
         console.log('Get response from background script: ' + response.type);
-        if (response.type === messages.loginSuccessful) {
+        if (response.type === messages.loginSucceeded) {
             NotyHelper.success('Login successful, please wait...');
             window.location.reload();
         } else if (response.type === messages.loginDisabled) {

@@ -20,6 +20,8 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
     metadata = serializers.SerializerMethodField()
 
     def get_metadata(self, obj):
+        if not self.context.get('serialize_metadata', True):
+            return None
         try:
             tracker = TrackerRegistry.get_plugin(obj.realm.name)
         except PluginMissingException:

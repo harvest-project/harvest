@@ -1,4 +1,4 @@
-import {BibliotikHelper} from 'plugins/bibliotik/extension/bibliotik';
+import {BibliotikHelper} from './bibliotik';
 
 class BibliotikBackgroundHelper extends BibliotikHelper {
     init() {

@@ -3,34 +3,37 @@ const fs = require('fs');
 
 const pluginsRoot = path.resolve(__dirname, 'plugins');
 
+class Plugin {
+    constructor(name) {
+        this.name = name;
+        this.path = path.resolve(pluginsRoot, this.name);
+        this.assetsEntryPath = path.resolve(this.path, 'assets', 'index.js');
+        this.hasAssets = fs.existsSync(this.assetsEntryPath);
+        this.extensionWebpackConfigPath = path.resolve(this.path, 'extension', 'webpack.local.js');
+        this.hasExtension = fs.existsSync(this.extensionWebpackConfigPath);
+    }
+}
+
 function discoverPlugins() {
     const pluginDirs = fs.readdirSync(pluginsRoot);
     const plugins = [];
     for (const pluginName of pluginDirs) {
-        const pluginDir = path.resolve(pluginsRoot, pluginName);
         if (pluginName.startsWith('_') || pluginName.startsWith('.')) {
             continue;
         }
-        const indexJsPath = path.resolve(pluginDir, 'assets', 'index.js');
-        if (!fs.existsSync(indexJsPath)) {
-            continue;
-        }
-        plugins.push({
-            name: pluginName,
-            path: pluginDir,
-            entryPath: indexJsPath,
-        });
+        plugins.push(new Plugin(pluginName));
     }
     return plugins;
 }
 
 const plugins = discoverPlugins();
-const entries = plugins.map(plugin => plugin.entryPath).concat([
+const entries = plugins.filter(p => p.hasAssets).map(p => p.assetsEntryPath).concat([
     './home/assets/index.js',
-    // './home/assets/LayoutBase2.js',
 ]);
+const pluginExtensionConfigs = plugins.filter(p => fs.existsSync(p.extensionWebpackConfigPath))
+    .map(p => require(p.extensionWebpackConfigPath));
 
-module.exports = {
+module.exports = pluginExtensionConfigs;[].concat([{
     mode: 'development',
     entry: entries,
     resolve: {
@@ -38,6 +41,10 @@ module.exports = {
             __dirname,
             'node_modules',
         ],
+    },
+    output: {
+        filename: 'app.js',
+        path: path.resolve(__dirname, 'dist'),
     },
     module: {
         rules: [
@@ -107,12 +114,8 @@ module.exports = {
             },
         ],
     },
-    output: {
-        filename: 'app.js',
-        path: path.resolve(__dirname, 'dist'),
-    },
     devtool: 'eval-source-map',
     optimization: {
         usedExports: true,
     },
-};
+}]);

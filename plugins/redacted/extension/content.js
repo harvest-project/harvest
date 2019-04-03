@@ -21,25 +21,120 @@ function getTorrentId(link) {
 }
 
 class TorrentRow {
-    constructor(elem) {
+    static TRACKER_NAME = 'redacted';
+
+    static STATUS_NOT_DOWNLOADED = 0;
+    static STATUS_DOWNLOADING = 1;
+    static STATUS_DOWNLOADED = 2;
+    static STATUS_WORKING = 3;
+
+    constructor(helper, elem) {
+        this.helper = helper;
         this.jq = $(elem);
         const link = this.jq.find('a:contains(\'DL\')');
         if (!link.length) return;
-        const customActions = $('<span style="float: none;"></span>').append(loadingImg);
+        this.actions = $('<span>').css('float', 'none');
         link.parent()
-            .append(' [ ')
-            .append(customActions)
-            .append(' ]');
-
+            .before(
+                $('<span>')
+                    .css('float', 'right')
+                    .css('margin-left', '4px')
+                    .append(' [ ')
+                    .append(this.actions)
+                    .append(' ]'),
+            );
         this.torrentId = getTorrentId(link.attr('href'));
-        this.actions = customActions;
+        this.status = null;
+        this.torrent = null;
+        this.statusUpdated();
+    }
+
+    setItems(items) {
+        let needsSeparator = false;
+        this.actions.empty();
+        for (const item of items) {
+            if (needsSeparator) {
+                this.actions.append(' | ');
+            } else {
+                needsSeparator = true;
+            }
+            this.actions.append(item);
+        }
+    }
+
+    async downloadTorrent() {
+        this.status = this.constructor.STATUS_WORKING;
+        this.statusUpdated();
+        try {
+            const resp = await this.helper.performPOST('/api/torrents/add-torrent-from-tracker', {
+                body: JSON.stringify({
+                    tracker_name: this.helper.constructor.TRACKER_NAME,
+                    tracker_id: this.torrentId,
+                    download_path: null,
+                }),
+            });
+            NotyHelper.success(`Added torrent ${this.torrentId} - ${resp.torrent_info.metadata.group.name}`);
+        } catch (exception) {
+            NotyHelper.error(`Error adding torrent: ${exception}`);
+        }
+        this.status = null;
+        this.statusUpdated();
+
+        this.helper.refreshStatuses();
+    }
+
+    statusUpdated() {
+        const items = [];
+        if (this.status === null || this.status === this.constructor.STATUS_WORKING) {
+            items.push(loadingImg);
+        } else {
+            if (this.status === this.constructor.STATUS_NOT_DOWNLOADED) {
+                items.push($('<a href="#">GET</a>').click(e => {
+                    e.preventDefault();
+                    this.downloadTorrent();
+                }));
+            } else if (this.status === this.constructor.STATUS_DOWNLOADING) {
+                items.push(Math.floor(this.torrent.progress * 100) + '%');
+            } else if (this.status === this.constructor.STATUS_DOWNLOADED) {
+                items.push($('<a href="#">ZIP</a>').click(e => {
+                    e.preventDefault();
+                    alert('I heard you want to DL');
+                }));
+            }
+            items.push($('<a href="#">TC</a>').click(() => {
+                alert('I heard you want to TC');
+            }));
+        }
+        this.setItems(items);
+    }
+
+    receiveTorrent(torrent) {
+        this.torrent = torrent;
+        if (this.status === this.constructor.STATUS_WORKING) {
+            return;
+        }
+
+        let status = null;
+        if (torrent && torrent.progress === 1) {
+            status = this.constructor.STATUS_DOWNLOADED;
+        } else if (torrent) {
+            status = this.constructor.STATUS_DOWNLOADING;
+        } else {
+            status = this.constructor.STATUS_NOT_DOWNLOADED;
+        }
+        if (status !== this.status) {
+            this.status = status;
+            this.statusUpdated();
+        }
     }
 }
 
 class RedactedContentHelper extends RedactedHelper {
+    static TRACKER_NAME = 'redacted';
+
     init() {
         this.rows = $('tr:has(span.torrent_action_buttons)')
-            .each((_, r) => new TorrentRow(r));
+            .toArray().map(r => new TorrentRow(this, r));
 
         if (this.rows.length) {
             setTimeout(() => this.refreshStatuses(), 50);
@@ -51,7 +146,13 @@ class RedactedContentHelper extends RedactedHelper {
 
     handleTorrentStatuses(response) {
         if (response.type === messages.getTorrentStatusesSuccess) {
-
+            const responses = {};
+            for (const torrent of response.torrents.results) {
+                responses[torrent.torrent_info.tracker_id] = torrent;
+            }
+            for (const row of this.rows) {
+                row.receiveTorrent(responses[row.torrentId]);
+            }
         } else if (response.type === messages.getTorrentStatusesError) {
             NotyHelper.error(`Failed getting Harvest torrent statuses: ${response.detail}`);
         }
@@ -61,7 +162,7 @@ class RedactedContentHelper extends RedactedHelper {
         chrome.runtime.sendMessage(
             {
                 type: messages.getTorrentStatuses,
-                realmName: 'redacted',
+                realmName: this.constructor.TRACKER_NAME,
                 torrentIds: this.rows.map(r => r.torrentId),
             },
             response => this.handleTorrentStatuses(response),

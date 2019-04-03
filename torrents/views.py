@@ -216,7 +216,7 @@ class AddTorrentFromFile(APIView):
         return Response(TorrentSerializer(added_torrent).data)
 
 
-class AddTorrentFromTracker(APIView):
+class AddTorrentFromTracker(CORSBrowserExtensionView, APIView):
     def post(self, request):
         tracker_name = request.data['tracker_name']
         tracker_id = request.data['tracker_id']

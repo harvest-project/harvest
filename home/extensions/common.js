@@ -240,7 +240,7 @@ export class PluginHelper {
 
     async onGetTorrentStatuses(request, sendResponse) {
         try {
-            const response = await this.performPOST('/torrents/', {
+            const response = await this.performPOST('/api/torrents/', {
                 body: JSON.stringify({
                     realm_name: request.realmName,
                     tracker_ids: request.torrentIds,
@@ -261,8 +261,6 @@ export class PluginHelper {
 
     hookTorrentStatuses() {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            console.log('receive message ' + request.type);
-            debugger;
             if (request.type && request.type === messages.getTorrentStatuses) {
                 this.onGetTorrentStatuses(request, sendResponse);
                 return true;

@@ -66,7 +66,8 @@ def fetch_torrent(realm, tracker, tracker_id, *, force_fetch=True):
 
 @log_exceptions('Error adding torrent {tracker_id} from {tracker.name} in {download_path_pattern}: {exc}.')
 @log_successes('Added torrent {tracker_id} from {tracker.name} in {return.download_path}, took {time_taken:.3f} s.')
-def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, force_fetch=True, store_files_hook=None):
+def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern=None, force_fetch=True,
+                             store_files_hook=None):
     try:
         realm = Realm.objects.get(name=tracker.name)
     except Realm.DoesNotExist:
@@ -79,6 +80,8 @@ def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, forc
             torrent.client), status.HTTP_400_BAD_REQUEST)
     except (TorrentInfo.DoesNotExist, Torrent.DoesNotExist):
         pass
+    if download_path_pattern is None:
+        download_path_pattern = realm.get_preferred_download_location().pattern
 
     client = AlcazarClient()
     torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=force_fetch)
@@ -101,8 +104,10 @@ def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern, forc
 
 @log_exceptions('Error adding torrent file to {realm.name} in {download_path_pattern}: {exc}.')
 @log_successes('Added torrent file to {realm.name} in {return.download_path}, took {time_taken:.3f} s.')
-def add_torrent_from_file(*, realm, torrent_file, download_path_pattern):
+def add_torrent_from_file(*, realm, torrent_file, download_path_pattern=None):
     client = AlcazarClient()
+    if download_path_pattern is None:
+        download_path_pattern = realm.get_preferred_download_location().pattern
     download_path = format_download_path_pattern(
         download_path_pattern,
         torrent_file,

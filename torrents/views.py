@@ -71,7 +71,9 @@ class AlcazarClients(APIView):
 
 class TorrentsPagination(PageNumberPagination):
     page_size = 100
-    page_size_query_param = 'page_size'
+
+    def get_page_size(self, request):
+        return request.query_params.get('page_size', request.data.get('page_size', self.page_size))
 
 
 class Torrents(CORSBrowserExtensionView, ListAPIView):

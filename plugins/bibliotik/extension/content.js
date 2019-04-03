@@ -7,11 +7,11 @@ import {BibliotikHelper} from './bibliotik';
 class BibliotikLoginHelper extends BibliotikHelper {
     async handleLoginPage() {
         try {
-            const response = await sendChromeMessage({type: messages.requestLogin});
+            await sendChromeMessage({type: messages.requestLogin});
             NotyHelper.success('Login successful, please wait...');
             window.location.reload();
         } catch (response) {
-            console.error('Get response from background script: ' + JSON.stringify(response));
+            console.error('Got response from background script: ' + JSON.stringify(response));
             if (response.detail === 'disabled') {
                 NotyHelper.info('Harvest login is disabled from options.');
             } else {

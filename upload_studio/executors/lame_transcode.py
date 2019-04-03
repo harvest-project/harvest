@@ -95,19 +95,19 @@ class LAMETranscoderExecutor(StepExecutor):
 
             if sample_rate not in ALLOWED_SAMPLE_RATES:
                 self.raise_error(
-                    '{} only input files with sample rates {} are supported. '
+                    'Only input files with sample rates {} are supported. '
                     'File {} has {}. Run a sox step if needed.'.format(
-                        self.project, ALLOWED_SAMPLE_RATES, file.src_file, sample_rate))
+                        ALLOWED_SAMPLE_RATES, file.src_file, sample_rate))
             if bits_per_sample not in ALLOWED_BITS_PER_SAMPLE:
                 self.raise_error(
-                    '{} only input files with bits per sample {} are supported. '
+                    'Only input files with bits per sample {} are supported. '
                     'File {} has {}. Run a sox step if needed.'.format(
-                        self.project, ALLOWED_BITS_PER_SAMPLE, file.src_file, bits_per_sample))
+                        ALLOWED_BITS_PER_SAMPLE, file.src_file, bits_per_sample))
             if channels not in ALLOWED_CHANNELS:
                 self.raise_error(
-                    '{} only input files with channels {} are supported. '
+                    'Only input files with channels {} are supported. '
                     'File {} has {}. Run a sox stepsif needed.'.format(
-                        self.project, ALLOWED_CHANNELS, file.src_file, channels))
+                        ALLOWED_CHANNELS, file.src_file, channels))
 
     def transcode_audio_files(self):
         chains = []
@@ -118,8 +118,8 @@ class LAMETranscoderExecutor(StepExecutor):
             if self.bitrate in LAME_BITRATE_SETTINGS:
                 lame_options += LAME_BITRATE_SETTINGS[self.bitrate]
             else:
-                self.raise_error('{} unknown bitrate {}. Supported bitrates are {}.'.format(
-                    self.project, self.bitrate, list(LAME_BITRATE_SETTINGS.keys())))
+                self.raise_error('Unknown bitrate {}. Supported bitrates are {}.'.format(
+                    self.bitrate, list(LAME_BITRATE_SETTINGS.keys())))
             lame_options += ['-', file.dst_file]
 
             chain = (flac_options, lame_options)

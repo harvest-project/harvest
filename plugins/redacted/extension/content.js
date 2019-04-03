@@ -74,6 +74,7 @@ class TorrentRow {
             });
             NotyHelper.success(`Added torrent ${this.torrentId} - ${resp.torrent_info.metadata.group.name}`);
         } catch (exception) {
+            console.log('Error downloading torrent', exception);
             NotyHelper.error(`Error adding torrent: ${exception}`);
         }
         this.status = null;
@@ -151,8 +152,9 @@ class RedactedContentHelper extends RedactedHelper {
     static TRACKER_NAME = 'redacted';
 
     init() {
-        this.rows = $('tr:has(span.torrent_action_buttons)')
-            .toArray().map(r => new TorrentRow(this, r));
+        const rowsArray = $('tr:has(span.torrent_action_buttons), tr:has(span.torrent_links_block)').toArray();
+        rowsArray.splice(1000); // Max number of rows to process
+        this.rows = rowsArray.map(r => new TorrentRow(this, r));
 
         if (this.rows.length) {
             setTimeout(() => this.refreshStatuses(), 50);

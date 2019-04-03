@@ -1,14 +1,52 @@
 import Noty from 'noty';
 
 export const messages = {
-    requestLogin: 'onRequestLogin',
-    loginSucceeded: 'loginSucceeded',
-    loginFailed: 'loginFailed',
-    loginDisabled: 'loginDisabled',
-    getTorrentStatuses: 'onGetTorrentStatuses',
-    getTorrentStatusesSuccess: 'getTorrentStatusesSuccess',
-    getTorrentStatusesError: 'getTorrentStatusesError',
+    requestLogin: 'requestLogin',
+    getTorrentStatuses: 'getTorrentStatuses',
+    addTorrent: 'addTorrent',
 };
+
+export function sendChromeMessage(request) {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+            request,
+            response => {
+                if (typeof response === 'undefined') {
+                    reject(undefined);
+                } else if (response.success) {
+                    resolve(response);
+                } else {
+                    reject(response.detail);
+                }
+            },
+        );
+    });
+}
+
+export function hookChromeMessage(type, handler) {
+    const asyncHandler = async (request, sendResponse) => {
+        try {
+            const response = await handler(request);
+            response.type = type;
+            response.success = true;
+            sendResponse(response);
+        } catch (exception) {
+            console.error('Error processing content script message', request, exception);
+            sendResponse({
+                type: type,
+                success: false,
+                detail: exception,
+            });
+        }
+    };
+
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.type && request.type === type) {
+            asyncHandler(request, sendResponse);
+            return true;
+        }
+    });
+}
 
 export class NotyHelper {
     static _noty(type, text) {
@@ -204,21 +242,15 @@ export class PluginHelper {
         return 'Connection successful, cookies are synced.';
     }
 
-    async onRequestLogin(sendResponse) {
-        let detail;
-        try {
-            const {autoLogin} = await this.fetchConfig();
-            if (!autoLogin) {
-                sendResponse({type: messages.loginDisabled});
-            } else if (await this.syncCookies()) {
-                sendResponse({type: messages.loginSucceeded});
-            } else {
-                detail = 'No working cookies received from server.';
-            }
-        } catch (exception) {
-            detail = exception.toString();
+    async onRequestLogin(request, sendResponse) {
+        const {autoLogin} = await this.fetchConfig();
+        if (!autoLogin) {
+            throw 'disabled';
+        } else if (await this.syncCookies()) {
+            return {};
+        } else {
+            throw 'No working cookies received from server.';
         }
-        sendResponse({type: messages.loginFailed, detail: detail});
     }
 
     hookCookieSync(matchCookie) {
@@ -229,42 +261,34 @@ export class PluginHelper {
                 this.syncCookies(false);
             }
         });
+        hookChromeMessage(messages.requestLogin, this.onRequestLogin.bind(this));
+    }
 
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.type && request.type === messages.requestLogin) {
-                this.onRequestLogin(sendResponse);
-                return true;
-            }
+    async onGetTorrentStatuses(request) {
+        const response = await this.performPOST('/api/torrents/', {
+            body: JSON.stringify({
+                realm_name: request.realmName,
+                tracker_ids: request.torrentIds,
+                page_size: 1000,
+            }),
+        });
+        return {
+            torrents: response,
+        };
+    }
+
+    async onAddTorrent(request) {
+        return await this.performPOST('/api/torrents/add-torrent-from-tracker', {
+            body: JSON.stringify({
+                tracker_name: request.trackerName,
+                tracker_id: request.trackerId,
+                download_path: request.downloadPath,
+            }),
         });
     }
 
-    async onGetTorrentStatuses(request, sendResponse) {
-        try {
-            const response = await this.performPOST('/api/torrents/', {
-                body: JSON.stringify({
-                    realm_name: request.realmName,
-                    tracker_ids: request.torrentIds,
-                    page_size: 1000,
-                }),
-            });
-            sendResponse({
-                type: messages.getTorrentStatusesSuccess,
-                torrents: response,
-            });
-        } catch (exception) {
-            sendResponse({
-                type: messages.getTorrentStatusesError,
-                detail: exception.toString(),
-            });
-        }
-    }
-
-    hookTorrentStatuses() {
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.type && request.type === messages.getTorrentStatuses) {
-                this.onGetTorrentStatuses(request, sendResponse);
-                return true;
-            }
-        });
+    hookTorrents() {
+        hookChromeMessage(messages.getTorrentStatuses, this.onGetTorrentStatuses.bind(this));
+        hookChromeMessage(messages.addTorrent, this.onAddTorrent.bind(this));
     }
 }

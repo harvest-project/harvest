@@ -31,11 +31,11 @@ class Project(models.Model):
         (MEDIA_TYPE_MUSIC, MEDIA_TYPE_MUSIC),
     )
 
-    created_datetime = models.DateTimeField(default=timezone.now)
+    created_datetime = models.DateTimeField(db_index=True, default=timezone.now)
     source_torrent = models.ForeignKey(Torrent, models.SET_NULL, null=True)
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
-    is_finished = models.BooleanField(default=False)
+    is_finished = models.BooleanField(db_index=True, default=False)
     finished_datetime = models.DateTimeField(null=True)
 
     def __init__(self, *args, **kwargs):

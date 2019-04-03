@@ -1,8 +1,18 @@
-import {RedactedHelper} from './redacted';
+import {RedactedHelper, redactedMessages} from './redacted';
+import {hookChromeMessage} from 'home/extensions/common';
 
 class RedactedBackgroundHelper extends RedactedHelper {
+    async onTranscodeTorrent(request) {
+        return await this.performPOST('/api/plugins/redacted-uploader/transcode', {
+            body: JSON.stringify({
+                tracker_id: request.trackerId,
+            }),
+        });
+    }
+
     init() {
-        this.hookTorrentStatuses();
+        this.hookTorrents();
+        hookChromeMessage(redactedMessages.transcodeTorrent, this.onTranscodeTorrent.bind(this));
     }
 }
 

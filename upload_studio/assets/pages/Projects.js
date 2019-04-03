@@ -6,6 +6,8 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import {UploadStudioAPI} from 'upload_studio/assets/UploadStudioAPI';
 import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
+import {formatDateTimeStringISO} from 'home/assets/utils';
+import {DivRow} from 'home/assets/controls/DivRow';
 
 export class Projects extends React.Component {
     static contextType = HarvestContext;
@@ -18,6 +20,12 @@ export class Projects extends React.Component {
                 title: 'ID',
                 dataIndex: 'id',
                 width: 80,
+            },
+            {
+                title: 'Created',
+                dataIndex: 'created_datetime',
+                render: data => formatDateTimeStringISO(data),
+                width: 168,
             },
             {
                 title: 'Status',
@@ -35,6 +43,8 @@ export class Projects extends React.Component {
 
         this.state = {
             loading: false,
+            projectsActive: null,
+            projectsHistory: null,
         };
 
         this.onRow = record => ({
@@ -66,7 +76,8 @@ export class Projects extends React.Component {
 
         this.setState({
             loading: false,
-            projects: data,
+            projectsActive: data.active,
+            projectsHistory: data.history,
         });
 
     }
@@ -75,14 +86,30 @@ export class Projects extends React.Component {
         return <div>
             <Timer interval={3000} onInterval={() => this.refreshProjects()}/>
 
-            <h2>Upload Studio Projects</h2>
+            <h2>Active Projects</h2>
+
+            <DivRow>
+                <Table
+                    size="small"
+                    dataSource={this.state.projectsActive}
+                    loading={this.state.loading}
+                    columns={this.columns}
+                    rowKey="id"
+                    onRow={this.onRow}
+                    pagination={false}
+                />
+            </DivRow>
+
+            <h2>Finished Projects</h2>
 
             <Table
-                dataSource={this.state.projects}
+                size="small"
+                dataSource={this.state.projectsHistory}
                 loading={this.state.loading}
                 columns={this.columns}
                 rowKey="id"
                 onRow={this.onRow}
+                pagination={false}
             />
         </div>;
     }

@@ -1,8 +1,9 @@
 from django.db import OperationalError, transaction
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
+from rest_framework.generics import RetrieveDestroyAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from Harvest.utils import TransactionAPIView
 from upload_studio.models import Project, ProjectStepWarning
@@ -10,9 +11,14 @@ from upload_studio.serializers import ProjectShallowSerializer, ProjectDeepSeria
 from upload_studio.tasks import project_run_all, project_run_one
 
 
-class ProjectsView(ListAPIView):
-    queryset = Project.objects.all()
-    serializer_class = ProjectShallowSerializer
+class ProjectsView(APIView):
+    def get(self, request):
+        active_qs = Project.objects.filter(is_finished=False).order_by('-created_datetime')
+        history_qs = Project.objects.filter(is_finished=True).order_by('-created_datetime')[:50]
+        return Response({
+            'active': ProjectShallowSerializer(active_qs, many=True).data,
+            'history': ProjectShallowSerializer(history_qs, many=True).data,
+        })
 
 
 class ProjectView(RetrieveDestroyAPIView):

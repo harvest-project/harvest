@@ -100,7 +100,7 @@ export class Projects extends React.Component {
                 />
             </DivRow>
 
-            <h2>Finished Projects</h2>
+            <h2>Finished Projects (Last 50)</h2>
 
             <Table
                 size="small"

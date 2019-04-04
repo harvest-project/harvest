@@ -83,21 +83,36 @@ class TorrentRow {
         await this.helper.refreshStatuses();
     }
 
-    async transcodeTorrent() {
-        this.status = this.constructor.STATUS_WORKING;
-        this.statusUpdated();
+    async _transcodeTorrent() {
         try {
+            const existingProjects = await sendChromeMessage({
+                type: messages.getUploadStudioProjects,
+                queryParams: {source_tracker_id: this.torrentId},
+            });
+            if (existingProjects.active.length || existingProjects.history.length) {
+                if (!confirm('There is already an upload project from this torrent. Continue?')) {
+                    return;
+                }
+            }
             const resp = await sendChromeMessage({
                 type: redactedMessages.transcodeTorrent,
                 trackerId: this.torrentId,
             });
             NotyHelper.success(`Sent torrent ${this.torrentId} for transcoding.`);
         } catch (exception) {
+            console.log('Error transcoding torrent', exception);
             NotyHelper.error(`Error transcoding torrent: ${exception}`);
         }
-        this.status = null;
+    }
+
+    async transcodeTorrent() {
+        this.status = this.constructor.STATUS_WORKING;
         this.statusUpdated();
 
+        await this._transcodeTorrent();
+
+        this.status = null;
+        this.statusUpdated();
         await this.helper.refreshStatuses();
     }
 
@@ -128,6 +143,7 @@ class TorrentRow {
     }
 
     receiveTorrent(torrent) {
+        const changedProgress = this.torrent && this.torrent.progress !== torrent.progress;
         this.torrent = torrent;
         if (this.status === this.constructor.STATUS_WORKING) {
             return;
@@ -141,7 +157,7 @@ class TorrentRow {
         } else {
             status = this.constructor.STATUS_NOT_DOWNLOADED;
         }
-        if (status !== this.status) {
+        if (changedProgress || status !== this.status) {
             this.status = status;
             this.statusUpdated();
         }

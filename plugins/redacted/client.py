@@ -54,7 +54,7 @@ class RedactedClient:
 
         if self.config.last_login_failed:
             logger.debug('Refusing to retry failed login attempt.')
-            raise RedactedException('Refusing to retry failed login attempt.')
+            raise RedactedException('Refusing to retry failed login attempt. Check connection settings manually.')
 
         # Mark login as failed in order to prevent future tries if the code crashes
         self.config.last_login_failed = True

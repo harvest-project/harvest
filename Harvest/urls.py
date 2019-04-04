@@ -15,7 +15,7 @@ main_patterns = [
     path('api/monitoring/', include('monitoring.urls')),
     path('api/torrents/', include('torrents.urls')),
     path('api/trackers/', include('trackers.urls')),
-    path('api/upload_studio/', include('upload_studio.urls')),
+    path('api/upload-studio/', include('upload_studio.urls')),
     path('docs/', include_docs_urls(title='Harvest API')),
 ]
 

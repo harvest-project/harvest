@@ -4,7 +4,19 @@ export const messages = {
     requestLogin: 'requestLogin',
     getTorrentStatuses: 'getTorrentStatuses',
     addTorrent: 'addTorrent',
+    getUploadStudioProjects: 'getUploadStudioProjects',
 };
+
+function formatQueryParams(queryParams) {
+    const items = [];
+    for (const [key, value] of Object.entries(queryParams)) {
+        if (typeof value === 'undefined' || value === null) {
+            continue;
+        }
+        items.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    }
+    return items.join('&');
+}
 
 export function sendChromeMessage(request) {
     return new Promise((resolve, reject) => {
@@ -16,7 +28,7 @@ export function sendChromeMessage(request) {
                 } else if (response.success) {
                     resolve(response);
                 } else {
-                    reject(response.detail);
+                    reject(`Background page handler threw exception: ${response.detail}`);
                 }
             },
         );
@@ -31,11 +43,24 @@ export function hookChromeMessage(type, handler) {
             response.success = true;
             sendResponse(response);
         } catch (exception) {
+            let message = JSON.stringify(exception);
+            if (exception instanceof Response) {
+                try {
+                    const json = await exception.json();
+                    if (json.detail) {
+                        message = `Server returned error ${json.detail}`;
+                    } else {
+                        message = `Server returned error code ${response.status} ${response.statusCode}`;
+                    }
+                } catch {
+                }
+            }
+
             console.error('Error processing content script message', request, exception);
             sendResponse({
                 type: type,
                 success: false,
-                detail: exception,
+                detail: message,
             });
         }
     };
@@ -92,7 +117,7 @@ export class PluginHelper {
         return url + endpoint;
     }
 
-    async fetch(endpoint, options) {
+    async fetch(endpoint, options = {}) {
         const {url, token} = await this.fetchConfig();
         options.headers = options.headers || {};
         options.headers['Authorization'] = 'Token ' + token;
@@ -287,8 +312,13 @@ export class PluginHelper {
         });
     }
 
+    async onGetUploadStudioProjects(request) {
+        return await this.performGET('/api/upload-studio/projects?' + formatQueryParams(request.queryParams || {}));
+    }
+
     hookTorrents() {
         hookChromeMessage(messages.getTorrentStatuses, this.onGetTorrentStatuses.bind(this));
         hookChromeMessage(messages.addTorrent, this.onAddTorrent.bind(this));
+        hookChromeMessage(messages.getUploadStudioProjects, this.onGetUploadStudioProjects.bind(this));
     }
 }

@@ -18,3 +18,6 @@ class BaseTracker:
 
     def get_download_location_context(self, torrent_info):
         return []
+
+    def get_zip_download_basename(self, torrent_info):
+        raise NotImplementedError()

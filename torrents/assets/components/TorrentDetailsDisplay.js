@@ -1,14 +1,19 @@
 import {Alert, Button, Col, Popconfirm, Progress, Row, Statistic, Tooltip} from 'antd';
-import {formatBytes, formatDateStringHuman, formatDateTimeStringISO} from 'home/assets/utils';
+import {formatBytes, formatDateStringHuman} from 'home/assets/utils';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {getTorrentStatusDisplay, shortenInfoHash} from 'torrents/assets/utils';
+import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 
 export class TorrentDetailsDisplay extends React.Component {
     static propTypes = {
         torrent: PropTypes.object.isRequired,
         onDelete: PropTypes.func.isRequired,
     };
+
+    downloadZip() {
+        window.location = TorrentsAPI.getDownloadTorrentZipUrl(this.props.torrent.id);
+    }
 
     render() {
         const t = this.props.torrent;
@@ -60,6 +65,11 @@ export class TorrentDetailsDisplay extends React.Component {
             }
 
             <Col xs={24} style={{paddingTop: 8, paddingBottom: 8}}>
+                <Button htmlType="button" type="primary" icon="download"
+                        onClick={() => this.downloadZip()}>
+                    Download
+                </Button>
+                {' '}
                 <Popconfirm title="Are you sure?" onConfirm={() => this.props.onDelete()}>
                     <Button htmlType="button" type="danger" icon="delete">Delete</Button>
                 </Popconfirm>

@@ -1,7 +1,9 @@
 import base64
 
+import zipstream
 from django.db import transaction
 from django.db.models import Q
+from django.http import StreamingHttpResponse
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -16,6 +18,7 @@ from torrents.models import AlcazarClientConfig, Realm, Torrent, DownloadLocatio
 from torrents.remove_torrent import remove_torrent
 from torrents.serializers import AlcazarClientConfigSerializer, RealmSerializer, TorrentSerializer, \
     DownloadLocationSerializer, TorrentInfoSerializer
+from torrents.utils import get_zip_download_filename_base, add_zip_download_files
 from trackers.registry import TrackerRegistry
 
 
@@ -165,12 +168,23 @@ class TorrentView(APIView):
         return Response({})
 
 
-class TorrentByIDView(TorrentView, APIView):
+class TorrentByID(TorrentView, APIView):
     def get_object(self, torrent_id):
         try:
             return Torrent.objects.get(id=torrent_id)
         except Torrent.DoesNotExist:
             raise NotFound()
+
+
+class TorrentZip(TorrentByID):
+    def get(self, request, torrent_id):
+        torrent = self.get_object(torrent_id)
+        zip_file = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_STORED, allowZip64=True)
+        filename_base = get_zip_download_filename_base(torrent)
+        add_zip_download_files(zip_file, torrent)
+        response = StreamingHttpResponse(zip_file, content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename={}'.format(f'{filename_base}.zip')
+        return response
 
 
 class TorrentByRealmInfoHash(TorrentView, APIView):

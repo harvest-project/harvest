@@ -62,7 +62,7 @@ class TorrentRow {
         }
     }
 
-    async downloadTorrent() {
+    async addTorrent() {
         this.status = this.constructor.STATUS_WORKING;
         this.statusUpdated();
         try {
@@ -94,7 +94,7 @@ class TorrentRow {
                     return;
                 }
             }
-            const resp = await sendChromeMessage({
+            await sendChromeMessage({
                 type: redactedMessages.transcodeTorrent,
                 trackerId: this.torrentId,
             });
@@ -116,6 +116,14 @@ class TorrentRow {
         await this.helper.refreshStatuses();
     }
 
+    async downloadTorrent() {
+        const response = await sendChromeMessage({
+            type: messages.getDownloadTorrentUrl,
+            trackerId: this.torrent.id,
+        });
+        window.location = response.downloadUrl;
+    }
+
     statusUpdated() {
         const items = [];
         if (this.status === null || this.status === this.constructor.STATUS_WORKING) {
@@ -124,14 +132,14 @@ class TorrentRow {
             if (this.status === this.constructor.STATUS_NOT_DOWNLOADED) {
                 items.push($('<a href="#">GET</a>').click(e => {
                     e.preventDefault();
-                    this.downloadTorrent();
+                    this.addTorrent();
                 }));
             } else if (this.status === this.constructor.STATUS_DOWNLOADING) {
                 items.push(Math.floor(this.torrent.progress * 100) + '%');
             } else if (this.status === this.constructor.STATUS_DOWNLOADED) {
                 items.push($('<a href="#">ZIP</a>').click(e => {
                     e.preventDefault();
-                    alert('I heard you want to DL');
+                    this.downloadTorrent();
                 }));
             }
             items.push($('<a href="#">TC</a>').click(e => {

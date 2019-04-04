@@ -8,10 +8,11 @@ import mutagen.flac
 import mutagen.id3
 import mutagen.mp3
 
+from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
-from upload_studio.utils import list_src_dst_files, execute_subprocess_chain
+from upload_studio.utils import execute_subprocess_chain
 
 logger = get_logger(__name__)
 

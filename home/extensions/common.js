@@ -5,6 +5,7 @@ export const messages = {
     getTorrentStatuses: 'getTorrentStatuses',
     addTorrent: 'addTorrent',
     getUploadStudioProjects: 'getUploadStudioProjects',
+    getDownloadTorrentUrl: 'getDownloadTorrentUrl',
 };
 
 function formatQueryParams(queryParams) {
@@ -206,11 +207,11 @@ export class PluginHelper {
         return new Promise((resolve, reject) => {
             chrome.storage.local.get(
                 this.constructor.initialConfig,
-                async ({url, token, autoLogin}) => {
+                async ({url, token, ...params}) => {
                     if (!allowEmpty && (!url || !token)) {
                         reject('Please configure both URL and token.');
                     }
-                    resolve({url, token, autoLogin});
+                    resolve({url, token, ...params});
                 },
             );
         });
@@ -316,9 +317,17 @@ export class PluginHelper {
         return await this.performGET('/api/upload-studio/projects?' + formatQueryParams(request.queryParams || {}));
     }
 
+    async onGetDownloadTorrentUrl(request) {
+        const config = await this.fetchConfig();
+        return {
+            downloadUrl: this.getApiUrl(config.url, `/api/torrents/by-id/${request.trackerId}/zip`),
+        };
+    }
+
     hookTorrents() {
         hookChromeMessage(messages.getTorrentStatuses, this.onGetTorrentStatuses.bind(this));
         hookChromeMessage(messages.addTorrent, this.onAddTorrent.bind(this));
         hookChromeMessage(messages.getUploadStudioProjects, this.onGetUploadStudioProjects.bind(this));
+        hookChromeMessage(messages.getDownloadTorrentUrl, this.onGetDownloadTorrentUrl.bind(this));
     }
 }

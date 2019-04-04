@@ -6,10 +6,10 @@ from django.db import IntegrityError, transaction
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
+from Harvest.path_utils import copytree_into
 from Harvest.utils import get_logger
 from upload_studio.models import ProjectStep, Project, ProjectStepWarning, ProjectStepError
 from upload_studio.upload_metadata import MusicMetadata, MusicMetadataSerializer
-from upload_studio.utils import copytree_into
 
 logger = get_logger(__name__)
 

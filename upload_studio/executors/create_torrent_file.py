@@ -4,10 +4,10 @@ from subprocess import CalledProcessError
 
 import bencode
 
+from Harvest.path_utils import list_abs_files
 from Harvest.utils import get_logger
 from trackers.utils import TorrentFileInfo
 from upload_studio.step_executor import StepExecutor
-from upload_studio.utils import list_abs_files
 
 logger = get_logger(__name__)
 

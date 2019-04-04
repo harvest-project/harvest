@@ -1,8 +1,8 @@
 from django.db import transaction, OperationalError
 from rest_framework import serializers
 
+from Harvest.path_utils import list_rel_files
 from upload_studio.models import Project, ProjectStep, ProjectStepWarning, ProjectStepError
-from upload_studio.utils import list_rel_files
 
 
 class ProjectShallowSerializer(serializers.ModelSerializer):

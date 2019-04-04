@@ -104,4 +104,8 @@ export const TorrentsAPI = new class {
     async deleteDownloadLocation(downloadLocationId) {
         return await APIHelper.delete(`/api/torrents/download-locations/${downloadLocationId}`);
     }
+
+    getDownloadTorrentZipUrl(torrentId) {
+        return `/api/torrents/by-id/${torrentId}/zip`;
+    }
 };

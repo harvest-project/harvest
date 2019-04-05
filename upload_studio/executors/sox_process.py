@@ -62,9 +62,9 @@ class SoxProcessExecutor(StepExecutor):
 
     def _get_target_stream_info(self, sample_rate, bits_per_sample, channels):
         if self.target_sample_rate == self.TARGET_SAMPLE_RATE_44100_OR_4800:
-            if sample_rate % 44100 == 0:
+            if sample_rate == 44100 or sample_rate >= 88200:
                 target_sample_rate = 44100
-            elif sample_rate % 48000 == 0:
+            elif sample_rate == 48000:
                 target_sample_rate = 48000
             else:
                 self.raise_error('Unable to find good target sample rate for sample rate of {}'.format(sample_rate))

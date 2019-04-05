@@ -23,7 +23,10 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
         if not self.context.get('serialize_metadata', True):
             return None
         try:
-            tracker = TrackerRegistry.get_plugin(obj.realm.name)
+            # Avoid a query for the realm on each torrent
+            if 'realms_by_id' not in self.context:
+                self.context['realms_by_id'] = {r.id: r for r in Realm.objects.all()}
+            tracker = TrackerRegistry.get_plugin(self.context['realms_by_id'][obj.realm_id].name)
         except PluginMissingException:
             return None
         serializer = tracker.torrent_info_metadata_serializer
@@ -37,7 +40,7 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
 
 
 class TorrentSerializer(serializers.ModelSerializer):
-    realm = serializers.PrimaryKeyRelatedField(queryset=Realm.objects.all())
+    realm = serializers.IntegerField(source='realm_id')
     torrent_info = TorrentInfoSerializer()
 
     class Meta:

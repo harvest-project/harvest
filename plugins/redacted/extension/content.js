@@ -181,10 +181,15 @@ class RedactedContentHelper extends RedactedHelper {
         this.rows = rowsArray.map(r => new TorrentRow(this, r));
 
         if (this.rows.length) {
-            setTimeout(() => this.refreshStatuses(), 50);
-            if (this.rows.length < 256) {
-                setInterval(() => this.refreshStatuses(), 3000);
-            }
+            const runAndSchedule = async () => {
+                try {
+                    await this.refreshStatuses();
+                } catch (exception) {
+                    console.log('Error refreshing statuses', exception);
+                }
+                setTimeout(() => runAndSchedule(), 3000);
+            };
+            setTimeout(() => runAndSchedule(), 50);
         }
     }
 

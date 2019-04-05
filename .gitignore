@@ -16,6 +16,7 @@ playbook.retry
 /django_env
 /alcazard/
 /scratch/
+/docs/_build/
 
 /plugins/*
 !/plugins/redacted/

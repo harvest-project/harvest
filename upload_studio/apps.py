@@ -8,11 +8,12 @@ class UploadStudioConfig(AppConfig):
     name = 'upload_studio'
 
     def ready(self):
-        from .executors import manual_edit, lame_transcode, create_torrent_file, finish_upload
+        from .executors import manual_edit, lame_transcode, create_torrent_file, finish_upload, sox_process
         ExecutorRegistry.register_executor(manual_edit.ManualEditExecutor)
         ExecutorRegistry.register_executor(lame_transcode.LAMETranscoderExecutor)
         ExecutorRegistry.register_executor(create_torrent_file.CreateTorrentFileExecutor)
         ExecutorRegistry.register_executor(finish_upload.FinishUploadExecutor)
+        ExecutorRegistry.register_executor(sox_process.SoxProcessExecutor)
 
         from .receivers import on_torrent_finished
         signals.torrent_finished.connect(on_torrent_finished)

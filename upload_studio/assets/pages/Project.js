@@ -229,6 +229,7 @@ export class Project extends React.Component {
                             {title: 'Path', dataIndex: 'path'},
                         ]}
                         dataSource={proj.files}
+                        rowKey="path"
                         pagination={false}
                     />
                 </Col>

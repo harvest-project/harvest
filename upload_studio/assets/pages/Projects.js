@@ -46,10 +46,6 @@ export class Projects extends React.Component {
             projectsActive: null,
             projectsHistory: null,
         };
-
-        this.onRow = record => ({
-            onClick: () => this.selectRow(record),
-        });
     }
 
     componentDidMount() {
@@ -95,7 +91,6 @@ export class Projects extends React.Component {
                     loading={this.state.loading}
                     columns={this.columns}
                     rowKey="id"
-                    onRow={this.onRow}
                     pagination={false}
                 />
             </DivRow>
@@ -108,7 +103,6 @@ export class Projects extends React.Component {
                 loading={this.state.loading}
                 columns={this.columns}
                 rowKey="id"
-                onRow={this.onRow}
                 pagination={false}
             />
         </div>;

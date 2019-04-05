@@ -34,6 +34,7 @@ class LAMETranscoderExecutor(StepExecutor):
             self.src_file = src_file
             self.dst_file = dst_file
             self.src_muta = mutagen.flac.FLAC(self.src_file)
+            self.processing_chain = None
 
         def copy_tags(self):
             try:
@@ -45,6 +46,11 @@ class LAMETranscoderExecutor(StepExecutor):
                 if tag in mutagen.easyid3.EasyID3.valid_keys.keys():
                     dst_muta[tag] = self.src_muta[tag]
             dst_muta.save()
+
+        def process(self):
+            os.makedirs(os.path.dirname(self.dst_file), exist_ok=True)
+            execute_subprocess_chain(self.processing_chain)
+            self.copy_tags()
 
     name = 'lame_transcode'
     description = 'Transcode lossless files to MP3 using lame.'
@@ -111,8 +117,6 @@ class LAMETranscoderExecutor(StepExecutor):
                         ALLOWED_CHANNELS, file.src_file, channels))
 
     def transcode_audio_files(self):
-        chains = []
-
         for file in self.audio_files:
             flac_options = ['flac', '-d', '-c', file.src_file]
             lame_options = ['lame', '-h']
@@ -124,18 +128,14 @@ class LAMETranscoderExecutor(StepExecutor):
             lame_options += ['-', file.dst_file]
 
             chain = (flac_options, lame_options)
-            chains.append(chain)
+            file.processing_chain = chain
             logger.info('{} transcoding plan {} -> {} with chain {}.'.format(
                 self.project, file.src_file, file.dst_file, chain))
-
-            os.makedirs(os.path.dirname(file.dst_file), exist_ok=True)
 
         max_workers = os.cpu_count()
         executor = ThreadPoolExecutor(max_workers=max_workers)
         logger.info('{} starting transcode processes with {} workers.'.format(self.project, max_workers))
-        list(executor.map(execute_subprocess_chain, chains, timeout=300))
-        logger.info('{} starting copy tags.'.format(self.project))
-        list(executor.map(self.FileInfo.copy_tags, self.audio_files, timeout=300))
+        list(executor.map(self.FileInfo.process, self.audio_files, timeout=300))
 
     def check_output_files(self):
         for file in self.audio_files:
@@ -148,6 +148,7 @@ class LAMETranscoderExecutor(StepExecutor):
 
     def handle_run(self):
         self.check_prerequisites()
+        self.copy_prev_step_files(exclude_areas={'data'})
         self.init_audio_files()
         self.check_audio_files()
         self.transcode_audio_files()

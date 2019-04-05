@@ -144,7 +144,7 @@ export class Project extends React.Component {
                 </h4>
                 <DivRow><TextBr text={step.description}/></DivRow>
                 {step.warnings.map(warning => (
-                    <DivRow>
+                    <DivRow key={warning.id}>
                         <Alert type="warning" message={<span>
                             {warning.message}
                             {' '}
@@ -154,7 +154,7 @@ export class Project extends React.Component {
                     </DivRow>
                 ))}
                 {step.errors.map(error => (
-                    <DivRow>
+                    <DivRow key={error.id}>
                         <Alert
                             type="error"
                             message={<div style={{overflowX: 'auto'}}>

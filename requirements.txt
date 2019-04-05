@@ -11,3 +11,4 @@ iso8601==0.1.12
 beautifulsoup4==4.7.1
 html5lib==1.0.1
 mutagen==1.42.0
+zipstream==1.1.4

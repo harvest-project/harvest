@@ -51,7 +51,7 @@ class StepExecutor:
             logger.warning('Project {} step({}) {} added warning {}.',
                            self.project.id, self.step.id, self.name, message)
         except IntegrityError:
-            logger.info('Project {} step({}) {} warning already acked: {}.',
+            logger.info('Project {} step({}) {} warning already added: {}.',
                         self.project.id, self.step.id, self.name, message)
 
     def raise_warnings(self):

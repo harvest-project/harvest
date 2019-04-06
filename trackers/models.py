@@ -10,7 +10,8 @@ class FetchTorrentResult:
 class BaseTracker:
     name = None
     display_name = None
-    torrent_info_metadata_serializer = None
+    torrent_info_metadata_serializer_class = None
+    torrents_select_related = ()
     download_location_components = ()
 
     def on_torrent_info_updated(self, torrent_info):

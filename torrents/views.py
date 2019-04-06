@@ -98,6 +98,12 @@ class Torrents(CORSBrowserExtensionView, ListAPIView):
         FILTER_ERRORS: lambda qs: qs.filter(Q(error__isnull=False) | Q(tracker_error__isnull=False)),
     }
 
+    TORRENT_SELECT_RELATED = ('torrent_info',) + sum(
+        (t.torrents_select_related for t in TrackerRegistry.get_plugins()), ())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def _get_param(self, name, default=None):
         if name in self.request.query_params:
             return self.request.query_params[name]
@@ -124,7 +130,7 @@ class Torrents(CORSBrowserExtensionView, ListAPIView):
 
     def _apply_order_by(self, qs, order_by):
         if not order_by:
-            return qs
+            return qs.order_by('-added_datetime')
         return qs.order_by(order_by)
 
     def get_serializer_context(self):
@@ -133,10 +139,7 @@ class Torrents(CORSBrowserExtensionView, ListAPIView):
         }
 
     def get_queryset(self):
-        torrents = Torrent.objects.select_related(
-            'realm',
-            'torrent_info',
-        ).order_by('-added_datetime')
+        torrents = Torrent.objects.select_related(*self.TORRENT_SELECT_RELATED)
         torrents = self._apply_status(torrents, self._get_param('status'))
         torrents = self._apply_realm(torrents, self._get_param('realm_id'), self._get_param('realm_name'))
         torrents = self._apply_tracker_ids(torrents, self._get_param('tracker_ids'))

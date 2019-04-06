@@ -11,7 +11,8 @@ from trackers.models import FetchTorrentResult, BaseTracker
 class BibliotikTrackerPlugin(BaseTracker):
     name = 'bibliotik'
     display_name = 'Bibliotik.me'
-    torrent_info_metadata_serializer = BibliotikTorrentInfoMetadataSerializer
+    torrent_info_metadata_serializer_class = BibliotikTorrentInfoMetadataSerializer
+    torrents_select_related = ('torrent_info__bibliotik_torrent',)
 
     def fetch_torrent(self, tracker_id):
         client = BibliotikClient()

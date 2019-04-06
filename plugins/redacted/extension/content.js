@@ -187,7 +187,10 @@ class RedactedContentHelper extends RedactedHelper {
                 } catch (exception) {
                     console.log('Error refreshing statuses', exception);
                 }
-                setTimeout(() => runAndSchedule(), 3000);
+
+                // 3s for up to 60 torrents, linear increase afterwards
+                const timeout = Math.max(3000, this.rows.length * 60);
+                setTimeout(() => runAndSchedule(), timeout);
             };
             setTimeout(() => runAndSchedule(), 50);
         }

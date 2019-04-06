@@ -296,6 +296,7 @@ export class PluginHelper {
                 realm_name: request.realmName,
                 tracker_ids: request.torrentIds,
                 page_size: 1000,
+                serialize_metadata: !!request.serializeMetadata,
             }),
         });
         return {

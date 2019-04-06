@@ -12,7 +12,8 @@ from trackers.models import FetchTorrentResult, BaseTracker
 class RedactedTrackerPlugin(BaseTracker):
     name = 'redacted'
     display_name = 'Redacted.ch'
-    torrent_info_metadata_serializer = RedactedTorrentInfoMetadataSerializer
+    torrent_info_metadata_serializer_class = RedactedTorrentInfoMetadataSerializer
+    torrents_select_related = ('torrent_info__redacted_torrent', 'torrent_info__redacted_torrent__torrent_group')
 
     download_location_components = (
         DownloadLocationComponent(

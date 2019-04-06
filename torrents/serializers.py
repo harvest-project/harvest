@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from torrents.models import AlcazarClientConfig, Realm, Torrent, TorrentInfo, DownloadLocation
-from trackers.registry import TrackerRegistry, PluginMissingException
+from trackers.registry import TrackerRegistry
 
 
 class AlcazarClientConfigSerializer(serializers.ModelSerializer):
@@ -19,20 +19,28 @@ class RealmSerializer(serializers.ModelSerializer):
 class TorrentInfoSerializer(serializers.ModelSerializer):
     metadata = serializers.SerializerMethodField()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        realms_by_name = {r.name: r for r in Realm.objects.all()}
+        self.metadata_serializers_by_realm_id = {}
+        for tracker in TrackerRegistry.get_plugins():
+            realm = realms_by_name[tracker.name]
+            if not realm:
+                continue
+            serializer_class = tracker.torrent_info_metadata_serializer_class
+            if serializer_class is None:
+                continue
+            serializer = serializer_class()
+            serializer.bind('metadata', self)
+            self.metadata_serializers_by_realm_id[realm.id] = serializer
+
     def get_metadata(self, obj):
         if not self.context.get('serialize_metadata', True):
             return None
-        try:
-            # Avoid a query for the realm on each torrent
-            if 'realms_by_id' not in self.context:
-                self.context['realms_by_id'] = {r.id: r for r in Realm.objects.all()}
-            tracker = TrackerRegistry.get_plugin(self.context['realms_by_id'][obj.realm_id].name)
-        except PluginMissingException:
-            return None
-        serializer = tracker.torrent_info_metadata_serializer
-        if not serializer:
-            return None
-        return serializer(obj).data
+        metadata_serializer = self.metadata_serializers_by_realm_id.get(obj.realm_id)
+        if metadata_serializer:
+            return metadata_serializer.to_representation(obj)
 
     class Meta:
         model = TorrentInfo

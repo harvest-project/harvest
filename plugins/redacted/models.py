@@ -1,3 +1,4 @@
+import html
 import json
 
 import iso8601
@@ -86,13 +87,13 @@ class RedactedTorrentGroup(models.Model):
         self.is_deleted = False
 
         self.id = data['id']
-        self.name = data['name']
+        self.name = html.unescape(data['name'])
         self.year = data['year']
-        self.record_label = data['recordLabel']
-        self.catalog_number = data['catalogueNumber']
+        self.record_label = html.unescape(data['recordLabel'])
+        self.catalog_number = html.unescape(data['catalogueNumber'])
         self.release_type = data['releaseType']
         self.category_id = data['categoryId']
-        self.category_name = data['categoryName']
+        self.category_name = html.unescape(data['categoryName'])
         self.time = iso8601.parse_date(data['time'])
         self.vanity_house = data['vanityHouse']
         self.is_bookmarked = data['isBookmarked']
@@ -211,9 +212,9 @@ class RedactedTorrent(models.Model):
         self.encoding = data['encoding']
         self.remastered = data['remastered']
         self.remaster_year = data['remasterYear']
-        self.remaster_title = data['remasterTitle']
-        self.remaster_record_label = data['remasterRecordLabel']
-        self.remaster_catalog_number = data['remasterCatalogueNumber']
+        self.remaster_title = html.unescape(data['remasterTitle'])
+        self.remaster_record_label = html.unescape(data['remasterRecordLabel'])
+        self.remaster_catalog_number = html.unescape(data['remasterCatalogueNumber'])
         self.scene = data['scene']
         self.has_log = data['hasLog']
         self.has_cue = data['hasCue']

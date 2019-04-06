@@ -30,7 +30,7 @@ const plugins = discoverPlugins();
 const entries = plugins.filter(p => p.hasAssets).map(p => p.assetsEntryPath).concat([
     './home/assets/index.js',
 ]);
-const pluginExtensionConfigs = plugins.filter(p => fs.existsSync(p.extensionWebpackConfigPath))
+const pluginExtensionConfigs = plugins.filter(p => p.hasExtension)
     .map(p => require(p.extensionWebpackConfigPath));
 
 module.exports = pluginExtensionConfigs.concat([{

@@ -41,9 +41,13 @@ class StepExecutor:
         return Project.STATUS_COMPLETE
 
     @transaction.atomic
-    def add_warning(self, message):
+    def add_warning(self, message, acked=False):
         try:
-            ProjectStepWarning.objects.create(step=self.step, message=message)
+            ProjectStepWarning.objects.create(
+                step=self.step,
+                message=message,
+                acked=acked,
+            )
             logger.warning('Project {} step({}) {} added warning {}.',
                            self.project.id, self.step.id, self.name, message)
         except IntegrityError:

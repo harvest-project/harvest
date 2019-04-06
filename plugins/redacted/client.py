@@ -242,9 +242,6 @@ class RedactedClient:
             raise RedactedException('Unable to match announce url in HTML')
         return match.group(1)
 
-    def _perform_upload(self):
-        pass
-
     def perform_upload(self, payload, torrent_file):
         index = self.get_index()
         payload['auth'] = index['authkey']

@@ -64,7 +64,7 @@ class TorrentInfo(models.Model):
     # Info hash of the torrent inside.
     info_hash = InfoHashField(db_index=True)
     # Tracker-specific torrent identifier. In most cases this is a torrent_id in some for or another.
-    tracker_id = models.CharField(max_length=65536)
+    tracker_id = models.CharField(max_length=65536, db_index=True)
     # Date when this information was fetched (or updated).
     fetched_datetime = models.DateTimeField()
     # Tracker plugin specific raw tracker data - raw API response or HTML if scraping.

@@ -6,6 +6,7 @@ import {BibliotikHelper} from './bibliotik';
 
 class BibliotikLoginHelper extends BibliotikHelper {
     async handleLoginPage() {
+        NotyHelper.info('Contacting Harvest for login data...');
         try {
             await sendChromeMessage({type: messages.requestLogin});
             NotyHelper.success('Login successful, please wait...');

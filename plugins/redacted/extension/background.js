@@ -6,6 +6,7 @@ class RedactedBackgroundHelper extends RedactedHelper {
         return await this.performPOST('/api/plugins/redacted-uploader/transcode', {
             body: JSON.stringify({
                 tracker_id: request.trackerId,
+                transcode_type: request.transcodeType,
             }),
         });
     }

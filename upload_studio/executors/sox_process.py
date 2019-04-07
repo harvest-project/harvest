@@ -62,25 +62,28 @@ class SoxProcessExecutor(StepExecutor):
             self.raise_error('sox not found in path. Make sure sox is installed.')
 
     def _get_dst_stream_info(self):
-        sample_rate, bits_per_sample, channels = self.src_stream_info
+        src_sample_rate, src_bits_per_sample, src_channels = self.src_stream_info
 
         if self.target_sample_rate == self.TARGET_SAMPLE_RATE_44100_OR_4800:
-            if sample_rate == 44100 or sample_rate >= 88200:
+            if src_sample_rate == 44100 or src_sample_rate >= 88200:
                 target_sample_rate = 44100
-            elif sample_rate == 48000:
+            elif src_sample_rate == 48000:
                 target_sample_rate = 48000
             else:
-                self.raise_error('Unable to find good target sample rate for sample rate of {}'.format(sample_rate))
+                self.raise_error('Unable to find good target sample rate for sample rate of {}'.format(src_sample_rate))
         else:
             target_sample_rate = self.target_sample_rate
 
-        if channels != self.target_channels:
+        if src_channels != self.target_channels:
             self.raise_error('sox_process does not currently support remixing channels safely.')
 
+        if target_sample_rate * 2 > src_sample_rate:
+            self.raise_error('Refusing to resample by less than a factor of 2.')
+
         requires_processing = (
-                target_sample_rate != sample_rate or
-                bits_per_sample != self.target_bits_per_sample or
-                channels != self.target_channels
+                target_sample_rate != src_sample_rate or
+                src_bits_per_sample != self.target_bits_per_sample or
+                src_channels != self.target_channels
         )
         if requires_processing:
             return target_sample_rate, self.target_bits_per_sample, self.target_channels

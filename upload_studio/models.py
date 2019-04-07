@@ -5,6 +5,7 @@ import shutil
 from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
+from rest_framework.exceptions import APIException
 
 from torrents.models import Torrent
 from upload_studio.exceptions import ProjectFinishedException
@@ -93,14 +94,12 @@ class Project(models.Model):
 
     @transaction.atomic()
     def reset(self, step_index=0):
+        for step in self.steps[:step_index]:
+            if step.status != self.STATUS_COMPLETE:
+                raise APIException('Unable to reset to a step, as previous steps are not completed.')
         self.raise_if_finished()
         for step in self.steps[step_index:]:
-            step.status = self.STATUS_PENDING
-            try:
-                shutil.rmtree(step.path)
-            except FileNotFoundError:
-                pass
-            step.reset_messages()
+            step.reset()
         self.save_steps()
         if step_index == 0:
             self.delete_all_data()
@@ -147,7 +146,12 @@ class ProjectStep(models.Model):
     def data_path(self):
         return self.get_area_path('data')
 
-    def reset_messages(self):
+    def reset(self):
+        self.status = Project.STATUS_PENDING
+        try:
+            shutil.rmtree(self.path)
+        except FileNotFoundError:
+            pass
         self.projectstepwarning_set.all().delete()
         self.projectsteperror_set.all().delete()
 

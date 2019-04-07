@@ -97,6 +97,7 @@ class TorrentRow {
             await sendChromeMessage({
                 type: redactedMessages.transcodeTorrent,
                 trackerId: this.torrentId,
+                transcodeType: 'mp3',
             });
             NotyHelper.success(`Sent torrent ${this.torrentId} for transcoding.`);
         } catch (exception) {

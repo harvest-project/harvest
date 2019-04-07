@@ -5,6 +5,7 @@ from rest_framework.generics import RetrieveDestroyAPIView, GenericAPIView
 from rest_framework.response import Response
 
 from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView
+from monitoring.models import LogEntry
 from upload_studio.models import Project, ProjectStepWarning
 from upload_studio.serializers import ProjectShallowSerializer, ProjectDeepSerializer
 from upload_studio.tasks import project_run_all, project_run_one
@@ -74,6 +75,12 @@ class ProjectRunAll(ProjectMutatorView):
 class ProjectRunOne(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
         project_run_one(self.project.id)
+
+
+class ProjectFinish(ProjectMutatorView):
+    def perform_work(self, request, **kwargs):
+        LogEntry.info('Manually finished upload studio {}.'.format(self.project))
+        self.project.finish()
 
 
 class WarningAck(ProjectMutatorView):

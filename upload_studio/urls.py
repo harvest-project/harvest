@@ -8,5 +8,6 @@ urlpatterns = [
     path('projects/<pk>/reset-to-step', views.ProjectResetToStep.as_view()),
     path('projects/<pk>/run-all', views.ProjectRunAll.as_view()),
     path('projects/<pk>/run-one', views.ProjectRunOne.as_view()),
+    path('projects/<pk>/finish', views.ProjectFinish.as_view()),
     path('projects/<pk>/warnings/<warning_id>/ack', views.WarningAck.as_view()),
 ]

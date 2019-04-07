@@ -69,6 +69,15 @@ export class Project extends React.Component {
         await this.context.trackLoadingAsync(async () => this.refreshProject());
     }
 
+    async projectFinish(step) {
+        try {
+            await UploadStudioAPI.postProjectFinish(this.state.project.id);
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+        await this.context.trackLoadingAsync(async () => this.refreshProject());
+    }
+
     async projectRunAll() {
         try {
             await UploadStudioAPI.postProjectRunAll(this.state.project.id);
@@ -206,6 +215,10 @@ export class Project extends React.Component {
                     <Popconfirm title="Delete all files and reset from start?"
                                 onConfirm={() => this.projectResetToStep(0)}>
                         <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset</Button>
+                    </Popconfirm>
+                    <Popconfirm title="Delete all files and mark project as finished?"
+                                onConfirm={() => this.projectFinish()}>
+                        <Button type="danger" htmlType="button" disabled={this.disableAll}>Finish</Button>
                     </Popconfirm>
                     <Popconfirm title="Delete project including all files?"
                                 onConfirm={() => this.projectDelete()}>

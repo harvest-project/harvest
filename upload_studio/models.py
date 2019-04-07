@@ -106,7 +106,7 @@ class Project(models.Model):
             self.delete_all_data()
 
     @transaction.atomic()
-    def mark_finished(self):
+    def finish(self):
         shutil.rmtree(self.data_path)
         self.is_finished = True
         self.finished_datetime = timezone.now()

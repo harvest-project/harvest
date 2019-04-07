@@ -19,6 +19,10 @@ export const UploadStudioAPI = new class {
         });
     }
 
+    async postProjectFinish(projectId) {
+        return await APIHelper.post(`/api/upload-studio/projects/${projectId}/finish`);
+    }
+
     async postProjectRunAll(projectId, step) {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/run-all`);
     }

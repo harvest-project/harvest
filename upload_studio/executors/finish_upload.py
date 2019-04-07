@@ -1,5 +1,3 @@
-import shutil
-
 from monitoring.models import LogEntry
 from upload_studio.models import Project
 from upload_studio.step_executor import StepExecutor
@@ -14,5 +12,5 @@ class FinishUploadExecutor(StepExecutor):
         return Project.STATUS_FINISHED
 
     def handle_run(self):
-        self.project.mark_finished()
+        self.project.finish()
         LogEntry.info('Finished upload studio {}.'.format(self.project))

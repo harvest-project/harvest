@@ -36,7 +36,7 @@ class Project(models.Model):
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
     is_finished = models.BooleanField(db_index=True, default=False)
-    finished_datetime = models.DateTimeField(null=True)
+    finished_datetime = models.DateTimeField(null=True, db_index=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

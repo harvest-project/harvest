@@ -154,12 +154,15 @@ export class Project extends React.Component {
                 <DivRow><TextBr text={step.description}/></DivRow>
                 {step.warnings.map(warning => (
                     <DivRow key={warning.id}>
-                        <Alert type="warning" message={<span>
-                            {warning.message}
-                            {' '}
-                            {warning.acked ? <Icon type="check"/> :
-                                <a onClick={e => this.ackWarning(e, warning)}>Ack</a>}
-                        </span>}/>
+                        <Alert
+                            type="warning"
+                            message={<div style={{overflowX: 'auto'}}>
+                                {warning.message}
+                                {' '}
+                                {warning.acked ? <Icon type="check"/> :
+                                    <a onClick={e => this.ackWarning(e, warning)}>Ack</a>}
+                            </div>}
+                        />
                     </DivRow>
                 ))}
                 {step.errors.map(error => (

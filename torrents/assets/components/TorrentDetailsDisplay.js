@@ -21,7 +21,7 @@ export class TorrentDetailsDisplay extends React.Component {
             <Col xs={24}>
                 <p>
                     <b>Status:</b> {getTorrentStatusDisplay(t.status)}<br/>
-                    <b>Info Hash:</b> <Tooltip title={t.info_hash}>{shortenInfoHash(t.info_hash)}</Tooltip><br/>
+                    <b>Info Hash:</b> {t.info_hash}<br/>
                     <b>Path:</b> {t.download_path}<br/>
                     <b>Client:</b> {t.client}<br/>
                 </p>

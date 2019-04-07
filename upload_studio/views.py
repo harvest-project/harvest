@@ -12,7 +12,7 @@ from upload_studio.tasks import project_run_all, project_run_one
 
 
 class Projects(CORSBrowserExtensionView, GenericAPIView):
-    queryset = Project.objects.order_by('-created_datetime')
+    queryset = Project.objects.all()
 
     def filter_queryset(self, queryset):
         source_tracker_id = self.request.query_params.get('source_tracker_id')
@@ -22,8 +22,8 @@ class Projects(CORSBrowserExtensionView, GenericAPIView):
 
     def get(self, request):
         queryset = self.filter_queryset(self.get_queryset())
-        active_qs = queryset.filter(is_finished=False)
-        history_qs = queryset.filter(is_finished=True)[:50]
+        active_qs = queryset.filter(is_finished=False).order_by('-created_datetime')
+        history_qs = queryset.filter(is_finished=True).order_by('-finished_datetime')[:50]
         return Response({
             'active': ProjectShallowSerializer(active_qs, many=True).data,
             'history': ProjectShallowSerializer(history_qs, many=True).data,

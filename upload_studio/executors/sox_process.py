@@ -103,7 +103,12 @@ class SoxProcessExecutor(StepExecutor):
                 if self.src_stream_info is None:
                     self.src_stream_info = src_stream_info
                 if self.src_stream_info != src_stream_info:
-                    self.raise_error('sox_process does not currently support heterogeneous torrents.')
+                    self.raise_error(
+                        'sox_process does not currently support heterogeneous torrents.'
+                        ' Detected {}/{}/{} and {}/{}/{}.'.format(
+                            *src_stream_info,
+                            *self.src_stream_info,
+                        ))
                 self.audio_files.append(file)
             else:
                 logger.info('Project {} copying file {} to {}.', self.project.id, src_file, dst_file)

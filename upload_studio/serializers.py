@@ -62,15 +62,16 @@ class ProjectDeepSerializer(serializers.ModelSerializer):
 
     def get_files(self, obj):
         last_complete_step = obj.last_complete_step
-        result = []
-        for rel_file in list_rel_files(last_complete_step.data_path):
-            result.append({
-                'path': rel_file,
-            })
-        return result
+        if last_complete_step is None:
+            return None
+        return [{
+            'path': rel_file,
+        } for rel_file in list_rel_files(last_complete_step.data_path)]
 
     def get_metadata(self, obj):
         last_complete_step = obj.last_complete_step
+        if last_complete_step is None:
+            return None
         return json.loads(last_complete_step.metadata_json)
 
     class Meta:

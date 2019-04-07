@@ -77,14 +77,15 @@ class SoxProcessExecutor(StepExecutor):
         if src_channels != self.target_channels:
             self.raise_error('sox_process does not currently support remixing channels safely.')
 
+        if target_sample_rate != src_sample_rate and target_sample_rate * 2 > src_sample_rate:
+            self.raise_error('Refusing to resample by less than a factor of 2.')
+
         requires_processing = (
                 target_sample_rate != src_sample_rate or
                 src_bits_per_sample != self.target_bits_per_sample or
                 src_channels != self.target_channels
         )
         if requires_processing:
-            if target_sample_rate * 2 > src_sample_rate:
-                self.raise_error('Refusing to resample by less than a factor of 2.')
             return target_sample_rate, self.target_bits_per_sample, self.target_channels
         else:
             return None
@@ -146,6 +147,8 @@ class SoxProcessExecutor(StepExecutor):
                 self.raise_error('Missing output file or is less than 8K')
 
     def update_metadata(self):
+        if not self.dst_stream_info:
+            return
         self.metadata.additional_data['downsample_data'] = {
             'src_sample_rate': self.src_stream_info[0],
             'src_bits_per_sample': self.src_stream_info[1],

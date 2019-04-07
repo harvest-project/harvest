@@ -135,15 +135,6 @@ class SoxProcessExecutor(StepExecutor):
         logger.info('{} starting processes with {} workers.'.format(self.project, max_workers))
         list(executor.map(self.FileInfo.process, self.audio_files, timeout=300))
 
-        self.metadata.additional_data['downsample_data'] = {
-            'src_sample_rate': self.src_stream_info[0],
-            'src_bits_per_sample': self.src_stream_info[1],
-            'src_channels': self.src_stream_info[2],
-            'dst_sample_rate': self.dst_stream_info[0],
-            'dst_bits_per_sample': self.dst_stream_info[1],
-            'dst_channels': self.dst_stream_info[2],
-        }
-
     def copy_audio_files(self):
         for file in self.audio_files:
             logger.info('Project {} copying file {} to {}.', self.project.id, file.src_file, file.dst_file)
@@ -155,6 +146,22 @@ class SoxProcessExecutor(StepExecutor):
             if not os.path.isfile(file.dst_file) or os.path.getsize(file.dst_file) < 8196:
                 self.raise_error('Missing output file or is less than 8K')
 
+    def update_metadata(self):
+        self.metadata.additional_data['downsample_data'] = {
+            'src_sample_rate': self.src_stream_info[0],
+            'src_bits_per_sample': self.src_stream_info[1],
+            'src_channels': self.src_stream_info[2],
+            'dst_sample_rate': self.dst_stream_info[0],
+            'dst_bits_per_sample': self.dst_stream_info[1],
+            'dst_channels': self.dst_stream_info[2],
+        }
+        if self.dst_stream_info[1] == 16:
+            self.metadata.encoding = MusicMetadata.ENCODING_LOSSLESS
+        elif self.dst_stream_info[1] == 24:
+            self.metadata.encoding = MusicMetadata.ENCODING_24BIT_LOSSLESS
+        else:
+            self.raise_error('Metadata only supports 16 and 24 bit output bit depths.')
+
     def handle_run(self):
         self.check_prerequisites()
         self.copy_prev_step_files(exclude_areas={'data'})
@@ -164,3 +171,4 @@ class SoxProcessExecutor(StepExecutor):
         else:
             self.copy_audio_files()
         self.check_output_files()
+        self.update_metadata()

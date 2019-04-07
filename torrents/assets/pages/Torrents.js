@@ -299,7 +299,7 @@ export class Torrents extends React.Component {
         const st = this.state.selectedTorrent;
         return <Drawer
             title={st ? st.name : ''}
-            width={440}
+            width={450}
             placement="right"
             closable={false}
             onClose={() => this.setState({selectedTorrent: null})}

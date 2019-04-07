@@ -154,8 +154,11 @@ class ProjectStep(models.Model):
 
 class ProjectStepWarning(models.Model):
     step = models.ForeignKey(ProjectStep, models.CASCADE)
-    message = models.TextField(unique=True)
+    message = models.TextField()
     acked = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = (('step', 'message'),)
 
 
 class ProjectStepError(models.Model):

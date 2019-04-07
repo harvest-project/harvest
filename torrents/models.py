@@ -71,13 +71,8 @@ class TorrentInfo(models.Model):
     raw_response = models.BinaryField()
 
     class Meta:
-        index_together = (
-            ('realm', 'info_hash'),
-        )
-
-        unique_together = (
-            ('realm', 'tracker_id'),
-        )
+        index_together = (('realm', 'info_hash'),)
+        unique_together = (('realm', 'tracker_id'),)
 
 
 class TorrentFile(models.Model):
@@ -129,7 +124,7 @@ class Torrent(models.Model):
     tracker_error = models.TextField(null=True, db_index=True)
 
     class Meta:
-        unique_together = ('realm', 'info_hash')
+        unique_together = (('realm', 'info_hash'),)
 
 
 class DownloadLocation(models.Model):

@@ -1,3 +1,5 @@
+import json
+
 from django.db import transaction, OperationalError
 from rest_framework import serializers
 
@@ -40,6 +42,7 @@ class ProjectStepSerializer(serializers.ModelSerializer):
 class ProjectDeepSerializer(serializers.ModelSerializer):
     steps = ProjectStepSerializer(many=True)
     files = serializers.SerializerMethodField()
+    metadata = serializers.SerializerMethodField()
     is_locked = serializers.SerializerMethodField()
     current_step = serializers.SerializerMethodField()
 
@@ -58,16 +61,17 @@ class ProjectDeepSerializer(serializers.ModelSerializer):
                 return True
 
     def get_files(self, obj):
-        complete_steps = [s for s in obj.steps if s.status == Project.STATUS_COMPLETE]
-        if not complete_steps:
-            return []
-        last_complete_step = complete_steps[-1]
+        last_complete_step = obj.last_complete_step
         result = []
         for rel_file in list_rel_files(last_complete_step.data_path):
             result.append({
                 'path': rel_file,
             })
         return result
+
+    def get_metadata(self, obj):
+        last_complete_step = obj.last_complete_step
+        return json.loads(last_complete_step.metadata_json)
 
     class Meta:
         model = Project

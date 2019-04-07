@@ -67,6 +67,13 @@ class Project(models.Model):
                 return None
         return None
 
+    @property
+    def last_complete_step(self):
+        for step in reversed(self.steps):
+            if step.status == self.STATUS_COMPLETE:
+                return step
+        return None
+
     def save_steps(self):
         for index, step in enumerate(self.steps):
             step.project = self

@@ -239,15 +239,22 @@ export class Project extends React.Component {
                     </Timeline>
                 </Col>
                 <Col xs={24} lg={16}>
-                    <Table
-                        size="small"
-                        columns={[
-                            {title: 'Path', dataIndex: 'path'},
-                        ]}
-                        dataSource={proj.files}
-                        rowKey="path"
-                        pagination={false}
-                    />
+                    <DivRow>
+                        <Table
+                            size="small"
+                            columns={[
+                                {title: 'Path', dataIndex: 'path'},
+                            ]}
+                            dataSource={proj.files}
+                            rowKey="path"
+                            pagination={false}
+                        />
+                    </DivRow>
+
+                    <h3>Metadata:</h3>
+                    <pre style={{maxHeight: 600, overflow: 'auto'}}>
+                        {JSON.stringify(proj.metadata, null, 4)}
+                    </pre>
                 </Col>
             </Row>
         </div>;

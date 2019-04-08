@@ -156,9 +156,10 @@ export class Project extends React.Component {
                     <DivRow key={warning.id}>
                         <Alert
                             type="warning"
-                            message={<div style={{overflowX: 'auto'}}>
-                                {warning.message}
-                                {' '}
+                            message={<div>
+                                <div style={{overflowX: 'auto'}}>
+                                    <TextBr text={warning.message}/>
+                                </div>
                                 {warning.acked ? <Icon type="check"/> :
                                     <a onClick={e => this.ackWarning(e, warning)}>Ack</a>}
                             </div>}

@@ -10,10 +10,10 @@ import mutagen.mp3
 
 from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
+from upload_studio.audio_utils import InconsistentStreamInfoException, get_stream_info
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
-from upload_studio.utils import execute_subprocess_chain, get_stream_info, InconsistentStreamInfoException, \
-    pprint_subprocess_chain
+from upload_studio.utils import execute_subprocess_chain, pprint_subprocess_chain
 
 logger = get_logger(__name__)
 
@@ -38,11 +38,7 @@ class LAMETranscoderExecutor(StepExecutor):
             self.processing_chain = None
 
         def copy_tags(self):
-            try:
-                dst_muta = mutagen.easyid3.EasyID3(self.dst_file)
-            except mutagen.id3.ID3NoHeaderError:
-                dst_muta = mutagen.File(self.dst_file, easy=True)
-                dst_muta.add_tags()
+            dst_muta = mutagen.File(self.dst_file, easy=True)
             for tag in self.src_muta:
                 if tag in mutagen.easyid3.EasyID3.valid_keys.keys():
                     dst_muta[tag] = self.src_muta[tag]

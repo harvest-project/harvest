@@ -12,7 +12,8 @@ from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
-from upload_studio.utils import execute_subprocess_chain, get_stream_info, InconsistentStreamInfoException, StreamInfo
+from upload_studio.utils import execute_subprocess_chain
+from upload_studio.audio_utils import StreamInfo, InconsistentStreamInfoException, get_stream_info
 
 logger = get_logger(__name__)
 

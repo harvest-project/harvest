@@ -27,8 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'huey.contrib.djhuey',
     'Harvest',
+    'task_queue.apps.TaskQueueConfig',
     'home.apps.HomeConfig',
     'settings.apps.SettingsConfig',
     'monitoring.apps.MonitoringConfig',
@@ -139,7 +139,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'main': {
-            'format': '{levelname} {name} {message}',
+            'format': '{asctime} - {name} - {levelname} - {message}',
             'style': '{',
         },
     },
@@ -157,21 +157,8 @@ LOGGING = {
     },
 }
 
-HUEY = {
-    'name': 'harvest',
-    'always_eager': False,
-    'blocking': True,
-    'connection': {
-        'host': 'localhost',
-        'port': 6379,
-        'db': 0,
-    },
-    'consumer': {
-        'workers': env.int('DJANGO_HUEY_CONSUMER_WORKERS', 2),
-        'worker_type': 'thread',
-        'periodic': True,
-    }
-}
+TASK_QUEUE_WORKERS = env.int('DJANGO_TASK_QUEUE_WORKERS', 2)
+TASK_QUEUE_POLL_INTERVAL = env.float('DJANGO_TASK_QUEUE_POLL_INTERVAL', 0.5)
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

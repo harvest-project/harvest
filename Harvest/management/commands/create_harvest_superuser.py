@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Run the queue consumer"
+    help = "Create a superuser with a given username and password"
     _type_map = {'int': int, 'float': float}
 
     def add_arguments(self, parser):

@@ -69,12 +69,12 @@ class ProjectResetToStep(ProjectMutatorView):
 
 class ProjectRunAll(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
-        project_run_all(self.project.id)
+        project_run_all.delay(self.project.id)
 
 
 class ProjectRunOne(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
-        project_run_one(self.project.id)
+        project_run_one.delay(self.project.id)
 
 
 class ProjectFinish(ProjectMutatorView):
@@ -95,4 +95,4 @@ class WarningAck(ProjectMutatorView):
         warning.save()
         step = self.project.next_step
         if step and not step.projectstepwarning_set.filter(acked=False).exists():
-            project_run_all(self.project.id)
+            project_run_all.delay(self.project.id)

@@ -1,9 +1,8 @@
 from django.db import transaction
-from huey.contrib.djhuey import db_periodic_task, lock_task
 
-from Harvest.huey_scheduler import IntervalSeconds
 from Harvest.utils import get_logger
 from monitoring.decorators import update_component_status
+from task_queue.task_queue import TaskQueue
 from torrents.alcazar_client import AlcazarClient
 from torrents.alcazar_event_processor import AlcazarEventProcessor
 from torrents.exceptions import AlcazarNotConfiguredException
@@ -13,9 +12,8 @@ logger = get_logger(__name__)
 UPDATE_BATCH_SIZE = 10000
 
 
-@db_periodic_task(IntervalSeconds(3))
+@TaskQueue.periodic_task(3)
 @transaction.atomic
-@lock_task('poll_alcazar')
 @update_component_status(
     'alcazar_update',
     'Alcazar update completed successfully in {time_taken:.3f} s.',

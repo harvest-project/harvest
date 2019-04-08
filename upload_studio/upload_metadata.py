@@ -1,7 +1,15 @@
 from rest_framework import serializers
 
 
-class MusicMetadata:
+class ProjectMetadata:
+    def __init__(self, torrent_name, torrent_info_hash, additional_data, processing_steps):
+        self.torrent_name = torrent_name
+        self.torrent_info_hash = torrent_info_hash
+        self.additional_data = additional_data
+        self.processing_steps = processing_steps
+
+
+class MusicMetadata(ProjectMetadata):
     # Currently matching the settings in Gazelle
     FORMAT_MP3 = 'MP3'
     FORMAT_FLAC = 'FLAC'
@@ -64,7 +72,14 @@ class MusicMetadata:
 
     def __init__(self, title=None, edition_year=None, edition_title=None, edition_record_label=None,
                  edition_catalog_number=None, format=None, media=None, encoding=None, torrent_name=None,
-                 torrent_info_hash=None, additional_data=None):
+                 torrent_info_hash=None, additional_data=None, processing_steps=None):
+        super().__init__(
+            torrent_name=torrent_name,
+            torrent_info_hash=torrent_info_hash,
+            additional_data=additional_data,
+            processing_steps=processing_steps or [],
+        )
+
         self.title = title
         self.edition_year = edition_year
         self.edition_title = edition_title
@@ -74,10 +89,6 @@ class MusicMetadata:
         self.format = format
         self.media = media
         self.encoding = encoding
-
-        self.torrent_name = torrent_name
-        self.torrent_info_hash = torrent_info_hash
-        self.additional_data = additional_data
 
     @property
     def format_is_lossy(self):
@@ -97,4 +108,5 @@ class MusicMetadataSerializer(serializers.Serializer):
 
     torrent_name = serializers.CharField(allow_null=True, allow_blank=True)
     torrent_info_hash = serializers.CharField(allow_null=True, allow_blank=True)
-    additional_data = serializers.JSONField(allow_null=True)
+    additional_data = serializers.DictField(allow_null=True)
+    processing_steps = serializers.ListField(allow_null=True)

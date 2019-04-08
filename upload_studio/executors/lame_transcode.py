@@ -12,7 +12,8 @@ from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
-from upload_studio.utils import execute_subprocess_chain
+from upload_studio.utils import execute_subprocess_chain, get_stream_info, InconsistentStreamInfoException, \
+    pprint_subprocess_chain
 
 logger = get_logger(__name__)
 
@@ -62,6 +63,8 @@ class LAMETranscoderExecutor(StepExecutor):
         self.lame_version = None
         self.flac_version = None
         self.audio_files = None
+        self.non_audio_files = None
+        self.src_stream_info = None
 
     def check_prerequisites(self):
         if self.metadata.format != MusicMetadata.FORMAT_FLAC:
@@ -79,11 +82,13 @@ class LAMETranscoderExecutor(StepExecutor):
 
     def init_audio_files(self):
         self.audio_files = []
+        self.non_audio_files = []
         for src_file, dst_file in list_src_dst_files(self.prev_step.data_path, self.step.data_path):
             if os.path.basename(src_file) in FILES_TO_COPY:
                 logger.info('Project {} copying file {} to {}.', self.project.id, src_file, dst_file)
                 os.makedirs(os.path.dirname(dst_file), exist_ok=True)
                 shutil.copy2(src_file, dst_file)
+                self.non_audio_files.append(os.path.relpath(dst_file, self.step.data_path))
             elif src_file.endswith('.part'):
                 self.raise_error('Refusing to run with a .part file in source directory.')
             elif src_file.lower().endswith('.flac'):
@@ -95,26 +100,35 @@ class LAMETranscoderExecutor(StepExecutor):
             self.raise_error('No FLACs discovered in source directory.')
 
     def check_audio_files(self):
-        for file in self.audio_files:
-            sample_rate = file.src_muta.info.sample_rate
-            bits_per_sample = file.src_muta.info.bits_per_sample
-            channels = file.src_muta.info.channels
+        try:
+            self.src_stream_info = get_stream_info(f.src_muta for f in self.audio_files)
+        except InconsistentStreamInfoException as exc:
+            self.raise_error(str(exc))
 
-            if sample_rate not in ALLOWED_SAMPLE_RATES:
-                self.raise_error(
-                    'Only input files with sample rates {} are supported. '
-                    'File {} has {}. Run a sox step if needed.'.format(
-                        ALLOWED_SAMPLE_RATES, file.src_file, sample_rate))
-            if bits_per_sample not in ALLOWED_BITS_PER_SAMPLE:
-                self.raise_error(
-                    'Only input files with bits per sample {} are supported. '
-                    'File {} has {}. Run a sox step if needed.'.format(
-                        ALLOWED_BITS_PER_SAMPLE, file.src_file, bits_per_sample))
-            if channels not in ALLOWED_CHANNELS:
-                self.raise_error(
-                    'Only input files with channels {} are supported. '
-                    'File {} has {}. Run a sox stepsif needed.'.format(
-                        ALLOWED_CHANNELS, file.src_file, channels))
+        if self.src_stream_info.sample_rate not in ALLOWED_SAMPLE_RATES:
+            self.raise_error(
+                'Files with sample rate {} are not supported, only {}. Run a sox step if needed.'.format(
+                    ALLOWED_SAMPLE_RATES, self.src_stream_info.sample_rate))
+        if self.src_stream_info.bits_per_sample not in ALLOWED_BITS_PER_SAMPLE:
+            self.raise_error(
+                'Files with bits per sample {} are not supported, only {}. Run a sox step if needed.'.format(
+                    ALLOWED_BITS_PER_SAMPLE, self.src_stream_info.bits_per_sample))
+        if self.src_stream_info.channels not in ALLOWED_CHANNELS:
+            self.raise_error(
+                'Files with channels {} are not supported, only {}. Run a sox step if needed.'.format(
+                    ALLOWED_CHANNELS, self.src_stream_info.channels))
+
+    def _get_transcoding_chain(self, src_file, dst_file):
+        flac_options = ['flac', '-d', '-c', src_file]
+        lame_options = ['lame', '-h']
+        if self.bitrate in LAME_BITRATE_SETTINGS:
+            lame_options += LAME_BITRATE_SETTINGS[self.bitrate]
+        else:
+            self.raise_error('Unknown bitrate {}. Supported bitrates are {}.'.format(
+                self.bitrate, list(LAME_BITRATE_SETTINGS.keys())))
+        lame_options += ['-', dst_file]
+
+        return flac_options, lame_options
 
     def transcode_audio_files(self):
         for file in self.audio_files:
@@ -145,6 +159,17 @@ class LAMETranscoderExecutor(StepExecutor):
                 self.add_warning('Output file is less than 8K: {}'.format(file.dst_file))
 
     def update_metadata(self):
+        self.metadata.processing_steps.append(
+            'Convert source files with audio stream {} to MP3 {} with {}. Command line is {}.'
+            ' Include {} audio and {} non-audio files'.format(
+                self.src_stream_info,
+                self.bitrate,
+                self.lame_version,
+                pprint_subprocess_chain(self._get_transcoding_chain('{src}', '{dst}')),
+                len(self.audio_files),
+                len(self.non_audio_files),
+            ),
+        )
         self.metadata.format = MusicMetadata.FORMAT_MP3
         self.metadata.encoding = self.bitrate
 

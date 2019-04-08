@@ -68,6 +68,8 @@ class CreateTorrentFileExecutor(StepExecutor):
     def record_additional_metadata(self):
         torrent_file_info = TorrentFileInfo.from_file(self.torrent_file_path)
         self.metadata.torrent_info_hash = torrent_file_info.info_hash
+        self.metadata.processing_steps.append('Generate .torrent file with info hash {}.'.format(
+            self.metadata.torrent_info_hash))
 
     def handle_run(self):
         self.check_prerequisites()

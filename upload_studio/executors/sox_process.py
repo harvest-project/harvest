@@ -12,7 +12,7 @@ from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
-from upload_studio.utils import execute_subprocess_chain
+from upload_studio.utils import execute_subprocess_chain, get_stream_info, InconsistentStreamInfoException, StreamInfo
 
 logger = get_logger(__name__)
 
@@ -49,6 +49,7 @@ class SoxProcessExecutor(StepExecutor):
 
         self.audio_files = None
         self.sox_version = None
+        self.flac_version = None
         self.src_stream_info = None
         self.dst_stream_info = None
 
@@ -61,8 +62,15 @@ class SoxProcessExecutor(StepExecutor):
         except FileNotFoundError:
             self.raise_error('sox not found in path. Make sure sox is installed.')
 
+        try:
+            self.flac_version = subprocess.check_output(['flac', '--version']).decode().split('\n')[0]
+        except FileNotFoundError:
+            self.raise_error('flac not found in path. Make sure flac is installed.')
+
     def _get_dst_stream_info(self):
-        src_sample_rate, src_bits_per_sample, src_channels = self.src_stream_info
+        src_sample_rate = self.src_stream_info.sample_rate
+        src_bits_per_sample = self.src_stream_info.bits_per_sample
+        src_channels = self.src_stream_info.channels
 
         if self.target_sample_rate == self.TARGET_SAMPLE_RATE_44100_OR_4800:
             if src_sample_rate == 44100 or src_sample_rate >= 88200:
@@ -86,7 +94,11 @@ class SoxProcessExecutor(StepExecutor):
                 src_channels != self.target_channels
         )
         if requires_processing:
-            return target_sample_rate, self.target_bits_per_sample, self.target_channels
+            return StreamInfo(
+                sample_rate=target_sample_rate,
+                bits_per_sample=self.target_bits_per_sample,
+                channels=self.target_channels,
+            )
         else:
             return None
 
@@ -94,43 +106,33 @@ class SoxProcessExecutor(StepExecutor):
         self.audio_files = []
         for src_file, dst_file in list_src_dst_files(self.prev_step.data_path, self.step.data_path):
             if src_file.lower().endswith('.flac'):
-                file = self.FileInfo(src_file, dst_file)
-                src_stream_info = (
-                    file.src_muta.info.sample_rate,
-                    file.src_muta.info.bits_per_sample,
-                    file.src_muta.info.channels,
-                )
-                if self.src_stream_info is None:
-                    self.src_stream_info = src_stream_info
-                if self.src_stream_info != src_stream_info:
-                    self.raise_error(
-                        'sox_process does not currently support heterogeneous torrents.'
-                        ' Detected {}/{}/{} and {}/{}/{}.'.format(
-                            *src_stream_info,
-                            *self.src_stream_info,
-                        ))
-                self.audio_files.append(file)
+                self.audio_files.append(self.FileInfo(src_file, dst_file))
             else:
                 logger.info('Project {} copying file {} to {}.', self.project.id, src_file, dst_file)
                 os.makedirs(os.path.dirname(dst_file), exist_ok=True)
                 shutil.copy2(src_file, dst_file)
 
+        try:
+            self.src_stream_info = get_stream_info(f.src_muta for f in self.audio_files)
+        except InconsistentStreamInfoException as exc:
+            self.raise_error(str(exc))
         self.dst_stream_info = self._get_dst_stream_info()
+
+    def _get_sox_options(self):
+        return [
+            'sox',
+            '-t', 'wav', '-',
+            '-b', str(self.dst_stream_info.bits_per_sample),
+            '-t', 'wav', '-',
+            'rate', '-v', '-L', str(self.dst_stream_info.sample_rate),
+            'dither',
+        ]
 
     def process_audio_files(self):
         for file in self.audio_files:
             flac_decode_options = ['flac', '-d', '-c', file.src_file]
-            sox_options = [
-                'sox',
-                '-t', 'wav', '-',
-                '-b', str(self.dst_stream_info[1]),
-                '-t', 'wav', '-',
-                'rate', '-v', '-L',
-                str(self.dst_stream_info[0]),
-                'dither',
-            ]
             flac_encode_options = ['flac', '--best', '-o', file.dst_file, '-']
-            chain = (flac_decode_options, sox_options, flac_encode_options)
+            chain = (flac_decode_options, self._get_sox_options(), flac_encode_options)
             file.processing_chain = chain
             logger.info('{} transcoding plan {} -> {} with chain {}.'.format(
                 self.project, file.src_file, file.dst_file, chain))
@@ -153,18 +155,31 @@ class SoxProcessExecutor(StepExecutor):
 
     def update_metadata(self):
         if not self.dst_stream_info:
+            self.metadata.processing_steps.append(
+                'Source audio stream is {}, no sample rate/bit depth/channels conversion needed.'.format(
+                    self.src_stream_info))
             return
+        self.metadata.processing_steps.append(
+            'Source audio stream is {}. Convert to {} with {}. Command line: {}.'
+            ' Encode back to FLAC with {}.'.format(
+                self.src_stream_info,
+                self.dst_stream_info,
+                self.sox_version,
+                self._get_sox_options(),
+                self.flac_version,
+            ),
+        )
         self.metadata.additional_data['downsample_data'] = {
-            'src_sample_rate': self.src_stream_info[0],
-            'src_bits_per_sample': self.src_stream_info[1],
-            'src_channels': self.src_stream_info[2],
-            'dst_sample_rate': self.dst_stream_info[0],
-            'dst_bits_per_sample': self.dst_stream_info[1],
-            'dst_channels': self.dst_stream_info[2],
+            'src_sample_rate': self.src_stream_info.sample_rate,
+            'src_bits_per_sample': self.src_stream_info.bits_per_sample,
+            'src_channels': self.src_stream_info.channels,
+            'dst_sample_rate': self.dst_stream_info.sample_rate,
+            'dst_bits_per_sample': self.dst_stream_info.bits_per_sample,
+            'dst_channels': self.dst_stream_info.channels,
         }
-        if self.dst_stream_info[1] == 16:
+        if self.dst_stream_info.bits_per_sample == 16:
             self.metadata.encoding = MusicMetadata.ENCODING_LOSSLESS
-        elif self.dst_stream_info[1] == 24:
+        elif self.dst_stream_info.bits_per_sample == 24:
             self.metadata.encoding = MusicMetadata.ENCODING_24BIT_LOSSLESS
         else:
             self.raise_error('Metadata only supports 16 and 24 bit output bit depths.')

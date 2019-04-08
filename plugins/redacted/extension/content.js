@@ -83,11 +83,14 @@ class TorrentRow {
         await this.helper.refreshStatuses();
     }
 
-    async _transcodeTorrent() {
+    async _transcodeTorrent(transcodeType) {
         try {
             const existingProjects = await sendChromeMessage({
                 type: messages.getUploadStudioProjects,
-                queryParams: {source_tracker_id: this.torrentId},
+                queryParams: {
+                    project_type: `redacted_transcode_${transcodeType}`,
+                    source_tracker_id: this.torrentId,
+                },
             });
             if (existingProjects.active.length || existingProjects.history.length) {
                 if (!confirm('There is already an upload project from this torrent. Continue?')) {
@@ -97,7 +100,7 @@ class TorrentRow {
             await sendChromeMessage({
                 type: redactedMessages.transcodeTorrent,
                 trackerId: this.torrentId,
-                transcodeType: 'mp3',
+                transcodeType: transcodeType,
             });
             NotyHelper.success(`Sent torrent ${this.torrentId} for transcoding.`);
         } catch (exception) {
@@ -106,11 +109,11 @@ class TorrentRow {
         }
     }
 
-    async transcodeTorrent() {
+    async transcodeTorrent(transcodeType) {
         this.status = this.constructor.STATUS_WORKING;
         this.statusUpdated();
 
-        await this._transcodeTorrent();
+        await this._transcodeTorrent(transcodeType);
 
         this.status = null;
         this.statusUpdated();
@@ -145,7 +148,30 @@ class TorrentRow {
             }
             items.push($('<a href="#">TC</a>').click(e => {
                 e.preventDefault();
-                this.transcodeTorrent();
+                const offset = $(e.target).offset();
+                const menu = $('<div>')
+                    .css('position', 'absolute')
+                    .css('background', '#eee')
+                    .css('border', '1px solid #666')
+                    .css('padding', '4px')
+                    .css('color', 'black')
+                    .offset({left: offset.left, top: offset.top + 16})
+                    .append(
+                        $('<a href="#">MP3</a>').click(e => {
+                            e.preventDefault();
+                            menu.remove();
+                            this.transcodeTorrent('mp3');
+                        }),
+                    )
+                    .append('<br>')
+                    .append(
+                        $('<a href="#">Redbook FLAC</a>').click(e => {
+                            e.preventDefault();
+                            menu.remove();
+                            this.transcodeTorrent('redbook_flac');
+                        }),
+                    )
+                    .appendTo(this.jq);
             }));
         }
         this.setItems(items);

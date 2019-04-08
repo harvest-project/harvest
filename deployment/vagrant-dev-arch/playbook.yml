@@ -1,0 +1,14 @@
+---
+- name: Set up Harvest development environment
+  hosts: all
+  vars:
+    libtorrent_filename: libtorrent-rasterbar-1.1.12
+    libtorrent_tarball_url: "https://github.com/arvidn/libtorrent/releases/download/libtorrent_1_1_12/{{ libtorrent_filename}}.tar.gz"
+    node_modules_path: /home/vagrant/node_modules
+    project_node_modules_path: /vagrant/node_modules
+    venv: /home/vagrant/venv
+  tasks:
+    - import_tasks: ../ansible/tasks-ubuntu-packages.yml
+    - import_tasks: ../ansible/tasks-libtorrent.yml
+    - import_tasks: ../ansible/tasks-nodejs.yml
+    - import_tasks: ../ansible/tasks-python.yml

@@ -34,6 +34,7 @@ class Project(models.Model):
 
     created_datetime = models.DateTimeField(db_index=True, default=timezone.now)
     source_torrent = models.ForeignKey(Torrent, models.SET_NULL, null=True)
+    project_type = models.CharField(max_length=64)
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
     is_finished = models.BooleanField(db_index=True, default=False)

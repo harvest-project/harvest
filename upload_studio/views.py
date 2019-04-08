@@ -19,6 +19,9 @@ class Projects(CORSBrowserExtensionView, GenericAPIView):
         source_tracker_id = self.request.query_params.get('source_tracker_id')
         if source_tracker_id:
             queryset = queryset.filter(source_torrent__torrent_info__tracker_id=source_tracker_id)
+        project_type = self.request.query_params.get('project_type')
+        if project_type:
+            queryset = queryset.filter(project_type=project_type)
         return queryset
 
     def get(self, request):

@@ -1,4 +1,4 @@
-import {Alert, Button, Col, Icon, Popconfirm, Row, Table, Timeline, Tooltip} from 'antd';
+import {Alert, Button, Col, Dropdown, Icon, Menu, Popconfirm, Row, Table, Timeline, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
@@ -96,6 +96,15 @@ export class Project extends React.Component {
         await this.context.trackLoadingAsync(async () => this.refreshProject());
     }
 
+    async insertStep(index, executorName) {
+        try {
+            await UploadStudioAPI.postProjectInsertStep(this.state.project.id, index, executorName);
+        } catch (response) {
+            await APIHelper.showResponseError(response);
+        }
+        await this.context.trackLoadingAsync(async () => this.refreshProject());
+    }
+
     getTimelineItemParams(step) {
         switch (step.status) {
             case 'pending':
@@ -125,6 +134,15 @@ export class Project extends React.Component {
                             onConfirm={() => this.projectResetToStep(step.index)}>
                     <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset To Here</Button>
                 </Popconfirm>
+            ) : null}
+            {!this.disableAll ? (
+                <Dropdown overlay={<Menu>
+                    <Menu.Item onClick={() => this.insertStep(step.index, 'fix_filename_track_numbers')}>
+                        Fix filename track numbers
+                    </Menu.Item>
+                </Menu>}>
+                    <Button htmlType="button">Insert Step <Icon type="down"/></Button>
+                </Dropdown>
             ) : null}
         </Button.Group>;
         if (!React.Children.count(group.props.children)) {

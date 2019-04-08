@@ -31,6 +31,15 @@ export const UploadStudioAPI = new class {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/run-one`);
     }
 
+    async postProjectInsertStep(projectId, index, executorName) {
+        return await APIHelper.post(`/api/upload-studio/projects/${projectId}/insert-step`, {
+            jsonBody: {
+                index: index,
+                executor_name: executorName,
+            },
+        });
+    }
+
     async postProjectWarningAck(projectId, warningId) {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/warnings/${warningId}/ack`);
     }

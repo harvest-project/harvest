@@ -74,6 +74,13 @@ class Project(models.Model):
                 return step
         return None
 
+    def insert_step(self, index, step):
+        last_complete_step = self.last_complete_step
+        if last_complete_step.index >= index - 1:
+            self.reset(index)
+        self.steps.insert(index, step)
+        self.save_steps()
+
     def save_steps(self):
         for index, step in enumerate(self.steps):
             step.project = self

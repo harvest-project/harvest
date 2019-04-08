@@ -1,3 +1,13 @@
+import os
+
+import mutagen
+
+from Harvest.path_utils import list_rel_files
+from Harvest.utils import get_logger
+
+logger = get_logger(__name__)
+
+
 class TrackDiscNumberExtractionException(Exception):
     pass
 
@@ -39,7 +49,7 @@ def extract_track_disc_number(tags):
         except ValueError:
             raise TrackDiscNumberExtractionException('Unable read track_src {}.'.format(track_src))
 
-    return track, disc
+    return disc, track
 
 
 class StreamInfo:
@@ -89,3 +99,43 @@ def get_stream_info(muta_objs):
         if stream_info != new_stream_info:
             raise InconsistentStreamInfoException(stream_info, new_stream_info)
     return stream_info
+
+
+class AudioDiscoveryStepMixin:
+    class FileInfo:
+        def __init__(self, rel_path, abs_path):
+            self.rel_path = rel_path
+            self.abs_path = abs_path
+            self.muta = mutagen.File(self.abs_path, easy=True)
+            self.disc, self.track = extract_track_disc_number(self.muta)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.audio_files = None
+        self.stream_info = None
+
+    def discover_audio_files(self):
+        self.audio_files = []
+        audio_ext = '.' + self.metadata.format.lower()
+        for rel_path in list_rel_files(self.step.data_path):
+            if not rel_path.lower().endswith(audio_ext):
+                continue
+            self.audio_files.append(self.FileInfo(
+                rel_path,
+                os.path.join(self.step.data_path, rel_path),
+            ))
+
+        try:
+            self.stream_info = get_stream_info(f.muta for f in self.audio_files)
+        except InconsistentStreamInfoException as exc:
+            self.raise_error(str(exc))
+
+        failed_detecting = (
+                not self.stream_info.sample_rate or
+                not self.stream_info.channels or
+                (not self.metadata.format_is_lossy and not self.stream_info.bits_per_sample)
+        )
+        if failed_detecting:
+            self.raise_error('Failed detecting files stream info.')
+
+        logger.info('{} detected stream settings {}.', self.project, self.stream_info)

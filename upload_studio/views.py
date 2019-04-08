@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView
 from monitoring.models import LogEntry
-from upload_studio.models import Project, ProjectStepWarning
+from upload_studio.executor_registry import ExecutorRegistry
+from upload_studio.models import Project, ProjectStepWarning, ProjectStep
 from upload_studio.serializers import ProjectShallowSerializer, ProjectDeepSerializer
 from upload_studio.tasks import project_run_all, project_run_one
 
@@ -81,6 +82,17 @@ class ProjectFinish(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
         LogEntry.info('Manually finished upload studio {}.'.format(self.project))
         self.project.finish()
+
+
+class ProjectInsertStep(ProjectMutatorView):
+    def perform_work(self, request, **kwargs):
+        index = request.data['index']
+        executor_name = request.data['executor_name']
+        # Ensure the executor exists
+        ExecutorRegistry.get_executor(executor_name)
+        self.project.insert_step(index, ProjectStep(
+            executor_name=executor_name,
+        ))
 
 
 class WarningAck(ProjectMutatorView):

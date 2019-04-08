@@ -1,3 +1,15 @@
+from rest_framework import status
+from rest_framework.exceptions import APIException
+
+
+class MissingExecutorException(APIException):
+    def __init__(self, name):
+        super().__init__(
+            detail='Executor {} not found. Are you missing a plugin?'.format(name),
+            code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class _ExecutorRegistry:
     def __init__(self):
         self.executors = {}
@@ -13,7 +25,7 @@ class _ExecutorRegistry:
         try:
             return self.executors[name]
         except KeyError:
-            raise Exception('Executor {} not found. Are you missing a plugin?'.format(name))
+            raise MissingExecutorException(name)
 
 
 ExecutorRegistry = _ExecutorRegistry()

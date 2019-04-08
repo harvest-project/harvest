@@ -171,6 +171,13 @@ class TorrentRow {
                             this.transcodeTorrent('redbook_flac');
                         }),
                     )
+                    .append('<br>')
+                    .append(
+                        $('<a href="#">Close</a>').click(e => {
+                            e.preventDefault();
+                            menu.remove();
+                        }),
+                    )
                     .appendTo(this.jq);
             }));
         }

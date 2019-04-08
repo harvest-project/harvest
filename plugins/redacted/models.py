@@ -231,3 +231,13 @@ class RedactedTorrent(models.Model):
         self.file_list = data['fileList']
         self.user_id = data['userId']
         self.username = data['username']
+
+
+class RedactedRequestCacheEntry(models.Model):
+    fetched_datetime = models.DateTimeField()
+    action = models.CharField(max_length=128)
+    kwargs_json = models.CharField(max_length=65536)
+    response_json = models.TextField()
+
+    class Meta:
+        unique_together = (('action', 'kwargs_json'),)

@@ -173,7 +173,7 @@ class RedactedClient:
         finally:
             self.config = None
 
-    def _ajax_request(self, action, **kwargs):
+    def request_ajax(self, action, **kwargs):
         params = {
             'action': action,
             'auth': None,
@@ -198,16 +198,16 @@ class RedactedClient:
                 resp.text[:30] + '...' if len(resp.text) > 27 else resp.text))
 
     def get_index(self):
-        return self._ajax_request('index')
+        return self.request_ajax('index')
 
     def get_torrent(self, torrent_id):
-        return self._ajax_request('torrent', id=torrent_id)
+        return self.request_ajax('torrent', id=torrent_id)
 
     def get_torrent_by_info_hash(self, info_hash):
-        return self._ajax_request('torrent', hash=info_hash.upper())
+        return self.request_ajax('torrent', hash=info_hash.upper())
 
     def get_torrent_group(self, group_id):
-        return self._ajax_request('torrentgroup', id=group_id)
+        return self.request_ajax('torrentgroup', id=group_id)
 
     def get_torrent_file(self, torrent_id):
         """Downloads the torrent at torrent_id using the authkey and passkey"""

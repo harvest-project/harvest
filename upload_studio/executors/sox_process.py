@@ -10,10 +10,10 @@ import mutagen.mp3
 
 from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
+from upload_studio.audio_utils import StreamInfo, InconsistentStreamInfoException, get_stream_info
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
-from upload_studio.utils import execute_subprocess_chain
-from upload_studio.audio_utils import StreamInfo, InconsistentStreamInfoException, get_stream_info
+from upload_studio.utils import execute_subprocess_chain, pprint_subprocess_chain
 
 logger = get_logger(__name__)
 
@@ -119,8 +119,9 @@ class SoxProcessExecutor(StepExecutor):
             self.raise_error(str(exc))
         self.dst_stream_info = self._get_dst_stream_info()
 
-    def _get_sox_options(self):
-        return [
+    def _get_transcoding_chain(self, src_file, dst_file):
+        flac_decode_options = ['flac', '-d', '-c', src_file]
+        sox_options = [
             'sox',
             '-t', 'wav', '-',
             '-b', str(self.dst_stream_info.bits_per_sample),
@@ -128,12 +129,12 @@ class SoxProcessExecutor(StepExecutor):
             'rate', '-v', '-L', str(self.dst_stream_info.sample_rate),
             'dither',
         ]
+        flac_encode_options = ['flac', '--best', '-o', dst_file, '-']
+        return flac_decode_options, sox_options, flac_encode_options
 
     def process_audio_files(self):
         for file in self.audio_files:
-            flac_decode_options = ['flac', '-d', '-c', file.src_file]
-            flac_encode_options = ['flac', '--best', '-o', file.dst_file, '-']
-            chain = (flac_decode_options, self._get_sox_options(), flac_encode_options)
+            chain = self._get_transcoding_chain(file.src_file, file.dst_file)
             file.processing_chain = chain
             logger.info('{} transcoding plan {} -> {} with chain {}.'.format(
                 self.project, file.src_file, file.dst_file, chain))
@@ -166,7 +167,7 @@ class SoxProcessExecutor(StepExecutor):
                 self.src_stream_info,
                 self.dst_stream_info,
                 self.sox_version,
-                self._get_sox_options(),
+                pprint_subprocess_chain(self._get_transcoding_chain('{src}', '{dst}')),
                 self.flac_version,
             ),
         )

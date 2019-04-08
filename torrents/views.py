@@ -68,7 +68,7 @@ class AlcazarClients(APIView):
     @transaction.atomic
     def post(self, request):
         Realm.objects.get_or_create(name=request.data['realm'])
-        client = AlcazarClient()
+        client = AlcazarClient(timeout=AlcazarClient.TIMEOUT_LONG)
         return Response(client.add_client(request.data))
 
 

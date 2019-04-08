@@ -108,9 +108,12 @@ class AlcazarRemoteException(APIException):
 
 
 class AlcazarClient:
+    TIMEOUT_LONG = 60
+    TIMEOUT_SHORT = 20
+
     _thread_local_storage = threading.local()
 
-    def __init__(self, timeout=20):
+    def __init__(self, timeout=TIMEOUT_SHORT):
         self.config = AlcazarClientConfig.get_config()
         self.timeout = timeout
 

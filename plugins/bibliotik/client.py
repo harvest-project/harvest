@@ -19,7 +19,8 @@ DOMAIN = 'bibliotik.me'
 
 
 class BibliotikClient:
-    def __init__(self):
+    def __init__(self, timeout=30):
+        self.timeout = timeout
         self.session = requests.Session()
         self.session.headers = HEADERS
         self.throttler = DatabaseSyncedThrottler(
@@ -102,7 +103,7 @@ class BibliotikClient:
             'login': 'Log In!',
         }
         # Login is not subject to the normal API rate limiting
-        r = self.session.post(self.login_url, data=data, allow_redirects=False)
+        r = self.session.post(self.login_url, data=data, allow_redirects=False, timeout=self.timeout)
         if r.status_code != 302:
             logger.debug('Login failed, returned status {}.', r.status_code)
 
@@ -122,6 +123,7 @@ class BibliotikClient:
 
     def __request(self, method, url, **kwargs):
         logger.info('Requesting {} {}', method, url)
+        kwargs.setdefault('timeout', self.timeout)
 
         if self.config.cookies:
             logger.debug('Found cached login credentials.')

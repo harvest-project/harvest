@@ -83,7 +83,7 @@ def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern=None,
     if download_path_pattern is None:
         download_path_pattern = realm.get_preferred_download_location().pattern
 
-    client = AlcazarClient()
+    client = AlcazarClient(timeout=AlcazarClient.TIMEOUT_LONG)
     torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=force_fetch)
     torrent_file_bytes = bytes(torrent_info.torrent_file.torrent_file)
     download_path = format_download_path_pattern(
@@ -105,7 +105,7 @@ def add_torrent_from_tracker(*, tracker, tracker_id, download_path_pattern=None,
 @log_exceptions('Error adding torrent file to {realm.name} in {download_path_pattern}: {exc}.')
 @log_successes('Added torrent file to {realm.name} in {return.download_path}, took {time_taken:.3f} s.')
 def add_torrent_from_file(*, realm, torrent_file, download_path_pattern=None):
-    client = AlcazarClient()
+    client = AlcazarClient(timeout=AlcazarClient.TIMEOUT_LONG)
     if download_path_pattern is None:
         download_path_pattern = realm.get_preferred_download_location().pattern
     download_path = format_download_path_pattern(

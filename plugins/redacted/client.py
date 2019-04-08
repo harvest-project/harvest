@@ -23,7 +23,10 @@ DOMAIN = 'redacted.ch'
 
 
 class RedactedClient:
-    def __init__(self):
+    UPLOAD_TIMEOUT = 60
+
+    def __init__(self, timeout=30):
+        self.timeout = timeout
         self.session = requests.Session()
         self.session.headers = HEADERS
         self.throttler = DatabaseSyncedThrottler(RedactedClientConfig, RedactedThrottledRequest, 5, 10)
@@ -67,7 +70,7 @@ class RedactedClient:
             'login': 'Login',
         }
         # Login is not subject to the normal API rate limiting
-        r = self.session.post(self.login_url, data=data, allow_redirects=False)
+        r = self.session.post(self.login_url, data=data, allow_redirects=False, timeout=self.timeout)
         if r.status_code != 302:
             logger.debug('Login failed, returned status {}.', r.status_code)
 
@@ -83,7 +86,12 @@ class RedactedClient:
 
         # Working outside of the normal __request cycling since this is a special case
         self.throttler.throttle_request(url='{}?action=index')
-        index_response = self.session.get(self.ajax_url, params={'action': 'index'}, allow_redirects=False)
+        index_response = self.session.get(
+            self.ajax_url,
+            params={'action': 'index'},
+            allow_redirects=False,
+            timeout=self.timeout,
+        )
         if index_response.status_code == 200:
             self.authkey = index_response.json()['response']['authkey']
             self.passkey = index_response.json()['response']['passkey']
@@ -102,6 +110,7 @@ class RedactedClient:
 
     def __request(self, method, url, **kwargs):
         logger.info('Requesting {} {}.', method, url)
+        kwargs.setdefault('timeout', self.timeout)
 
         def get_request_kwargs():
             result = {
@@ -256,6 +265,7 @@ class RedactedClient:
             headers={
                 'Content-Type': None,
             },
+            timeout=self.UPLOAD_TIMEOUT,
         )
         if r.url == self.upload_url:
             try:

@@ -82,20 +82,20 @@ class QueueScheduler:
                 break
 
             try:
-                next_task = self.fetch_async_task()
-                free_executors[0].current = asyncio.ensure_future(
-                    self.execute_async_task(free_executors[0], next_task))
-                continue
-            except KeyError:
-                logger.debug('No async tasks to be executed.')
-
-            try:
                 task_info = self.pending_periodic_tasks.pop()
                 free_executors[0].current = asyncio.ensure_future(
                     self.execute_periodic_task(free_executors[0], task_info))
                 continue
             except KeyError:
                 logger.debug('No periodic tasks to be executed.')
+
+            try:
+                next_task = self.fetch_async_task()
+                free_executors[0].current = asyncio.ensure_future(
+                    self.execute_async_task(free_executors[0], next_task))
+                continue
+            except KeyError:
+                logger.debug('No async tasks to be executed.')
 
             break
 

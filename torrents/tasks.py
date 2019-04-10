@@ -9,7 +9,7 @@ from torrents.exceptions import AlcazarNotConfiguredException
 
 logger = get_logger(__name__)
 
-UPDATE_BATCH_SIZE = 10000
+UPDATE_BATCH_SIZE = 5000
 
 
 @TaskQueue.periodic_task(3)

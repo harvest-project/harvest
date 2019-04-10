@@ -3,7 +3,7 @@ import 'antd/dist/antd.css';
 import {HarvestHeader} from 'home/assets/components/HarvestHeader';
 import {MainPageSpinner} from 'home/assets/components/MainPageSpinner';
 import {HomeRoutes} from 'home/assets/HomeRoutes';
-import logo from 'home/assets/images/logo.png';
+import logo from 'home/assets/images/logo-68.png';
 import {MainMenu} from 'home/assets/menu/MainMenu';
 import {PluginRoutes} from 'home/assets/PluginRoutes';
 import {capitalizeWord} from 'home/assets/utils';

@@ -9,4 +9,4 @@ class RedactedConfig(AppConfig):
 
         from trackers.registry import TrackerRegistry
         from plugins.redacted.tracker import RedactedTrackerPlugin
-        TrackerRegistry.register_plugin(RedactedTrackerPlugin())
+        TrackerRegistry.register(RedactedTrackerPlugin())

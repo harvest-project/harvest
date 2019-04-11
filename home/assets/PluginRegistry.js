@@ -1,12 +1,37 @@
-export const plugins = [];
-export const pluginsByName = {};
-
-export function registerPlugin(plugin) {
-    if (pluginsByName.hasOwnProperty(plugin.pluginName)) {
-        throw `Plugin ${plugin.pluginName} already registered.`;
+function pushUnique(arr, item) {
+    if (arr.indexOf(item) !== -1) {
+        throw 'Item already registered.';
     }
-    pluginsByName[plugin.pluginName] = plugin;
-    if (plugins.indexOf(plugin) === -1) {
-        plugins.push(plugin);
+    arr.push(item);
+}
+
+export class TrackerRegistry {
+    static trackers = [];
+    static trackersByName = {};
+
+    static register(tracker) {
+        pushUnique(this.trackers, tracker);
+        this.trackersByName[tracker.trackerName] = tracker;
+    }
+}
+
+export class RouteRegistry {
+    static pageRoutesComponents = [];
+
+    static registerPageRoutesComponent(component) {
+        pushUnique(this.pageRoutesComponents, component);
+    }
+}
+
+export class MenuRegistry {
+    static mainMenuItems = [];
+    static settingsMenuItems = [];
+
+    static registerMainMenuItem(menuItem) {
+        pushUnique(this.mainMenuItems, menuItem);
+    }
+
+    static registerSettingsMenuItem(menuItem) {
+        pushUnique(this.settingsMenuItems, menuItem);
     }
 }

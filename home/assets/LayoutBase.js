@@ -5,7 +5,6 @@ import {MainPageSpinner} from 'home/assets/components/MainPageSpinner';
 import {HomeRoutes} from 'home/assets/HomeRoutes';
 import logo from 'home/assets/images/logo-68.png';
 import {MainMenu} from 'home/assets/menu/MainMenu';
-import {PluginRoutes} from 'home/assets/PluginRoutes';
 import {capitalizeWord} from 'home/assets/utils';
 import React from 'react';
 import {withRouter} from 'react-router-dom';
@@ -15,6 +14,7 @@ import styles from './LayoutBase.less';
 import {MonitoringRoutes} from 'monitoring/assets/MonitoringRoutes';
 import {ErrorBoundary} from 'home/assets/components/ErrorBoundary';
 import {UploadStudioRoutes} from 'upload_studio/assets/UploadStudioRoutes';
+import {RouteRegistry} from 'home/assets/PluginRegistry';
 
 const {Header, Sider, Content, Footer} = Layout;
 
@@ -85,7 +85,10 @@ export class LayoutBase extends React.Component {
                                     <SettingsRoutes/>
                                     <TorrentsRoutes/>
                                     <UploadStudioRoutes/>
-                                    <PluginRoutes/>
+
+                                    {RouteRegistry.pageRoutesComponents.map((RoutesComponent, i) => (
+                                        <RoutesComponent key={i}/>
+                                    ))}
                                 </ErrorBoundary>
                             </div>
                         </MainPageSpinner>

@@ -10,7 +10,7 @@ import {AddTorrentFromTracker} from 'torrents/assets/components/AddTorrentFromTr
 import {TorrentDetailsDisplay} from 'torrents/assets/components/TorrentDetailsDisplay';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 import {TorrentStatus} from 'torrents/assets/utils';
-import {pluginsByName} from '../../../home/assets/PluginRegistry';
+import {TrackerRegistry} from 'home/assets/PluginRegistry';
 
 const iconError = <Icon type="close-circle" style={{color: 'red', fontSize: 18}}/>;
 const iconDownloading = <Icon type="download" style={{color: '#1890ff', fontSize: 18}}/>;
@@ -152,19 +152,19 @@ export class Torrents extends React.Component {
 
     renderNameColumn(data, record) {
         let content = record.name,
-            plugin = this.pluginsByRealm[record.realm],
+            tracker = this.trackersByRealm[record.realm],
             externalLink = null;
-        if (record.torrent_info && plugin && plugin.getTorrentUrl) {
+        if (record.torrent_info && tracker && tracker.getTorrentUrl) {
             externalLink = <a
-                href={plugin.getTorrentUrl(record.torrent_info)}
+                href={tracker.getTorrentUrl(record.torrent_info)}
                 target="_blank"
                 onClick={e => e.stopPropagation()}
             >
                 &nbsp;<Icon type="link"/>
             </a>;
         }
-        if (record.torrent_info && record.torrent_info.metadata && plugin && plugin.metadataColumnRenderer) {
-            const MetadataRenderer = plugin.metadataColumnRenderer;
+        if (record.torrent_info && record.torrent_info.metadata && tracker && tracker.metadataColumnRenderer) {
+            const MetadataRenderer = tracker.metadataColumnRenderer;
             content = (
                 <span>
                     <Tooltip title={'Original Name: ' + record.name}><Icon type="info-circle"/></Tooltip>
@@ -314,11 +314,11 @@ export class Torrents extends React.Component {
 
     render() {
         // TODO: Do not recompute this on every render, but only when realm changes.
-        this.pluginsByRealm = {};
-        for (const [name, plugin] of Object.entries(pluginsByName)) {
-            const realm = this.context.getRealmByName(name);
+        this.trackersByRealm = {};
+        for (const tracker of TrackerRegistry.trackers) {
+            const realm = this.context.getRealmByName(tracker.trackerName);
             if (realm) {
-                this.pluginsByRealm[realm.id] = plugin;
+                this.trackersByRealm[realm.id] = tracker;
             }
         }
 

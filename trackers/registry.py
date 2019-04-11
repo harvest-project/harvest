@@ -22,7 +22,7 @@ class PluginRegistry:
     def __init__(self):
         self._plugins = {}
 
-    def register_plugin(self, plugin):
+    def register(self, plugin):
         if plugin.name in self._plugins:
             raise DuplicatePluginException(plugin.name)
         self._plugins[plugin.name] = plugin

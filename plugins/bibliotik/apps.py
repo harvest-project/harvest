@@ -9,4 +9,4 @@ class BibliotikConfig(AppConfig):
 
         from trackers.registry import TrackerRegistry
         from plugins.bibliotik.tracker import BibliotikTrackerPlugin
-        TrackerRegistry.register_plugin(BibliotikTrackerPlugin())
+        TrackerRegistry.register(BibliotikTrackerPlugin())

@@ -1,12 +1,12 @@
 import {Icon, Menu} from 'antd';
 import {HomeUrls} from 'home/assets/HomeUrls';
 import {SettingsMenu} from 'home/assets/menu/SettingsMenu';
-import {plugins} from 'home/assets/PluginRegistry';
 import React from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import {TorrentsUrls} from 'torrents/assets/TorrentsUrls';
 import {MonitoringUrls} from 'monitoring/assets/MonitoringUrls';
 import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
+import {MenuRegistry} from 'home/assets/PluginRegistry';
 
 const {SubMenu} = Menu;
 
@@ -14,11 +14,6 @@ const {SubMenu} = Menu;
 export class MainMenu extends React.Component {
     constructor(props) {
         super(props);
-
-        this.pluginItems = [];
-        for (const plugin of plugins) {
-            this.pluginItems = this.pluginItems.concat(plugin.mainMenuItems || []);
-        }
 
         this.defaultSelectedKeys = [this.props.location.pathname];
         this.defaultOpenKeys = [];
@@ -69,7 +64,7 @@ export class MainMenu extends React.Component {
 
             <SettingsMenu/>
 
-            {this.pluginItems}
+            {MenuRegistry.mainMenuItems}
         </Menu>;
     }
 }

@@ -1,5 +1,5 @@
 import {Icon, Menu} from 'antd';
-import {plugins} from 'home/assets/PluginRegistry';
+import {MenuRegistry} from 'home/assets/PluginRegistry';
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {SettingsUrls} from 'settings/assets/SettingsUrls';
@@ -8,15 +8,6 @@ import {TorrentsUrls} from 'torrents/assets/TorrentsUrls';
 const {SubMenu} = Menu;
 
 export class SettingsMenu extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.pluginItems = [];
-        for (const plugin of plugins) {
-            this.pluginItems = this.pluginItems.concat(plugin.settingsMenuItems || []);
-        }
-    }
-
     render() {
         return <SubMenu
             key="/settings"
@@ -37,7 +28,7 @@ export class SettingsMenu extends React.Component {
                 </Link>
             </Menu.Item>
 
-            {this.pluginItems}
+            {MenuRegistry.settingsMenuItems}
         </SubMenu>;
     }
 }

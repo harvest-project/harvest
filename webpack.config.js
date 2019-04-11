@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const pluginsRoot = path.resolve(__dirname, 'plugins');
 
-class Plugin {
+class PluginInfo {
     constructor(name) {
         this.name = name;
         this.path = path.resolve(pluginsRoot, this.name);
@@ -21,7 +21,7 @@ function discoverPlugins() {
         if (pluginName.startsWith('_') || pluginName.startsWith('.')) {
             continue;
         }
-        plugins.push(new Plugin(pluginName));
+        plugins.push(new PluginInfo(pluginName));
     }
     return plugins;
 }

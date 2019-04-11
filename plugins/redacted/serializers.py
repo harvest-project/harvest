@@ -1,5 +1,3 @@
-import json
-
 from rest_framework import serializers
 
 from plugins.redacted.models import RedactedClientConfig, RedactedTorrent, RedactedTorrentGroup
@@ -17,7 +15,9 @@ class RedactedTorrentGroupSerializer(serializers.ModelSerializer):
     joined_artists = serializers.SerializerMethodField()
 
     def get_joined_artists(self, obj):
-        return get_joined_artists(obj.music_info)
+        if obj.music_info:
+            return get_joined_artists(obj.music_info)
+        return None
 
     class Meta:
         model = RedactedTorrentGroup

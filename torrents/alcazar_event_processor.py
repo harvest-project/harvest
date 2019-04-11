@@ -20,7 +20,7 @@ class AlcazarEventProcessor:
         logger.debug('Matched {} Torrent objects for deletion.'.format(len(removed_info_hashes)))
         removed_torrents_qs.delete()
         for removed_info_hash in removed_info_hashes:
-            transaction.on_commit(lambda: torrent_removed.send_robust(cls, realm=realm, info_hash=removed_info_hash))
+            torrent_removed.send_robust(cls, realm=realm, info_hash=removed_info_hash)
 
     @classmethod
     def _process_added_torrents(cls, realm, added_torrent_states):

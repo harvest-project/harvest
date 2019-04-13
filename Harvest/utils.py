@@ -14,6 +14,10 @@ class TransactionAPIView(APIView):
             return super().dispatch(request, *args, **kwargs)
 
 
+def union_dicts(*dicts):
+    return dict(item for d in dicts for item in d.items())
+
+
 def get_filename_from_content_disposition(content_disposition):
     return re.search('filename="(.*)"', content_disposition).group(1)
 

@@ -120,6 +120,17 @@ class TorrentRow {
         await this.helper.refreshStatuses();
     }
 
+    async playTorrent() {
+        await sendChromeMessage({
+            type: redactedMessages.sendWhatifyMessage,
+            message: {
+                type: 'playTorrent',
+                realmName: this.helper.constructor.realmName,
+                trackerId: this.torrent.id,
+            },
+        });
+    }
+
     async downloadTorrent() {
         const response = await sendChromeMessage({
             type: messages.getDownloadTorrentUrl,
@@ -141,6 +152,10 @@ class TorrentRow {
             } else if (this.status === this.constructor.STATUS_DOWNLOADING) {
                 items.push(Math.floor(this.torrent.progress * 100) + '%');
             } else if (this.status === this.constructor.STATUS_DOWNLOADED) {
+                items.push($('<a href="#">PLAY</a>').click(e => {
+                    e.preventDefault();
+                    this.playTorrent();
+                }));
                 items.push($('<a href="#">ZIP</a>').click(e => {
                     e.preventDefault();
                     this.downloadTorrent();

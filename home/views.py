@@ -2,7 +2,10 @@ import coreapi
 import coreschema
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count, Sum
+from django.http import JsonResponse
+from django.views import View
 from django.views.generic import TemplateView
+from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.schemas import AutoSchema
@@ -15,6 +18,11 @@ from torrents.download_locations import get_disk_usages_from_locations
 
 class Index(TemplateView):
     template_name = 'index.html'
+
+
+class APINotFound(View):
+    def dispatch(self, request, *args, **kwargs):
+        return JsonResponse({'detail': 'API endpoint not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class Login(APIView):

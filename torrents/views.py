@@ -5,12 +5,12 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import StreamingHttpResponse
 from rest_framework.exceptions import NotFound
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView, RetrieveDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView
+from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView, union_dicts
 from torrents.add_torrent import add_torrent_from_file, add_torrent_from_tracker, fetch_torrent
 from torrents.alcazar_client import AlcazarClient, AlcazarRemoteException
 from torrents.exceptions import RealmNotFoundException
@@ -134,16 +134,16 @@ class Torrents(CORSBrowserExtensionView, ListAPIView):
         return qs.order_by(order_by)
 
     def get_serializer_context(self):
-        return {
-            'serialize_metadata': bool(int(self._get_param('serialize_metadata', '1'))),
-        }
+        params = union_dicts(self.request.query_params, self.request.data)
+        return TorrentSerializer.get_context_from_request_data(params)
 
     def get_queryset(self):
         torrents = Torrent.objects.select_related(*self.TORRENT_SELECT_RELATED)
-        torrents = self._apply_status(torrents, self._get_param('status'))
-        torrents = self._apply_realm(torrents, self._get_param('realm_id'), self._get_param('realm_name'))
-        torrents = self._apply_tracker_ids(torrents, self._get_param('tracker_ids'))
-        torrents = self._apply_order_by(torrents, self._get_param('order_by'))
+        params = union_dicts(self.request.query_params, self.request.data)
+        torrents = self._apply_status(torrents, params.get('status'))
+        torrents = self._apply_realm(torrents, params.get('realm_id'), params.get('realm_name'))
+        torrents = self._apply_tracker_ids(torrents, params.get('tracker_ids'))
+        torrents = self._apply_order_by(torrents, params.get('order_by'))
         return torrents
 
     # Workaround to support both GET and POST requests in case filters are expected to be large
@@ -151,13 +151,18 @@ class Torrents(CORSBrowserExtensionView, ListAPIView):
         return self.list(request, *args, **kwargs)
 
 
-class TorrentView(APIView):
-    def get_object(self, *args, **kwargs):
+class TorrentView(RetrieveDestroyAPIView):
+    serializer_class = TorrentSerializer
+
+    def get_serializer_context(self):
+        return TorrentSerializer.get_context_from_request_data(self.request.query_params)
+
+    def get_object(self):
         raise NotImplementedError()
 
     @transaction.atomic
-    def delete(self, request, *args, **kwargs):
-        torrent = self.get_object(*args, **kwargs)
+    def destroy(self, request, *args, **kwargs):
+        torrent = self.get_object()
         torrent.delete()
         try:
             remove_torrent(torrent=torrent)
@@ -172,16 +177,16 @@ class TorrentView(APIView):
 
 
 class TorrentByID(TorrentView, APIView):
-    def get_object(self, torrent_id):
+    def get_object(self):
         try:
-            return Torrent.objects.get(id=torrent_id)
+            return Torrent.objects.get(id=self.kwargs['torrent_id'])
         except Torrent.DoesNotExist:
             raise NotFound()
 
 
 class TorrentZip(TorrentByID):
     def get(self, request, torrent_id):
-        torrent = self.get_object(torrent_id)
+        torrent = self.get_object()
         zip_file = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_STORED, allowZip64=True)
         filename_base = get_zip_download_filename_base(torrent)
         add_zip_download_files(zip_file, torrent)
@@ -191,13 +196,28 @@ class TorrentZip(TorrentByID):
 
 
 class TorrentByRealmInfoHash(TorrentView, APIView):
-    def get_object(self, realm_name, info_hash):
+    def get_object(self):
         try:
-            realm = Realm.objects.get(name=realm_name)
+            realm = Realm.get_by_name_or_id(self.kwargs['realm'])
         except Realm.DoesNotExist:
             raise NotFound()
         try:
-            return Torrent.objects.get(realm=realm, info_hash=info_hash)
+            return Torrent.objects.get(realm=realm, info_hash=self.kwargs['info_hash'])
+        except Torrent.DoesNotExist:
+            raise NotFound()
+
+
+class TorrentByRealmTrackerId(TorrentView, APIView):
+    def get_object(self):
+        try:
+            realm = Realm.get_by_name_or_id(self.kwargs['realm'])
+        except Realm.DoesNotExist:
+            raise NotFound()
+        try:
+            return Torrent.objects.get(
+                realm=realm,
+                torrent_info__tracker_id=self.kwargs['tracker_id'],
+            )
         except Torrent.DoesNotExist:
             raise NotFound()
 

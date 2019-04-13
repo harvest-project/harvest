@@ -6,7 +6,9 @@
   "permissions": [
     "storage",
     "cookies",
-    "*://*.redacted.ch/"
+    "tabs",
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "scripts": [

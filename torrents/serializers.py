@@ -51,6 +51,12 @@ class TorrentSerializer(serializers.ModelSerializer):
     realm = serializers.IntegerField(source='realm_id')
     torrent_info = TorrentInfoSerializer()
 
+    @classmethod
+    def get_context_from_request_data(cls, data):
+        return {
+            'serialize_metadata': bool(int(data.get('serialize_metadata', '1')))
+        }
+
     class Meta:
         model = Torrent
         fields = '__all__'

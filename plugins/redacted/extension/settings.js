@@ -19,7 +19,8 @@ class RedactedSettingsHelper extends RedactedHelper {
 
     saveOptions() {
         chrome.storage.local.set({
-            url: $('#url').val(),
+            // Strip trailing slashes
+            url: $('#url').val().replace(/\/$/, ''),
             token: $('#token').val(),
             autoLogin: $('#auto_login').prop('checked'),
         }, function () {

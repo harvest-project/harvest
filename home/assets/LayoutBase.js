@@ -7,7 +7,7 @@ import logo from 'home/assets/images/logo-68.png';
 import {MainMenu} from 'home/assets/menu/MainMenu';
 import {capitalizeWord} from 'home/assets/utils';
 import React from 'react';
-import {withRouter} from 'react-router-dom';
+import {Route, Switch, withRouter} from 'react-router-dom';
 import {SettingsRoutes} from 'settings/assets/SettingsRoutes';
 import {TorrentsRoutes} from 'torrents/assets/TorrentsRoutes';
 import styles from './LayoutBase.less';
@@ -15,8 +15,6 @@ import {MonitoringRoutes} from 'monitoring/assets/MonitoringRoutes';
 import {ErrorBoundary} from 'home/assets/components/ErrorBoundary';
 import {UploadStudioRoutes} from 'upload_studio/assets/UploadStudioRoutes';
 import {RouteRegistry} from 'home/assets/PluginRegistry';
-
-const {Header, Sider, Content, Footer} = Layout;
 
 @withRouter
 export class LayoutBase extends React.Component {
@@ -59,7 +57,7 @@ export class LayoutBase extends React.Component {
     render() {
         return (
             <Layout style={{minHeight: '100vh'}}>
-                <Sider
+                <Layout.Sider
                     collapsible
                     collapsed={this.state.collapsed}
                     onCollapse={this.onCollapse}
@@ -69,34 +67,37 @@ export class LayoutBase extends React.Component {
                 >
                     <div className={styles.logo}><img src={logo}/></div>
                     <MainMenu/>
-                </Sider>
+                </Layout.Sider>
                 <Layout>
-                    <HarvestHeader/>
+                    <Switch>
+                        {RouteRegistry.fullPageRoutes}
+                        <Route path="/" render={() => <>
+                            <HarvestHeader/>
 
-                    <Content style={{margin: '0 16px'}}>
-                        <MainPageSpinner>
-                            <Breadcrumb style={{margin: '16px 0'}}>
-                                {this.renderBreadcrumbItems()}
-                            </Breadcrumb>
-                            <div style={{padding: 24, background: '#fff'}}>
-                                <ErrorBoundary>
-                                    <HomeRoutes/>
-                                    <MonitoringRoutes/>
-                                    <SettingsRoutes/>
-                                    <TorrentsRoutes/>
-                                    <UploadStudioRoutes/>
+                            <Layout.Content style={{margin: '0 16px'}}>
+                                <MainPageSpinner>
+                                    <Breadcrumb style={{margin: '16px 0'}}>
+                                        {this.renderBreadcrumbItems()}
+                                    </Breadcrumb>
+                                    <div style={{padding: 24, background: '#fff'}}>
+                                        <ErrorBoundary>
+                                            <HomeRoutes/>
+                                            <MonitoringRoutes/>
+                                            <SettingsRoutes/>
+                                            <TorrentsRoutes/>
+                                            <UploadStudioRoutes/>
 
-                                    {RouteRegistry.pageRoutesComponents.map((RoutesComponent, i) => (
-                                        <RoutesComponent key={i}/>
-                                    ))}
-                                </ErrorBoundary>
-                            </div>
-                        </MainPageSpinner>
-                    </Content>
+                                            {RouteRegistry.pageRoutes}
+                                        </ErrorBoundary>
+                                    </div>
+                                </MainPageSpinner>
+                            </Layout.Content>
 
-                    <Footer style={{textAlign: 'center'}}>
-                        Harvest Project ©2019 Created by the Harvest team
-                    </Footer>
+                            <Layout.Footer style={{textAlign: 'center'}}>
+                                Harvest Project ©2019 Created by the Harvest team
+                            </Layout.Footer>
+                        </>}/>
+                    </Switch>
                 </Layout>
             </Layout>
         );

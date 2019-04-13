@@ -113,16 +113,11 @@ export class PluginHelper {
         autoLogin: true,
     };
 
-    getApiUrl(url, endpoint) {
-        url = url.replace(/\/$/, '');
-        return url + endpoint;
-    }
-
     async fetch(endpoint, options = {}) {
         const {url, token} = await this.fetchConfig();
         options.headers = options.headers || {};
         options.headers['Authorization'] = 'Token ' + token;
-        const resp = await fetch(this.getApiUrl(url, endpoint), options);
+        const resp = await fetch(url + endpoint, options);
         if (resp.status < 200 || resp.status >= 300) {
             throw resp;
         }
@@ -321,7 +316,7 @@ export class PluginHelper {
     async onGetDownloadTorrentUrl(request) {
         const config = await this.fetchConfig();
         return {
-            downloadUrl: this.getApiUrl(config.url, `/api/torrents/by-id/${request.trackerId}/zip`),
+            downloadUrl: `${config.url}/api/torrents/by-id/${request.trackerId}/zip`,
         };
     }
 

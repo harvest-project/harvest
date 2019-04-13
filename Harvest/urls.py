@@ -19,5 +19,10 @@ main_patterns = [
     path('docs/', include_docs_urls(title='Harvest API')),
 ]
 
+catch_all_patterns = [
+    re_path('^api/', home_views.APINotFound.as_view()),
+    re_path('^', home_views.Index.as_view()),
+]
+
 # Append the main patterns, plugin patterns and a catch-all for frontend SPA URLs
-urlpatterns = main_patterns + plugin_patterns + [re_path('', home_views.Index.as_view())]
+urlpatterns = main_patterns + plugin_patterns + catch_all_patterns

@@ -21,6 +21,13 @@ class Realm(models.Model):
         else:
             return None
 
+    @classmethod
+    def get_by_name_or_id(cls, name_or_id):
+        try:
+            return Realm.objects.get(id=int(name_or_id))
+        except ValueError:
+            return Realm.objects.get(name=name_or_id)
+
     class Meta:
         ordering = ('name',)
 

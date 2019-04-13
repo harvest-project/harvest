@@ -16,10 +16,15 @@ export class TrackerRegistry {
 }
 
 export class RouteRegistry {
-    static pageRoutesComponents = [];
+    static pageRoutes = [];
+    static fullPageRoutes = [];
 
-    static registerPageRoutesComponent(component) {
-        pushUnique(this.pageRoutesComponents, component);
+    static addPageRoute(route) {
+        pushUnique(this.pageRoutes, route);
+    }
+
+    static addFullPageRoute(route) {
+        pushUnique(this.fullPageRoutes, route);
     }
 }
 
@@ -27,11 +32,11 @@ export class MenuRegistry {
     static mainMenuItems = [];
     static settingsMenuItems = [];
 
-    static registerMainMenuItem(menuItem) {
+    static addMainMenuItem(menuItem) {
         pushUnique(this.mainMenuItems, menuItem);
     }
 
-    static registerSettingsMenuItem(menuItem) {
+    static addSettingsMenuItem(menuItem) {
         pushUnique(this.settingsMenuItems, menuItem);
     }
 }

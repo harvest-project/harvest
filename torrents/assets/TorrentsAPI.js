@@ -58,6 +58,10 @@ export const TorrentsAPI = new class {
         });
     }
 
+    async getTorrentByRealmTrackerId(realmNameOrId, trackerId) {
+        return await APIHelper.get(`/api/torrents/realms/${realmNameOrId}/by-tracker-id/${trackerId}`);
+    }
+
     async deleteTorrentById(torrentId) {
         return await APIHelper.delete('/api/torrents/by-id/' + torrentId);
     }

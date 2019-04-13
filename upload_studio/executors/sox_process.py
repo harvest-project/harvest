@@ -10,7 +10,8 @@ import mutagen.mp3
 
 from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
-from upload_studio.audio_utils import StreamInfo, InconsistentStreamInfoException, get_stream_info
+from upload_studio.audio_utils import InconsistentStreamInfoException, get_stream_info
+from files.audio_utils import StreamInfo
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
 from upload_studio.utils import execute_subprocess_chain, pprint_subprocess_chain

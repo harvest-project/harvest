@@ -25,14 +25,21 @@ def get_tag_value(tags, *keys):
 
 class StreamInfo:
     def __init__(self, *, sample_rate=None, bits_per_sample=None, channels=None, muta=None):
-        if muta:
-            self.sample_rate = muta.info.sample_rate
-            self.bits_per_sample = getattr(muta.info, 'bits_per_sample', None)
-            self.channels = muta.info.channels
-        else:
+        if muta is None:
             self.sample_rate = sample_rate
             self.bits_per_sample = bits_per_sample
             self.channels = channels
+        else:
+            self.sample_rate = muta.info.sample_rate
+            self.bits_per_sample = getattr(muta.info, 'bits_per_sample', None)
+            self.channels = muta.info.channels
+
+            if not self.sample_rate:
+                raise Exception('Got bad sample rate of {} for {}'.format(self.sample_rate, muta.filename))
+            if not self.bits_per_sample:
+                logger.debug('Got bits per sample of {} for {}', self.bits_per_sample, muta.filename)
+            if not self.channels:
+                raise Exception('Got bad channels of {} for {}'.format(self.channels, muta.filename))
 
     def __str__(self):
         return '{}/{}/{}'.format(self.sample_rate, self.bits_per_sample or 'no bit depth', self.channels)
@@ -75,23 +82,25 @@ def _extract_number_from_tag_value(value):
     return _try_parse(value.split('/')[0])
 
 
-def extract_track_disc_number(tags):
+def extract_track_disc_number(muta):
     disc = 1
 
-    disc_src = tags.get('discnumber') or tags.get('disc')
+    disc_src = muta.get('discnumber') or muta.get('disc')
     if disc_src is not None:
         try:
             disc = _extract_number_from_tag_value(disc_src)
         except ValueError:
-            raise TrackDiscNumberExtractionException('Unable to read disc_src {}.'.format(disc_src))
+            raise TrackDiscNumberExtractionException('Unable to read disc_src {} from {}'.format(
+                disc_src, muta.filename))
 
-    track_src = tags.get('tracknumber') or tags.get('track')
+    track_src = muta.get('tracknumber') or muta.get('track')
     if track_src is None:
-        raise TrackDiscNumberExtractionException('Missing track tag.')
+        raise TrackDiscNumberExtractionException('Missing track tag from {}'.format(muta.filename))
     else:
         try:
             track = _extract_number_from_tag_value(track_src)
         except ValueError:
-            raise TrackDiscNumberExtractionException('Unable read track_src {}.'.format(track_src))
+            raise TrackDiscNumberExtractionException('Unable read track_src {} from {}'.format(
+                track_src, muta.filename))
 
     return disc, track

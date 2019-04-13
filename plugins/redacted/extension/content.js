@@ -172,10 +172,18 @@ class TorrentRow {
                     .css('color', 'black')
                     .offset({left: offset.left, top: offset.top + 16})
                     .append(
-                        $('<a href="#">MP3</a>').click(e => {
+                        $('<a href="#">MP3 V0</a>').click(e => {
                             e.preventDefault();
                             menu.remove();
-                            this.transcodeTorrent('mp3');
+                            this.transcodeTorrent('mp3_v0');
+                        }),
+                    )
+                    .append('<br>')
+                    .append(
+                        $('<a href="#">MP3 320</a>').click(e => {
+                            e.preventDefault();
+                            menu.remove();
+                            this.transcodeTorrent('mp3_320');
                         }),
                     )
                     .append('<br>')

@@ -10,6 +10,17 @@ logger = get_logger(__name__)
 
 
 class FixFilenameTrackNumbers(AudioDiscoveryStepMixin, StepExecutor):
+    class FilenameTrackMatch:
+        def __init__(self, audio_file):
+            self.filename = os.path.basename(audio_file.rel_path)
+            self.filename_match = re.match('^([0-9]+).*', self.filename)
+            if not self.filename_match:
+                raise Exception('Unable to find any track number in file {}.'.format(audio_file.rel_path))
+            self.filename_track = int(self.filename_match.group(1))
+            if self.filename_track != audio_file.track:
+                raise Exception('Track number mismatch on {}. Filename has {}, tags have {}.'.format(
+                    audio_file.rel_path, self.filename_track, audio_file.track))
+
     name = 'fix_filename_track_numbers'
     description = 'Fixes bad track numbers in filenames.'
 
@@ -18,23 +29,22 @@ class FixFilenameTrackNumbers(AudioDiscoveryStepMixin, StepExecutor):
 
         self.num_renamed = 0
 
-    def rename_files_in_dir(self, files):
-        rjust_width = len(str(len(files)))
-        for audio_file in files:
-            filename = os.path.basename(audio_file.rel_path)
-            filename_match = re.match('^([0-9]+).*', filename)
-            if not filename_match:
-                self.raise_error('Unable to find any track number in file {}.'.format(audio_file.rel_path))
-            filename_track = int(filename_match.group(1))
+    def discover_audio_files(self):
+        super().discover_audio_files()
+        for audio_file in self.audio_files:
+            audio_file.track_match = self.FilenameTrackMatch(audio_file)
 
-            if filename_track != audio_file.track:
-                self.raise_error('Track number mismatch on {}. Filename has {}, tags have {}.'.format(
-                    audio_file.rel_path, filename_track, audio_file.track))
+    def rename_files_in_dir(self, files):
+        max_track = max(f.track_match.filename_track for f in files)
+        rjust_width = len(str(max_track))
+
+        for audio_file in files:
+            match = audio_file.track_match
 
             track_str = str(audio_file.track).rjust(rjust_width, '0')
-            new_filename = track_str + filename[len(filename_match.group(1)):]
+            new_filename = track_str + match.filename[len(match.filename_match.group(1)):]
 
-            if new_filename != filename:
+            if new_filename != match.filename:
                 new_abs_path = os.path.join(os.path.dirname(audio_file.abs_path), new_filename)
                 logger.info('Renaming {} to {} in order to fix filename track sorting.'.format(
                     audio_file.abs_path, new_abs_path))

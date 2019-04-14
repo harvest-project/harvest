@@ -93,6 +93,8 @@ class RedactedClient:
             timeout=self.timeout,
         )
         if index_response.status_code == 200:
+            if 'You are not allowed to access the site from this IP address' in index_response.text:
+                raise RedactedLoginException('VPN IP address blocked by Redacted.')
             self.authkey = index_response.json()['response']['authkey']
             self.passkey = index_response.json()['response']['passkey']
         else:

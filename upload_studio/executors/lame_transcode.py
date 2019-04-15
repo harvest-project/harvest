@@ -149,10 +149,17 @@ class LAMETranscoderExecutor(StepExecutor):
 
     def check_output_files(self):
         for file in self.audio_files:
+            dst_size = os.path.getsize(file.dst_file)
             if not os.path.isfile(file.dst_file):
-                self.raise_error('Missing output file: {}'.format(file.dst_file))
-            if os.path.getsize(file.dst_file) < 8196:
-                self.add_warning('Output file is less than 8K: {}'.format(file.dst_file))
+                self.raise_error('Missing output file {}.'.format(file.src_file))
+            elif dst_size < 8196:
+                src_size = os.path.getsize(file.src_file)
+                msg = 'Output file {} is small ({} bytes). Input is {} bytes.'.format(
+                    file.src_file, dst_size, src_size)
+                if src_size < 32768:
+                    self.add_warning(msg)
+                else:
+                    self.raise_error(msg)
 
     def update_metadata(self):
         self.metadata.processing_steps.append(

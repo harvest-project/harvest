@@ -10,8 +10,8 @@ import mutagen.mp3
 
 from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
-from upload_studio.audio_utils import InconsistentStreamInfoException, get_stream_info
 from files.audio_utils import StreamInfo
+from upload_studio.audio_utils import InconsistentStreamInfoException, get_stream_info
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
 from upload_studio.utils import execute_subprocess_chain, pprint_subprocess_chain
@@ -153,8 +153,17 @@ class SoxProcessExecutor(StepExecutor):
 
     def check_output_files(self):
         for file in self.audio_files:
-            if not os.path.isfile(file.dst_file) or os.path.getsize(file.dst_file) < 8196:
-                self.raise_error('Missing output file or is less than 8K')
+            dst_size = os.path.getsize(file.dst_file)
+            if not os.path.isfile(file.dst_file):
+                self.raise_error('Missing output file {}.'.format(file.src_file))
+            elif dst_size < 8196:
+                src_size = os.path.getsize(file.src_file)
+                msg = 'Output file {} is small ({} bytes). Input is {} bytes.'.format(
+                    file.src_file, dst_size, src_size)
+                if src_size < 32768:
+                    self.add_warning(msg)
+                else:
+                    self.raise_error(msg)
 
     def update_metadata(self):
         if not self.dst_stream_info:

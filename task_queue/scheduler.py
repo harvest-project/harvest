@@ -29,6 +29,7 @@ class QueueScheduler:
         self.executors = [QueueExecutor() for _ in range(settings.TASK_QUEUE_WORKERS)]
         self.shutting_down = False
         self.pending_periodic_tasks = set()
+        self.executing_periodic_tasks = set()
 
     def _handle_shutdown_signal(self, sig_num, frame):
         self.shutting_down = True
@@ -42,6 +43,7 @@ class QueueScheduler:
             logger.info('Completed periodic task {} in {:.3f}.', task_info.handler_str, time.time() - start)
         except Exception:
             logger.exception('Exception in task {}.', task_info.handler_str)
+        self.executing_periodic_tasks.remove(task_info)
         executor.current = None
         self.poll_tasks()
 
@@ -86,6 +88,7 @@ class QueueScheduler:
 
             try:
                 task_info = self.pending_periodic_tasks.pop()
+                self.executing_periodic_tasks.add(task_info)
                 free_executors[0].current = asyncio.ensure_future(
                     self.execute_periodic_task(free_executors[0], task_info))
                 continue
@@ -104,8 +107,11 @@ class QueueScheduler:
 
     async def periodic_task_tick(self, task_info):
         while not self.shutting_down:
-            logger.debug('Scheduling periodic task {}.', task_info.handler_str)
-            self.pending_periodic_tasks.add(task_info)
+            if task_info in self.executing_periodic_tasks:
+                logger.debug('Skipping executing periodic task {}', task_info.handler_str)
+            else:
+                logger.debug('Scheduling periodic task {}.', task_info.handler_str)
+                self.pending_periodic_tasks.add(task_info)
             await asyncio.sleep(task_info.interval_seconds)
 
     async def loop(self):

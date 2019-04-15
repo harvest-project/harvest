@@ -1,5 +1,6 @@
 import asyncio
 import signal
+import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
@@ -36,8 +37,9 @@ class QueueScheduler:
     async def execute_periodic_task(self, executor, task_info):
         try:
             logger.info('Executing periodic task {}.', task_info.handler_str)
+            start = time.time()
             await executor.submit(task_info.handler)
-            logger.info('Completed periodic task {}.', task_info.handler_str)
+            logger.info('Completed periodic task {} in {:.3f}.', task_info.handler_str, time.time() - start)
         except Exception:
             logger.exception('Exception in task {}.', task_info.handler_str)
         executor.current = None
@@ -52,9 +54,10 @@ class QueueScheduler:
             except KeyError:
                 raise Exception('Unable to find task with key {}.'.format(async_task.handler))
             task_args = async_task.args
+            start = time.time()
             await executor.submit(task_info.handler, *task_args['args'], **task_args['kwargs'])
             async_task.status = AsyncTask.STATUS_SUCCEEDED
-            logger.info('Completed async task {}.', async_task.handler)
+            logger.info('Completed async task {} in {:.3f}.', async_task.handler, time.time() - start)
         except Exception:
             async_task.status = AsyncTask.STATUS_ERRORED
             async_task.traceback = traceback.format_exc()

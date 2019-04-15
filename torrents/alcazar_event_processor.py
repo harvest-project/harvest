@@ -1,8 +1,6 @@
 import time
 from itertools import chain
 
-from django.db import transaction
-
 from Harvest.utils import get_logger
 from torrents.alcazar_client import update_torrent_from_alcazar, \
     create_or_update_torrent_from_alcazar
@@ -71,11 +69,7 @@ class AlcazarEventProcessor:
         cls._process_added_torrents(realm, added_torrents_states)
 
     @classmethod
-    def process(cls, events):
-        start = time.time()
-
-        logger.debug('Processing events.')
-
+    def _process(cls, events):
         realms = {realm.name: realm for realm in Realm.objects.all()}
         for realm_name, batch in events.items():
             realm = realms.get(realm_name)
@@ -84,5 +78,24 @@ class AlcazarEventProcessor:
 
             logger.debug('Processing events for realm {}.', realm_name)
             cls._process_events(realm, batch)
+
+    @classmethod
+    def process(cls, events):
+        start = time.time()
+
+        logger.debug('Processing events.')
+
+        retries_remaining = 3
+        while True:
+            try:
+                cls._process(events)
+                break
+            except Exception:
+                if retries_remaining > 0:
+                    logger.warning('Exception during alcazar event processing. Retrying.')
+                    retries_remaining -= 1
+                else:
+                    logger.exception('Exhausted event processing retries.')
+                    raise
 
         logger.debug('Completed alcazar update in {:.3f}.', time.time() - start)

@@ -26,7 +26,7 @@ def poll_alcazar():
         logger.info('Skipping alcazar poll due to missing config.')
         return
 
-    update_batch = client.pop_update_batch(10000)
+    update_batch = client.pop_update_batch(5000)
 
     num_added = 0
     num_updated = 0

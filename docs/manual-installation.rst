@@ -17,9 +17,11 @@ Ubuntu
         - ``cd ~/harvest``
         - ``git clone https://github.com/harvest-project/alcazard.git``
 3. Install Python virtualenv
-    1. Install the virtualenv package
+    1. Install python3 pip
+        - ``sudo apt install python3-pip``
+    2. Install the virtualenv package
         - ``sudo pip3 install virtualenv``
-    2. Create the virtual environments inside **both** the Harvest and Alcazard directories
+    3. Create the virtual environments inside **both** the Harvest and Alcazard directories
         - ``cd ~/harvest``
         - ``virtualenv -p python3 venv``
         - ``cd ~/harvest/alcazard``

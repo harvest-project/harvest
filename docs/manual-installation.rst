@@ -32,9 +32,9 @@
 #. Install and configure PostgreSQL
     #. Install the PostgreSQL packages
         - ``sudo apt install postgresql postgresql-contrib``
-    #. Configure PostgreSQL to start up upon bootup then manually start it
-        - ``sudo update-rc.d postgresql enable``
-        - ``sudo service postgresql start``
+    #. Start PostgreSQL and enable upon bootup
+        - ``sudo systemctl start postgresql``
+        - ``sudo systemctl enable postgresql``
     #. Create a PostgreSQL user; this can be any desired user
         - ``sudo -u postgres createuser USER``
     #. Create the SQL database. These instructions use "harvest" as the db name

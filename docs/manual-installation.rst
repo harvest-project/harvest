@@ -4,49 +4,91 @@
 --------------------
  Ubuntu
 --------------------
-1. Install transmission-daemon
-    1. ``sudo apt install transmission-daemon``
-    2. ``sudo service transmission-daemon disable``
-2. Clone Harvest and Alcazard git
-    1. Clone the Harvest GitHub repo in a directory of your choice. These instructions pertain to the home directory ``~/``
+#. Install transmission-daemon
+    #. ``sudo apt install transmission-daemon``
+    #. ``sudo systemctl stop transmission-daemon.service``
+#. Clone Harvest and Alcazard git
+    #. Clone the Harvest GitHub repo in a directory of your choice. These instructions pertain to the home directory ``~/``
         - ``cd ~/``
         - ``git clone https://github.com/harvest-project/harvest.git``
-    2. Clone the Alcazard GitHub repo **inside** the Harvest directory
+    #. Clone the Alcazard GitHub repo **inside** the Harvest directory
         - ``cd ~/harvest``
         - ``git clone https://github.com/harvest-project/alcazard.git``
-3. Install Python virtualenv
-    1. Install the virtualenv package
+#. Install Python virtualenv
+    #. Install the virtualenv package
         - ``sudo pip3 install virtualenv``
-    2. Create the virtual environments inside **both** the Harvest and Alcazard directories
+    #. Create the virtual environments inside **both** the Harvest and Alcazard directories
         - ``cd ~/harvest``
         - ``virtualenv -p python3 venv``
         - ``cd ~/harvest/alcazard``
         - ``virtualenv -p python3 venv``
-4. Install dependencies
-    1. Harvest dependencies
+#. Install dependencies
+    #. Harvest dependencies
         - ``cd ~/harvest``
         - ``pip3 install -r requirements.txt``
-    2. Alcazard dependencies
+    #. Alcazard dependencies
         - ``cd ~/harvest/alcazard``
         - ``pip3 install -r requirements.txt``
-5. Install and configure PostgreSQL
-    1. Install the PostgreSQL packages
+#. Install and configure PostgreSQL
+    #. Install the PostgreSQL packages
         - ``sudo apt install postgresql postgresql-contrib``
-    2. Configure PostgreSQL to start up upon bootup then manually start it
+    #. Configure PostgreSQL to start up upon bootup then manually start it
         - ``sudo update-rc.d postgresql enable``
         - ``sudo service postgresql start``
-    3. Create a PostgreSQL user; this can be any desired user
+    #. Create a PostgreSQL user; this can be any desired user
         - ``sudo -u postgres createuser USER``
-    4. Create the SQL database. These instructions use "harvest" as the db name
+    #. Create the SQL database. These instructions use "harvest" as the db name
         - ``sudo -u postgres createdb --owner USER harvest``
-6. Create a file named ``django_env`` in ~/harvest
-        - Paste these contents inside the file ``DJANGO_DB=postgres:///harvest``
-7. Migrate the database
+    #. Create a file named ``django_env`` in ~/harvest
+            - Paste these contents inside the file ``DJANGO_DB=postgres:///harvest``
+#. Migrate the database
     - ``./manage.py migrate``
-8. Install nodesource
-    - ``wget https://deb.nodesource.com/setup_10.x``
-    - ``sudo ./setup_10.x``
-    - ``sudo apt install nodejs``
-    - ``cd /harvest``
-    - ``npm install``
-    - ``npm run build``
+#. Install Node.js
+    #. Install Node.js from the official apt repos
+        - ``wget https://deb.nodesource.com/setup_10.x``
+        - ``sudo ./setup_10.x``
+        - ``sudo apt install nodejs``
+    #. Compile Harvest JS resources
+        - ``cd ~/harvest``
+        - ``npm install``
+        - ``npm run build``
+#. Run Alcazar
+    - ``cd ~/harvest/alcazard``
+    - ``source venv/bin/activate``
+    - ``./alcazard.py --state state/ config``
+    - ``./alcazard.py --state state/ run`` the default host is ``0.0.0.0:7001``
+    - ``http://0.0.0.0:7001`` should display ``{"hello": "world"}``
+#. Run Harvest
+    #. Start Harvest Server
+        - ``cd ~/harvest``
+        - ``source venv/bin/activate``
+        - ``./manage.py runserver`` while Alcazard is still running, the default host is ``127.0.0.1:8000``
+            - ``./manage.py runserver HOST:PORT`` to specify host
+        - ``http://127.0.0.1:8000`` should show the Harvest login page
+    #. Create Harvest User
+        - ``./manage.py create_harvest_superuser --exists-ok USER PASSWORD``
+    #. Configure Alcazar Client (Either option works)
+        a. Terminal
+            - ``./manage.py config_alcazar_client``
+        b. WebUI
+            - Go to Harvest page
+            - Log in with Harvest user created in steps above
+            - Settings -> Harvest -> Alcazar Client
+                - Base URL is the Alcazar host ``localhost:7001``
+    #. Create Alcazar instance
+        - Settings -> Alcazar -> Instances
+            - Add Client
+            - Choose desired Realm
+            - Choose **Managed Transmission** for Instance Type
+    #. Start Scheduler to periodically sync the Harvest database and Alcazar
+        - ``./manage.py run_scheduler``
+
+--------------------
+ Troubleshooting
+--------------------
+#. ``transmissionrpc.error.TransmissionError: Request failed. Original exception: HTTPHandlerError, "HTTPHandlerError 401: Unauthorized"``
+    - Transmission started on boot
+        - Kill Transmission-daemon process
+            - ``sudo systemctl stop transmission-daemon.service``
+        - Disable Transmission-daemon automatic startup
+            - ``sudo systemctl disable transmission-daemon.service``

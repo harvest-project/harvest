@@ -15,6 +15,8 @@
         - ``cd ~/harvest``
         - ``git clone https://github.com/harvest-project/alcazard.git``
 #. Install Python virtualenv
+    #. Install python3 pip
+        - ``sudo apt install python3-pip``
     #. Install the virtualenv package
         - ``sudo pip3 install virtualenv``
     #. Create the virtual environments inside **both** the Harvest and Alcazard directories

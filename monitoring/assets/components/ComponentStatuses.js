@@ -1,53 +1,41 @@
+import {Timer} from 'home/assets/controls/Timer.js';
 import {Icon, Table, Tooltip} from 'antd';
-import {APIHelper} from 'home/assets/api/APIHelper';
-import {HarvestContext} from 'home/assets/context';
-import {Timer} from 'home/assets/controls/Timer';
 import React from 'react';
-import {MonitoringAPI} from 'monitoring/assets/MonitoringAPI';
-import {formatDateTimeStringISO} from 'home/assets/utils';
-import {ComponentStatuses} from 'monitoring/assets/components/ComponentStatuses.js';
+import {StatusIcon} from 'home/assets/controls/StatusGreenIcon.js';
+import {formatDateTimeStringISO} from 'home/assets/utils.js';
+import {MonitoringAPI} from 'monitoring/assets/MonitoringAPI.js';
+import {APIHelper} from 'home/assets/api/APIHelper.js';
 
-function getLogRowClassName(record) {
-    if (record.level >= 40) {
+function getComponentRowClassName(record) {
+    if (record.status === 'red') {
         return 'table-row-error';
-    } else if (record.level >= 30) {
+    } else if (record.status === 'yellow') {
         return 'table-row-warning';
-    } else if (record.level >= 20) {
-        return 'table-row-info';
     }
     return null;
 }
 
-const levelNames = {
-    50: 'critical',
-    40: 'error',
-    30: 'warning',
-    20: 'info',
-    10: 'debug',
-};
-
-function getLevelName(level) {
-    return levelNames[level];
-}
-
-export class Monitoring extends React.Component {
-    static contextType = HarvestContext;
-
+export class ComponentStatuses extends React.Component {
     constructor(props) {
         super(props);
 
-        this.logColumns = [
+        this.componentColumns = [
             {
-                title: 'Level',
-                dataIndex: 'level',
-                render: getLevelName,
-                width: 70,
+                title: '',
+                dataIndex: 'status',
+                render: data => <StatusIcon status={data}/>,
+                width: 30,
             },
             {
-                title: 'Created',
-                dataIndex: 'created_datetime',
+                title: 'Updated',
+                dataIndex: 'updated_datetime',
                 render: formatDateTimeStringISO,
                 width: 150,
+            },
+            {
+                title: 'Name',
+                dataIndex: 'name',
+                width: 220,
             },
             {
                 title: 'Message',
@@ -64,7 +52,7 @@ export class Monitoring extends React.Component {
 
         this.state = {
             loading: false,
-            logEntries: null,
+            componentStatuses: null,
         };
     }
 
@@ -81,10 +69,10 @@ export class Monitoring extends React.Component {
             loading: modalLoading,
         });
 
-        let logEntries;
+        let componentStatuses;
 
         try {
-            logEntries = await MonitoringAPI.getLogEntries();
+            componentStatuses = await MonitoringAPI.getComponentStatuses();
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to load torrents');
             return;
@@ -92,7 +80,7 @@ export class Monitoring extends React.Component {
 
         this.setState({
             loading: false,
-            logEntries: logEntries,
+            componentStatuses: componentStatuses,
         });
     }
 
@@ -100,18 +88,16 @@ export class Monitoring extends React.Component {
         return <div>
             <Timer interval={1000} onInterval={() => this.refreshData()}/>
 
-            <ComponentStatuses/>
-            <br/>
-            <h2>Log Entries</h2>
+            <h2>Component Statuses</h2>
 
             <Table
                 size="small"
-                dataSource={this.state.logEntries}
+                dataSource={this.state.componentStatuses}
                 loading={this.state.loading}
-                columns={this.logColumns}
+                columns={this.componentColumns}
                 rowKey="id"
                 onRow={this.onRow}
-                rowClassName={getLogRowClassName}
+                rowClassName={getComponentRowClassName}
                 pagination={false}
             />
         </div>;

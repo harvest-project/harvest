@@ -14,10 +14,13 @@ class HarvestImgurClient:
             client_secret=self.config.client_secret,
         )
 
-    def upload_image(self, image_path):
+    def upload_image(self, path_or_url):
         credits = self.client.get_credits()
         if credits['UserRemaining'] < 30 or credits['ClientRemaining'] < 30:
             raise Exception('Insufficient imgur credits')
 
-        result = self.client.upload_from_path(image_path)
+        if path_or_url.startswith('http://') or path_or_url.startswith('https://'):
+            result = self.client.upload_from_url(path_or_url)
+        else:
+            result = self.client.upload_from_path(path_or_url)
         return result['link']

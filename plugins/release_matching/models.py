@@ -28,7 +28,7 @@ def _normalize_title(title):
         r'\([^()]*(' +
         '|'.join((
             'deluxe', 'remaster', 'score', 'music', 'anniversary', 'edition', 'soundtrack', 'live',
-            'explicit', 'reissue',
+            'explicit', 'reissue', 'instrumental',
         )) +
         r')[^()]*\)',
 

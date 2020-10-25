@@ -2,6 +2,8 @@ import html
 
 import bs4
 
+from upload_studio.upload_metadata import MusicMetadata
+
 
 class JoinedArtistsBuilder(object):
     def __init__(self, joined_artists_builder=None):
@@ -113,3 +115,40 @@ def get_shorter_joined_artists(music_info, group_name):
 def extract_upload_errors(html):
     soup = bs4.BeautifulSoup(html, 'html5lib')
     return soup.find('p', attrs={'style': 'color: red; text-align: center;'}).text.strip()
+
+
+_ENCODING_PREFERENCES = [
+    MusicMetadata.ENCODING_320,
+    MusicMetadata.ENCODING_V0,
+    MusicMetadata.ENCODING_LOSSLESS,
+    MusicMetadata.ENCODING_24BIT_LOSSLESS,
+]
+
+
+def select_best_torrents_from_torrent_dicts(torrents):
+    def _is_torrent_better(a, b):
+        try:
+            a_index = _ENCODING_PREFERENCES.index(a['encoding'])
+        except ValueError:
+            a_index = -1
+        try:
+            b_index = _ENCODING_PREFERENCES.index(b['encoding'])
+        except ValueError:
+            b_index = -1
+        if a_index > b_index:
+            return True
+        if a_index < b_index:
+            return False
+        return a['size'] > b['size']
+
+    best_torrents = {}
+    for torrent in torrents:
+        key = (
+            torrent['remasterYear'],
+            torrent['remasterTitle'],
+            torrent['remasterRecordLabel'],
+            torrent['remasterCatalogueNumber'],
+        )
+        if not best_torrents.get(key) or _is_torrent_better(torrent, best_torrents[key]):
+            best_torrents[key] = torrent
+    return list(best_torrents.values())

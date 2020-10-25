@@ -43,6 +43,7 @@ class AudioDiscoveryStepMixin:
             self.abs_path = abs_path
             self.muta = mutagen.File(self.abs_path, easy=True)
             self.disc, self.track = extract_disc_track_number(self.muta)
+            self.duration = self.muta.info.length
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

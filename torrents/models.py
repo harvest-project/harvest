@@ -70,7 +70,7 @@ class TorrentInfo(models.Model):
     is_deleted = models.BooleanField()
     # Info hash of the torrent inside.
     info_hash = InfoHashField(db_index=True)
-    # Tracker-specific torrent identifier. In most cases this is a torrent_id in some for or another.
+    # Tracker-specific torrent identifier. In most cases this is a torrent_id in some form or another.
     tracker_id = models.CharField(max_length=65536, db_index=True)
     # Date when this information was fetched (or updated).
     fetched_datetime = models.DateTimeField()

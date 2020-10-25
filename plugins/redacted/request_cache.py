@@ -8,11 +8,15 @@ from plugins.redacted.models import RedactedRequestCacheEntry
 
 
 class RedactedRequestCache:
-    def __init__(self):
+    def __init__(self, default_ttl=None):
         self.client = RedactedClient()
+        self.default_ttl = default_ttl
 
     @transaction.atomic
     def _get_cached_or_fetch(self, action, *, ttl=None, **kwargs):
+        if ttl is None:
+            ttl = self.default_ttl
+
         kwargs_json = json.dumps(kwargs, sort_keys=True)  # Sort keys for stability of output
         try:
             entry = RedactedRequestCacheEntry.objects.select_for_update().get(
@@ -43,7 +47,6 @@ class RedactedRequestCache:
         return self._get_cached_or_fetch('torrentgroup', ttl=ttl, id=str(group_id))
 
     def get_artist(self, artist_id=None, artist_name=None, ttl=None):
-        kwargs = {}
         if artist_id and artist_name:
             raise ValueError('Set exactly one of artist_id or artist_name')
         elif artist_id:
@@ -53,3 +56,15 @@ class RedactedRequestCache:
         else:
             raise ValueError('Set exactly one of artist_id or artist_name')
         return self._get_cached_or_fetch('artist', ttl=ttl, **kwargs)
+
+    def browse(self, search_string, page=1, categories=None, ttl=None):
+        categories_kwargs = None
+        if categories is not None:
+            categories_kwargs = {'filter_cat[{}]'.format(c): '1' for c in categories}
+        return self._get_cached_or_fetch(
+            'browse',
+            ttl=ttl,
+            searchstr=search_string,
+            page=page,
+            **categories_kwargs,
+        )

@@ -1,4 +1,16 @@
-import {Alert, Button, Col, Dropdown, Icon, Menu, Popconfirm, Row, Table, Timeline, Tooltip} from 'antd';
+import {
+    Alert,
+    Button,
+    Col,
+    Dropdown,
+    Icon,
+    Menu,
+    Popconfirm,
+    Row,
+    Table,
+    Timeline,
+    Tooltip,
+} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
@@ -8,6 +20,7 @@ import {UploadStudioAPI} from 'upload_studio/assets/UploadStudioAPI';
 import {TextBr} from 'home/assets/controls/TextBr';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
+import {StepSettingsRegistry} from 'upload_studio/assets/StepSettingsRegistry.js';
 
 export class Project extends React.Component {
     static contextType = HarvestContext;
@@ -132,12 +145,14 @@ export class Project extends React.Component {
             {canReset ? (
                 <Popconfirm title="Delete all files for steps after this and reset to here?"
                             onConfirm={() => this.projectResetToStep(step.index)}>
-                    <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset To Here</Button>
+                    <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset To
+                        Here</Button>
                 </Popconfirm>
             ) : null}
             {!this.disableAll ? (
                 <Dropdown overlay={<Menu>
-                    <Menu.Item onClick={() => this.insertStep(step.index, 'fix_filename_track_numbers')}>
+                    <Menu.Item
+                        onClick={() => this.insertStep(step.index, 'fix_filename_track_numbers')}>
                         Fix filename track numbers
                     </Menu.Item>
                     <Menu.Item onClick={() => this.insertStep(step.index, 'strip_filename_spaces')}>
@@ -145,6 +160,14 @@ export class Project extends React.Component {
                     </Menu.Item>
                     <Menu.Item onClick={() => this.insertStep(step.index, 'rename_files_to_tags')}>
                         Rename files to tags
+                    </Menu.Item>
+                    <Menu.Item
+                        onClick={() => this.insertStep(step.index, 'verify_audio_files_integrity')}>
+                        Verify audio files
+                    </Menu.Item>
+                    <Menu.Item
+                        onClick={() => this.insertStep(step.index, 'upload_spectrals_to_imgur')}>
+                        Upload spectrals to Imgur
                     </Menu.Item>
                 </Menu>}>
                     <Button htmlType="button">Insert Step <Icon type="down"/></Button>
@@ -170,12 +193,19 @@ export class Project extends React.Component {
 
     renderStep(step) {
         const isCurrent = step.index === this.state.project.current_step;
+        const SettingsComponent = StepSettingsRegistry.components[step.executor_name];
         return (
             <Timeline.Item key={step.id} {...this.getTimelineItemParams(step)}>
                 <h4 style={{fontWeight: isCurrent ? 'bold' : 'normal'}}>
                     {step.id} {step.executor_name}
+                    {SettingsComponent ? <>
+                        &nbsp;
+                        <SettingsComponent project={this.state.project} step={step}/>
+                    </> : null}
                 </h4>
-                <DivRow><TextBr text={step.description}/></DivRow>
+                <DivRow>
+                    <TextBr text={step.description}/>
+                </DivRow>
                 {step.warnings.map(warning => (
                     <DivRow key={warning.id}>
                         <Alert
@@ -221,11 +251,13 @@ export class Project extends React.Component {
             <h2>
                 Project {proj.id}: {proj.name}
                 {' '}
-                {proj.is_locked ? <Tooltip title="Project is locked because actions are being performed.">
-                    <Icon type="lock"/>
-                </Tooltip> : null}
+                {proj.is_locked ?
+                    <Tooltip title="Project is locked because actions are being performed.">
+                        <Icon type="lock"/>
+                    </Tooltip> : null}
                 {proj.is_finished ?
-                    <Tooltip title="Project is finished (all data has been deleted. No further actions are allowed.">
+                    <Tooltip
+                        title="Project is finished (all data has been deleted. No further actions are allowed.">
                         <Icon type="file-done"/>
                     </Tooltip> : null}
             </h2>
@@ -242,15 +274,18 @@ export class Project extends React.Component {
                     </Button>
                     <Popconfirm title="Delete all files and reset from start?"
                                 onConfirm={() => this.projectResetToStep(0)}>
-                        <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset</Button>
+                        <Button type="danger" htmlType="button"
+                                disabled={this.disableAll}>Reset</Button>
                     </Popconfirm>
                     <Popconfirm title="Delete all files and mark project as finished?"
                                 onConfirm={() => this.projectFinish()}>
-                        <Button type="danger" htmlType="button" disabled={this.disableAll}>Finish</Button>
+                        <Button type="danger" htmlType="button"
+                                disabled={this.disableAll}>Finish</Button>
                     </Popconfirm>
                     <Popconfirm title="Delete project including all files?"
                                 onConfirm={() => this.projectDelete()}>
-                        <Button type="danger" htmlType="button" disabled={this.disableAll && !proj.is_finished}>
+                        <Button type="danger" htmlType="button"
+                                disabled={this.disableAll && !proj.is_finished}>
                             Delete
                         </Button>
                     </Popconfirm>

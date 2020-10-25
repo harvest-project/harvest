@@ -28,7 +28,7 @@ class ProjectStepErrorSerializer(serializers.ModelSerializer):
 
 
 class ProjectStepSerializer(serializers.ModelSerializer):
-    executor_kwargs = serializers.JSONField(source='executor_kwargs_json')
+    executor_kwargs = serializers.DictField()
     description = serializers.CharField(read_only=True)
     metadata = serializers.JSONField(source='metadata_json')
     warnings = ProjectStepWarningSerializer(source='projectstepwarning_set', many=True)
@@ -36,7 +36,7 @@ class ProjectStepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectStep
-        fields = '__all__'
+        exclude = ('executor_kwargs_json',)
 
 
 class ProjectDeepSerializer(serializers.ModelSerializer):

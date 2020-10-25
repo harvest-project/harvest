@@ -4,6 +4,7 @@ import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.db import transaction, close_old_connections
 from django.utils import timezone
@@ -45,10 +46,13 @@ class QueueScheduler:
             logger.exception('Exception in task {}.', task_info.handler_str)
         self.executing_periodic_tasks.remove(task_info)
         executor.current = None
-        self.poll_tasks()
+        await self.poll_tasks()
+
+    @sync_to_async
+    def save_task(self, async_task):
+        async_task.save()
 
     async def execute_async_task(self, executor, async_task):
-        self.poll_tasks()
         try:
             logger.info('Executing async task {}.', async_task.handler)
             try:
@@ -65,10 +69,11 @@ class QueueScheduler:
             async_task.traceback = traceback.format_exc()
             logger.exception('Exception in task {}.', async_task.handler)
         async_task.completed_datetime = timezone.now()
-        async_task.save()
+        await self.save_task(async_task)
         executor.current = None
-        self.poll_tasks()
+        await self.poll_tasks()
 
+    @sync_to_async
     @transaction.atomic
     def fetch_async_task(self):
         next_task = AsyncTask.objects.filter(status=AsyncTask.STATUS_PENDING).select_for_update().first()
@@ -79,7 +84,7 @@ class QueueScheduler:
         next_task.save(update_fields=('status', 'started_datetime'))
         return next_task
 
-    def poll_tasks(self):
+    async def poll_tasks(self):
         while not self.shutting_down:
             free_executors = [e for e in self.executors if e.current is None]
             if not free_executors:
@@ -96,7 +101,7 @@ class QueueScheduler:
                 logger.debug('No periodic tasks to be executed.')
 
             try:
-                next_task = self.fetch_async_task()
+                next_task = await self.fetch_async_task()
                 free_executors[0].current = asyncio.ensure_future(
                     self.execute_async_task(free_executors[0], next_task))
                 continue
@@ -124,7 +129,7 @@ class QueueScheduler:
             asyncio.ensure_future(self.periodic_task_tick(periodic_task_info))
 
         while not self.shutting_down:
-            self.poll_tasks()
+            await self.poll_tasks()
             close_old_connections()
             await asyncio.sleep(settings.TASK_QUEUE_POLL_INTERVAL)
 

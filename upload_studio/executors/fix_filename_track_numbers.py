@@ -1,6 +1,7 @@
 import os
 import re
 from itertools import groupby
+from math import ceil, log10
 
 from Harvest.utils import get_logger
 from upload_studio.audio_utils import AudioDiscoveryStepMixin
@@ -9,7 +10,7 @@ from upload_studio.step_executor import StepExecutor
 logger = get_logger(__name__)
 
 
-class FixFilenameTrackNumbers(AudioDiscoveryStepMixin, StepExecutor):
+class FixFilenameTrackNumbersExecutor(AudioDiscoveryStepMixin, StepExecutor):
     class FilenameTrackMatch:
         def __init__(self, audio_file):
             self.filename = os.path.basename(audio_file.rel_path)
@@ -35,14 +36,23 @@ class FixFilenameTrackNumbers(AudioDiscoveryStepMixin, StepExecutor):
             audio_file.track_match = self.FilenameTrackMatch(audio_file)
 
     def rename_files_in_dir(self, files):
-        max_track = max(f.track_match.filename_track for f in files)
-        rjust_width = len(str(max_track))
+        num_discs = len({a.disc for a in self.audio_files})
+        num_tracks = len({a.track for a in self.audio_files})
+        disc_len = ceil(log10(num_discs + 1))
+        track_len = ceil(log10(num_tracks + 1))
 
         for audio_file in files:
             match = audio_file.track_match
+            data = {
+                'disc': str(audio_file.disc).zfill(disc_len),
+                'track': str(audio_file.track).zfill(track_len),
+                'filename': match.filename[len(match.filename_match.group(1)):],
+            }
 
-            track_str = str(audio_file.track).rjust(rjust_width, '0')
-            new_filename = track_str + match.filename[len(match.filename_match.group(1)):]
+            if num_discs > 1:
+                new_filename = '{disc}-{track}{filename}'.format(**data)
+            else:
+                new_filename = '{track}{filename}'.format(**data)
 
             if new_filename != match.filename:
                 new_abs_path = os.path.join(os.path.dirname(audio_file.abs_path), new_filename)

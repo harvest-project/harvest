@@ -9,8 +9,31 @@ class ProjectMetadata:
         self.processing_steps = processing_steps
 
 
+class ProjectMetadataSerializer(serializers.Serializer):
+    torrent_name = serializers.CharField(allow_null=True, allow_blank=True)
+    torrent_info_hash = serializers.CharField(allow_null=True, allow_blank=True)
+    additional_data = serializers.DictField(allow_null=True)
+    processing_steps = serializers.ListField(allow_null=True)
+
+
 class MusicMetadata(ProjectMetadata):
     # Currently matching the settings in Gazelle
+    RELEASE_TYPE_ALBUM = 1
+    RELEASE_TYPE_SOUNDTRACK = 3
+    RELEASE_TYPE_EP = 5
+    RELEASE_TYPE_ANTHOLOGY = 6
+    RELEASE_TYPE_COMPLIATION = 7
+    RELEASE_TYPE_SINGLE = 9
+    RELEASE_TYPE_LIVE_ALBUM = 11
+    RELEASE_TYPE_REMIX = 13
+    RELEASE_TYPE_BOOTLEG = 14
+    RELEASE_TYPE_INTERVIEW = 15
+    RELEASE_TYPE_MIXTAPE = 16
+    RELEASE_TYPE_DEMO = 17
+    RELEASE_TYPE_CONCERT_RECORDING = 18
+    RELEASE_TYPE_DJ_MIX = 19
+    RELEASE_TYPE_UNKNOWN = 21
+
     FORMAT_MP3 = 'MP3'
     FORMAT_FLAC = 'FLAC'
     FORMAT_AAC = 'AAC'
@@ -70,9 +93,28 @@ class MusicMetadata(ProjectMetadata):
         (ENCODING_OTHER, ENCODING_OTHER),
     )
 
-    def __init__(self, title=None, edition_year=None, edition_title=None, edition_record_label=None,
-                 edition_catalog_number=None, format=None, media=None, encoding=None, torrent_name=None,
-                 torrent_info_hash=None, additional_data=None, processing_steps=None):
+    def __init__(
+            self,
+            *,
+            artist=None,
+            title=None,
+            original_year=None,
+            release_type=None,
+            edition_year=None,
+            edition_title=None,
+            edition_record_label=None,
+            edition_catalog_number=None,
+            tags=None,
+            album_description=None,
+            cover_url=None,
+            format=None,
+            media=None,
+            encoding=None,
+            torrent_name=None,
+            torrent_info_hash=None,
+            additional_data=None,
+            processing_steps=None,
+    ):
         super().__init__(
             torrent_name=torrent_name,
             torrent_info_hash=torrent_info_hash,
@@ -80,11 +122,18 @@ class MusicMetadata(ProjectMetadata):
             processing_steps=processing_steps or [],
         )
 
+        # TODO: Replace this with a proper list of artists
+        self.artist = artist
         self.title = title
+        self.original_year = original_year
+        self.release_type = release_type
         self.edition_year = edition_year
         self.edition_title = edition_title
         self.edition_record_label = edition_record_label
         self.edition_catalog_number = edition_catalog_number
+        self.tags = tags
+        self.album_description = album_description
+        self.cover_url = cover_url
 
         self.format = format
         self.media = media
@@ -94,19 +143,28 @@ class MusicMetadata(ProjectMetadata):
     def format_is_lossy(self):
         return self.format != MusicMetadata.FORMAT_FLAC
 
+    @classmethod
+    def get_encoding_from_bit_depth(cls, bit_depth):
+        return {
+            16: MusicMetadata.ENCODING_LOSSLESS,
+            24: MusicMetadata.ENCODING_24BIT_LOSSLESS,
+        }[bit_depth]
 
-class MusicMetadataSerializer(serializers.Serializer):
-    title = serializers.CharField(allow_null=True, allow_blank=True)
-    edition_year = serializers.IntegerField(allow_null=True)
-    edition_title = serializers.CharField(allow_null=True, allow_blank=True)
-    edition_record_label = serializers.CharField(allow_null=True, allow_blank=True)
-    edition_catalog_number = serializers.CharField(allow_null=True, allow_blank=True)
 
-    format = serializers.CharField(allow_null=True, allow_blank=True)
-    media = serializers.CharField(allow_null=True, allow_blank=True)
-    encoding = serializers.CharField(allow_null=True, allow_blank=True)
+class MusicMetadataSerializer(ProjectMetadataSerializer):
+    artist = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    title = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    original_year = serializers.IntegerField(allow_null=True, required=False)
+    release_type = serializers.IntegerField(allow_null=True, required=False)
+    edition_year = serializers.IntegerField(allow_null=True, required=False)
+    edition_title = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    edition_record_label = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    edition_catalog_number = serializers.CharField(
+        allow_null=True, allow_blank=True, required=False)
+    tags = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    album_description = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    cover_url = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
-    torrent_name = serializers.CharField(allow_null=True, allow_blank=True)
-    torrent_info_hash = serializers.CharField(allow_null=True, allow_blank=True)
-    additional_data = serializers.DictField(allow_null=True)
-    processing_steps = serializers.ListField(allow_null=True)
+    format = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    media = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    encoding = serializers.CharField(allow_null=True, allow_blank=True, required=False)

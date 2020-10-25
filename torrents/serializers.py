@@ -22,6 +22,12 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.metadata_serializers_by_realm_id = None
+
+    def _ensure_metadata_serializers_by_realm_id(self):
+        if self.metadata_serializers_by_realm_id is not None:
+            return
+
         realms_by_name = {r.name: r for r in Realm.objects.all()}
         self.metadata_serializers_by_realm_id = {}
         for tracker in TrackerRegistry.get_plugins():
@@ -38,6 +44,7 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
     def get_metadata(self, obj):
         if not self.context.get('serialize_metadata', True):
             return None
+        self._ensure_metadata_serializers_by_realm_id()
         metadata_serializer = self.metadata_serializers_by_realm_id.get(obj.realm_id)
         if metadata_serializer:
             return metadata_serializer.to_representation(obj)

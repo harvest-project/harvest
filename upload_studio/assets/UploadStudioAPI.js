@@ -13,9 +13,11 @@ export const UploadStudioAPI = new class {
         return await APIHelper.delete(`/api/upload-studio/projects/${projectId}`);
     }
 
-    async postProjectResetToStep(projectId, step) {
+    async postProjectResetToStep(projectId, stepIndex) {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/reset-to-step`, {
-            jsonBody: {step},
+            jsonBody: {
+                step_index: stepIndex,
+            },
         });
     }
 
@@ -23,11 +25,11 @@ export const UploadStudioAPI = new class {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/finish`);
     }
 
-    async postProjectRunAll(projectId, step) {
+    async postProjectRunAll(projectId) {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/run-all`);
     }
 
-    async postProjectRunOne(projectId, step) {
+    async postProjectRunOne(projectId) {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/run-one`);
     }
 
@@ -42,5 +44,23 @@ export const UploadStudioAPI = new class {
 
     async postProjectWarningAck(projectId, warningId) {
         return await APIHelper.post(`/api/upload-studio/projects/${projectId}/warnings/${warningId}/ack`);
+    }
+
+    async getProjectStepFiles(projectId, stepId) {
+        return await APIHelper.get(`/api/upload-studio/projects/${projectId}/steps/${stepId}/files`);
+    }
+
+    getProjectStepFileUrl(projectId, stepId, area, fileName) {
+        return `/api/upload-studio/projects/${projectId}/steps/${stepId}/files/` +
+            `${encodeURIComponent(area)}/${encodeURIComponent(fileName)}`;
+    }
+
+    async patchProjectStepExecutorKwargs(projectId, stepId, executorKwargs) {
+        return await APIHelper.patch(
+            `/api/upload-studio/projects/${projectId}/steps/${stepId}/executor-kwargs`,
+            {
+                jsonBody: executorKwargs,
+            },
+        );
     }
 };

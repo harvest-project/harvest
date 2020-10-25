@@ -9,7 +9,7 @@ from upload_studio.step_executor import StepExecutor
 logger = get_logger(__name__)
 
 
-class RenameFilesToTags(AudioDiscoveryStepMixin, StepExecutor):
+class RenameFilesToTagsExecutor(AudioDiscoveryStepMixin, StepExecutor):
     name = 'rename_files_to_tags'
     description = 'Renames files based on audio file tags'
 
@@ -25,20 +25,17 @@ class RenameFilesToTags(AudioDiscoveryStepMixin, StepExecutor):
         track_len = ceil(log10(num_tracks + 1))
 
         for audio_file in self.audio_files:
-            ext = os.path.splitext(audio_file.abs_path)[1]  # Includes .
+            data = {
+                'disc': str(audio_file.disc).zfill(disc_len),
+                'track': str(audio_file.track).zfill(track_len),
+                'filename': strip_invalid_path_characters(audio_file.muta['title'][0]),
+                'ext': os.path.splitext(audio_file.abs_path)[1],  # Includes .
+            }
+
             if num_discs > 1:
-                new_filename = '{}-{}. {}{}'.format(
-                    str(audio_file.disc).zfill(disc_len),
-                    str(audio_file.track).zfill(track_len),
-                    strip_invalid_path_characters(audio_file.muta.title),
-                    ext,
-                )
+                new_filename = '{disc}-{track}. {filename}{ext}'.format(**data)
             else:
-                new_filename = '{}. {}{}'.format(
-                    str(audio_file.track).zfill(track_len),
-                    strip_invalid_path_characters(audio_file.muta['title']),
-                    ext,
-                )
+                new_filename = '{track}. {filename}{ext}'.format(**data)
 
             os.rename(
                 audio_file.abs_path,

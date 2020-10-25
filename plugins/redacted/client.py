@@ -209,6 +209,17 @@ class RedactedClient:
             raise RedactedException('Log.php returned status code {}.'.format(200))
         return r.text
 
+    def browse(self, search_string, page, categories=None):
+        categories_kwargs = None
+        if categories is not None:
+            categories_kwargs = {'filter_cat[{}]'.format(c): '1' for c in categories}
+        return self.request_ajax(
+            'browse',
+            searchstr=search_string,
+            page=page,
+            **categories_kwargs,
+        )
+
     def perform_upload(self, payload, torrent_file):
         payload['auth'] = None
 
@@ -224,3 +235,11 @@ class RedactedClient:
             },
             timeout=self.UPLOAD_TIMEOUT,
         )
+
+    @classmethod
+    def get_torrent_url(cls, torrent_id):
+        return 'https://redacted.ch/torrents.php?torrentid={}'.format(torrent_id)
+
+    @classmethod
+    def get_torrent_group_url(cls, group_id):
+        return 'https://redacted.ch/torrents.php?id={}'.format(group_id)

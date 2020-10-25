@@ -21,4 +21,5 @@ playbook.retry
 /plugins/*
 !/plugins/redacted/
 !/plugins/bibliotik/
+!/plugins/release_matching/
 /plugins/**/dist/

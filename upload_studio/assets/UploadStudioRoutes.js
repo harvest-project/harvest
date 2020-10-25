@@ -3,6 +3,8 @@ import {Route} from 'react-router-dom';
 import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
 import {Projects} from 'upload_studio/assets/pages/Projects';
 import {Project} from 'upload_studio/assets/pages/Project';
+import {StepSettingsRegistry} from 'upload_studio/assets/StepSettingsRegistry.js';
+import {SpectralSettings} from 'upload_studio/assets/SpectralViewer.js';
 
 export class UploadStudioRoutes extends React.Component {
     render() {
@@ -12,3 +14,5 @@ export class UploadStudioRoutes extends React.Component {
         </div>;
     }
 }
+
+StepSettingsRegistry.register('confirm_spectrals', SpectralSettings);

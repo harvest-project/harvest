@@ -34,6 +34,7 @@ class Project(models.Model):
 
     created_datetime = models.DateTimeField(db_index=True, default=timezone.now)
     source_torrent = models.ForeignKey(Torrent, models.SET_NULL, null=True)
+    source_external = models.CharField(max_length=1024, null=True)
     project_type = models.CharField(max_length=64)
     name = models.CharField(max_length=1024)
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
@@ -60,7 +61,8 @@ class Project(models.Model):
     @property
     def next_step(self):
         for step in self.steps:
-            if step.status in {self.STATUS_PENDING, self.STATUS_WARNINGS, self.STATUS_ERRORS, self.STATUS_RUNNING}:
+            if step.status in {self.STATUS_PENDING, self.STATUS_WARNINGS, self.STATUS_ERRORS,
+                               self.STATUS_RUNNING}:
                 return step
             elif step.status == self.STATUS_COMPLETE:
                 continue
@@ -111,7 +113,8 @@ class Project(models.Model):
     def reset(self, step_index=0):
         for step in self.steps[:step_index]:
             if step.status != self.STATUS_COMPLETE:
-                raise APIException('Unable to reset to a step, as previous steps are not completed.')
+                raise APIException(
+                    'Unable to reset to a step, as previous steps are not completed.')
         self.raise_if_finished()
         for step in self.steps[step_index:]:
             step.reset()
@@ -130,7 +133,8 @@ class Project(models.Model):
 class ProjectStep(models.Model):
     project = models.ForeignKey(Project, models.CASCADE)
     index = models.IntegerField()
-    status = models.CharField(max_length=64, choices=Project.STATUS_CHOICES, default=Project.STATUS_PENDING)
+    status = models.CharField(max_length=64, choices=Project.STATUS_CHOICES,
+                              default=Project.STATUS_PENDING)
     executor_name = models.CharField(max_length=64)
     executor_kwargs_json = models.TextField(default='{}')
     metadata_json = models.TextField()
@@ -153,6 +157,9 @@ class ProjectStep(models.Model):
     @property
     def path(self):
         return os.path.join(self.project.data_path, 'step_{}'.format(self.id))
+
+    def get_areas(self):
+        return os.listdir(self.path)
 
     def get_area_path(self, area_name):
         return os.path.join(self.path, area_name)
@@ -187,3 +194,8 @@ class ProjectStepError(models.Model):
 
     class Meta:
         ordering = ('message',)
+
+
+class ImgurConfig(models.Model):
+    client_id = models.CharField(max_length=512, null=True)
+    client_secret = models.CharField(max_length=512, null=True)

@@ -62,9 +62,9 @@ export class MainMenu extends React.Component {
                 </Link>
             </Menu.Item>
 
-            <SettingsMenu/>
-
             {MenuRegistry.mainMenuItems}
+
+            <SettingsMenu/>
         </Menu>;
     }
 }

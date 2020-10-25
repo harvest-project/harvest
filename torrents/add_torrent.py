@@ -1,7 +1,5 @@
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import status
-from rest_framework.exceptions import APIException
 
 from monitoring.decorators import log_exceptions, log_successes
 from torrents.alcazar_client import AlcazarClient, create_or_update_torrent_from_alcazar

@@ -78,14 +78,17 @@ class StepExecutor:
             pass
         os.makedirs(self.step.data_path)
 
+    def copy_prev_step_area_files(self, area):
+        copytree_into(self.prev_step.get_area_path(area), self.step.get_area_path(area))
+
     def copy_prev_step_files(self, exclude_areas=None):
         if not self.prev_step:
             self.raise_error('No previous step to copy files from.')
         exclude_areas = exclude_areas if exclude_areas is not None else {}
-        for area in os.listdir(self.prev_step.path):
+        for area in self.prev_step.get_areas():
             if area in exclude_areas:
                 continue
-            copytree_into(self.prev_step.get_area_path(area), self.step.get_area_path(area))
+            self.copy_prev_step_area_files(area)
 
     def handle_run(self):
         raise NotImplementedError()

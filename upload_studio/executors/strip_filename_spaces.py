@@ -7,7 +7,7 @@ from upload_studio.step_executor import StepExecutor
 logger = get_logger(__name__)
 
 
-class StripFilenameSpaces(AudioDiscoveryStepMixin, StepExecutor):
+class StripFilenameSpacesExecutor(AudioDiscoveryStepMixin, StepExecutor):
     name = 'strip_filename_spaces'
     description = 'Strips leading and trailing spaces from filenames.'
 

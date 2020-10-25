@@ -22,6 +22,8 @@ def alcazar_torrent_equals(torrent, torrent_state):
     if torrent.info_hash != torrent_state['info_hash']:
         raise Exception('Comparing different info hash torrents.')
 
+    date_added = torrent_state['date_added']
+
     return (
             torrent.client == torrent_state['client'] and
             torrent.status == torrent_state['status'] and
@@ -33,7 +35,7 @@ def alcazar_torrent_equals(torrent, torrent_state):
             torrent.download_rate == torrent_state['download_rate'] and
             torrent.upload_rate == torrent_state['upload_rate'] and
             torrent.progress == torrent_state['progress'] and
-            torrent.added_datetime == torrent_state['date_added'] and
+            torrent.added_datetime == iso8601.parse_date(date_added) if date_added else None and
             torrent.error == torrent_state['error'] and
             torrent.tracker_error == torrent_state['tracker_error']
     )

@@ -11,4 +11,8 @@ urlpatterns = [
     path('projects/<pk>/finish', views.ProjectFinish.as_view()),
     path('projects/<pk>/insert-step', views.ProjectInsertStep.as_view()),
     path('projects/<pk>/warnings/<warning_id>/ack', views.WarningAck.as_view()),
+    path('projects/<pk>/steps/<step_id>/executor-kwargs',
+         views.ProjectStepExecutorKwargs.as_view()),
+    path('projects/<pk>/steps/<step_id>/files', views.ProjectStepFiles.as_view()),
+    path('projects/<pk>/steps/<step_id>/files/<area>/<filename>', views.project_step_file),
 ]

@@ -1,8 +1,13 @@
+import mimetypes
+import os
+
 from django.db import OperationalError, transaction
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.generics import RetrieveDestroyAPIView, GenericAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from Harvest.utils import TransactionAPIView, CORSBrowserExtensionView
 from monitoring.models import LogEntry
@@ -67,7 +72,7 @@ class ProjectMutatorView(TransactionAPIView):
 
 class ProjectResetToStep(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
-        step_index = int(request.data['step'])
+        step_index = int(request.data['step_index'])
         self.project.reset(step_index)
 
 
@@ -101,7 +106,8 @@ class ProjectInsertStep(ProjectMutatorView):
 class WarningAck(ProjectMutatorView):
     def perform_work(self, request, **kwargs):
         try:
-            warning = ProjectStepWarning.objects.get(step__project=self.project, id=kwargs['warning_id'])
+            warning = ProjectStepWarning.objects.get(step__project=self.project,
+                                                     id=kwargs['warning_id'])
         except ProjectStepWarning.DoesNotExist:
             raise APIException('Warning does not exist.', code=status.HTTP_404_NOT_FOUND)
         if warning.acked:
@@ -111,3 +117,52 @@ class WarningAck(ProjectMutatorView):
         step = self.project.next_step
         if step and not step.projectstepwarning_set.filter(acked=False).exists():
             project_run_all.delay(self.project.id)
+
+
+class ProjectStepAccessorView(APIView):
+    @transaction.atomic
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.project = Project.objects.select_for_update().get(id=kwargs['pk'])
+            self.project_step = ProjectStep.objects.get(
+                id=kwargs['step_id'],
+                project_id=kwargs['pk'],
+            )
+        except ProjectStep.DoesNotExist:
+            raise APIException(code=status.HTTP_404_NOT_FOUND)
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ProjectStepExecutorKwargs(ProjectStepAccessorView):
+    def get(self, request, *args, **kwargs):
+        return Response(self.project_step.executor_kwargs)
+
+    def put(self, request, *args, **kwargs):
+        self.project_step.executor_kwargs = request.data
+        self.project_step.save()
+        return Response(ProjectDeepSerializer(self.project).data)
+
+    def patch(self, request, *args, **kwargs):
+        self.project_step.executor_kwargs = {
+            **self.project_step.executor_kwargs,
+            **request.data,
+        }
+        self.project_step.save()
+        return Response(ProjectDeepSerializer(self.project).data)
+
+
+class ProjectStepFiles(ProjectStepAccessorView):
+    def get(self, request, *args, **kwargs):
+        result = {}
+        for area in self.project_step.get_areas():
+            result[area] = sorted(os.listdir(self.project_step.get_area_path(area)))
+        return Response(result)
+
+
+def project_step_file(request, pk, step_id, area, filename):
+    try:
+        project_step = ProjectStep.objects.get(id=step_id, project_id=pk)
+    except ProjectStep.DoesNotExist:
+        raise APIException(code=status.HTTP_404_NOT_FOUND)
+    path = os.path.join(project_step.get_area_path(area), filename)
+    return HttpResponse(open(path, 'rb'), content_type=mimetypes.guess_type(path)[0])

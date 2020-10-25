@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_extensions',
     'Harvest',
     'task_queue.apps.TaskQueueConfig',
     'home.apps.HomeConfig',

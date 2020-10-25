@@ -209,6 +209,18 @@ class RedactedClient:
             raise RedactedException('Unable to fetch torrent - received {} {}'.format(
                 r.status_code, r.headers['content-type']))
 
+    def get_artist(self, artist_id=None, artist_name=None):
+        if artist_id and artist_name:
+            raise ValueError('Set exactly one of artist_id or artist_name')
+        elif artist_id:
+            kwargs = {'id': artist_id}
+        elif artist_name:
+            kwargs = {'artistname': artist_name}
+        else:
+            raise ValueError('Set exactly one of artist_id or artist_name')
+
+        return self.request_ajax('artist', **kwargs)
+
     def get_site_log(self, page):
         r = self._request('GET', self.log_url, params={'page': page}, allow_redirects=False)
         if r.status_code != 200:

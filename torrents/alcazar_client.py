@@ -35,7 +35,7 @@ def alcazar_torrent_equals(torrent, torrent_state):
             torrent.download_rate == torrent_state['download_rate'] and
             torrent.upload_rate == torrent_state['upload_rate'] and
             torrent.progress == torrent_state['progress'] and
-            torrent.added_datetime == iso8601.parse_date(date_added) if date_added else None and
+            (torrent.added_datetime == iso8601.parse_date(date_added) if date_added else None) and
             torrent.error == torrent_state['error'] and
             torrent.tracker_error == torrent_state['tracker_error']
     )

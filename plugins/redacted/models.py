@@ -1,11 +1,11 @@
 import html
-import json
 
 import iso8601
 from django.db import models
 
 from Harvest.throttling import ThrottledRequest
 from plugins.redacted.exceptions import RedactedException
+from plugins.redacted.utils import get_joined_artists
 from torrents.fields import InfoHashField
 from torrents.models import TorrentInfo
 
@@ -24,7 +24,8 @@ class RedactedClientConfig(models.Model):
 
 
 class RedactedThrottledRequest(ThrottledRequest, models.Model):
-    url = models.CharField(max_length=2048)  # Used for debugging purposes to watch what requests are going through
+    url = models.CharField(
+        max_length=2048)  # Used for debugging purposes to watch what requests are going through
 
 
 class RedactedTorrentGroup(models.Model):
@@ -44,7 +45,7 @@ class RedactedTorrentGroup(models.Model):
     RELEASE_TYPE_DJ_MIX = 19
     RELEASE_TYPE_UNKNOWN = 21
 
-    fetched_datetime = models.DateTimeField()
+    fetched_datetime = models.DateTimeField(db_index=True)
     is_deleted = models.BooleanField()
 
     name = models.CharField(max_length=65536)
@@ -57,18 +58,19 @@ class RedactedTorrentGroup(models.Model):
     time = models.DateTimeField()
     vanity_house = models.BooleanField()
     is_bookmarked = models.BooleanField()
-    music_info_json = models.TextField()
+    music_info = models.JSONField(null=True)
     tags = models.TextField()
     wiki_body = models.TextField()
     wiki_image = models.CharField(max_length=65536)
 
-    @property
-    def music_info(self):
-        return json.loads(self.music_info_json)
+    def __str__(self):
+        return 'RedactedTorrentGroup ({})'.format(self.name)
 
-    @music_info.setter
-    def music_info(self, value):
-        self.music_info_json = json.dumps(value)
+    @property
+    def joined_artists(self):
+        if self.music_info is None:
+            return None
+        return get_joined_artists(self.music_info)
 
     def update_from_redacted_dict(self, fetched_datetime, data):
         if self.id and self.id != data['id']:
@@ -94,6 +96,19 @@ class RedactedTorrentGroup(models.Model):
         self.tags = ','.join(data['tags'])
         self.wiki_body = data['wikiBody']
         self.wiki_image = data['wikiImage']
+
+    def ensure_artists_created(self):
+        if not self.music_info:
+            return
+        for artists in self.music_info.values():
+            for artist in artists:
+                RedactedArtist.objects.get_or_create(
+                    id=artist['id'],
+                    defaults={
+                        'name': artist['name'],
+                        'is_deleted': False,
+                    },
+                )
 
 
 class RedactedTorrent(models.Model):
@@ -159,7 +174,8 @@ class RedactedTorrent(models.Model):
     fetched_datetime = models.DateTimeField(db_index=True)
     is_deleted = models.BooleanField()
 
-    torrent_info = models.OneToOneField(TorrentInfo, models.CASCADE, related_name='redacted_torrent')
+    torrent_info = models.OneToOneField(TorrentInfo, models.CASCADE,
+                                        related_name='redacted_torrent')
     torrent_group = models.ForeignKey(RedactedTorrentGroup, models.PROTECT)
     info_hash = InfoHashField(db_index=True)
     media = models.CharField(max_length=64, choices=MEDIA_CHOICES)
@@ -186,6 +202,9 @@ class RedactedTorrent(models.Model):
     file_list = models.TextField()
     user_id = models.IntegerField()
     username = models.CharField(max_length=65536)
+
+    def __str__(self):
+        return 'RedactedTorrent ({})'.format(self.id)
 
     def update_from_redacted_dict(self, torrent_info, torrent_group_id, data):
         if self.id and self.id != data['id']:
@@ -224,6 +243,54 @@ class RedactedTorrent(models.Model):
         self.file_list = data['fileList']
         self.user_id = data['userId']
         self.username = data['username']
+
+
+class RedactedArtist(models.Model):
+    fetched_datetime = models.DateTimeField(null=True, db_index=True)
+    is_deleted = models.BooleanField()
+
+    name = models.CharField(null=True, max_length=65536)
+    image = models.CharField(null=True, max_length=65536)
+    body = models.TextField(null=True)
+    vanity_house = models.BooleanField(null=True)
+    tags = models.JSONField(null=True)
+    similar_artists = models.JSONField(null=True)
+    statistics = models.JSONField(null=True)
+    torrent_groups = models.JSONField(null=True)
+    requests = models.JSONField(null=True)
+
+    def __str__(self):
+        return 'RedactedArtist ({})'.format(self.name)
+
+    def update_from_redacted_dict(self, fetched_datetime, data):
+        if self.id and self.id != data['id']:
+            raise RedactedException('Trying to update a Redacted artist with a mismatched id')
+        if self.fetched_datetime and self.fetched_datetime > fetched_datetime:
+            return
+
+        self.fetched_datetime = fetched_datetime
+        self.is_deleted = False
+
+        self.id = data['id']
+        self.name = html.unescape(data['name'])
+        self.image = data['image']
+        self.body = data['body']
+        self.vanity_house = data['vanityHouse']
+        self.tags = data['tags']
+        self.similar_artists = data['similarArtists']
+        self.statistics = data['statistics']
+        self.torrent_groups = data['torrentgroup']
+        self.requests = data['requests']
+
+    def get_aliases(self):
+        aliases = {}
+        for torrent_group in self.torrent_groups:
+            for artist in torrent_group['artists']:
+                aliases[artist['aliasid']] = artist['name']
+            for artists in torrent_group['extendedArtists'].values():
+                for artist in artists:
+                    aliases[artist['aliasid']] = artist['name']
+        return aliases
 
 
 class RedactedRequestCacheEntry(models.Model):

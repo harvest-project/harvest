@@ -1,9 +1,11 @@
 import json
 
 from django.db import transaction
+from django.utils import timezone
 
 from plugins.redacted.client import RedactedClient
-from plugins.redacted.models import RedactedTorrentGroup, RedactedTorrent
+from plugins.redacted.exceptions import RedactedArtistNotFoundException
+from plugins.redacted.models import RedactedTorrentGroup, RedactedTorrent, RedactedArtist
 from plugins.redacted.serializers import RedactedTorrentInfoMetadataSerializer
 from torrents.download_locations import DownloadLocationComponent
 from trackers.models import FetchTorrentResult, BaseTracker
@@ -13,7 +15,8 @@ class RedactedTrackerPlugin(BaseTracker):
     name = 'redacted'
     display_name = 'Redacted.ch'
     torrent_info_metadata_serializer_class = RedactedTorrentInfoMetadataSerializer
-    torrents_select_related = ('torrent_info__redacted_torrent', 'torrent_info__redacted_torrent__torrent_group')
+    torrents_select_related = (
+        'torrent_info__redacted_torrent', 'torrent_info__redacted_torrent__torrent_group')
 
     download_location_components = (
         DownloadLocationComponent(
@@ -96,7 +99,8 @@ class RedactedTrackerPlugin(BaseTracker):
         parsed_data = json.loads(bytes(torrent_info.raw_response).decode())
 
         try:
-            torrent_group = RedactedTorrentGroup.objects.select_for_update().get(id=parsed_data['group']['id'])
+            torrent_group = RedactedTorrentGroup.objects.select_for_update().get(
+                id=parsed_data['group']['id'])
         except RedactedTorrentGroup.DoesNotExist:
             torrent_group = RedactedTorrentGroup()
         torrent_group.update_from_redacted_dict(
@@ -104,9 +108,11 @@ class RedactedTrackerPlugin(BaseTracker):
             parsed_data['group'],
         )
         torrent_group.save()
+        torrent_group.ensure_artists_created()
 
         try:
-            torrent = RedactedTorrent.objects.select_for_update().get(id=parsed_data['torrent']['id'])
+            torrent = RedactedTorrent.objects.select_for_update().get(
+                id=parsed_data['torrent']['id'])
         except RedactedTorrent.DoesNotExist:
             torrent = RedactedTorrent()
         torrent.update_from_redacted_dict(
@@ -115,6 +121,27 @@ class RedactedTrackerPlugin(BaseTracker):
             parsed_data['torrent'],
         )
         torrent.save()
+
+    @transaction.atomic
+    def update_artist(self, client, artist_id):
+        fetched_datetime = timezone.now()
+
+        try:
+            artist = RedactedArtist.objects.select_for_update().get(id=artist_id)
+        except RedactedArtist.DoesNotExist:
+            artist = RedactedArtist()
+
+        try:
+            data = client.get_artist(artist_id=artist_id)
+        except RedactedArtistNotFoundException:
+            if artist.id:
+                artist.fetched_datetime = fetched_datetime
+                artist.is_deleted = True
+                artist.save(update_fields=('fetched_datetime', 'is_deleted'))
+            return
+
+        artist.update_from_redacted_dict(fetched_datetime, data)
+        artist.save()
 
     def get_download_location_context(self, torrent_info):
         try:

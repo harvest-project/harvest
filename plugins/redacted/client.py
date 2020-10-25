@@ -41,10 +41,6 @@ class RedactedClient:
 
         logger.debug('Fetching authkey/passkey.')
 
-        # Mark login as failed in order to prevent future tries if the code crashes
-        self.config.last_login_failed = True
-        self.config.save()
-
         # Working outside of the normal __request cycling since this is a special case
         self.throttler.throttle_request(url='{}?action=index')
         index_response = requests.get(

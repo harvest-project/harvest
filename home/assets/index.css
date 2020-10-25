@@ -5,8 +5,18 @@ body {
 }
 
 .react-root {
+    min-height: 100%;
+    display: grid;
     margin: 0;
     padding: 0;
+}
+
+.ant-spin-nested-loading {
+    display: grid;
+}
+
+.ant-spin-container {
+    display: grid;
 }
 
 .table-row-error {

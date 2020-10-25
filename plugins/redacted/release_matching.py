@@ -1,4 +1,5 @@
 import html
+
 from plugins.release_matching.models import ReleaseMatchInfo
 
 
@@ -7,8 +8,13 @@ class RedactedReleaseMatcher:
         self.client = redacted_client
 
     def search(self, match_info):
+        search_parts = []
+        if len(match_info.normalized_artists) <= 1:
+            search_parts.append(match_info.normalized_artists_joined)
+        search_parts.append(match_info.normalized_title)
+
         result = self.client.browse(
-            search_string=match_info.normalized_artists_joined + ' ' + match_info.normalized_title,
+            search_string=' '.join(search_parts),
             categories=(1,)
         )
         for group in result['results']:

@@ -82,3 +82,28 @@ export function capitalizeWord(word) {
 export function toJSONPretty(data) {
     return JSON.stringify(data, null, 4);
 }
+
+export class HarvestEvent {
+    constructor() {
+        this.callbacks = [];
+    }
+
+    subscribe(fn) {
+        this.callbacks.push(fn);
+    }
+
+    unsubscribe(fn) {
+        const index = this.callbacks.indexOf(fn);
+        if (index === -1) {
+            return false;
+        }
+        this.callbacks.splice(index, 1);
+        return true;
+    }
+
+    fire(data) {
+        for (const fn of this.callbacks) {
+            fn(data);
+        }
+    }
+}

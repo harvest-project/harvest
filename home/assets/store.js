@@ -9,6 +9,7 @@ export const HarvestStore = new class HarvestStore {
     @observable realms = null;
     @observable trackers = null;
     @observable downloadLocations = null;
+    @observable pluginStores = {};
 
     async fetchInitial() {
         this.realms = await TorrentsAPI.getRealms();
@@ -52,5 +53,9 @@ export const HarvestStore = new class HarvestStore {
         } finally {
             this.numLoading--;
         }
+    }
+
+    registerPluginStore(pluginName, store) {
+        this.pluginStores[pluginName] = store;
     }
 };

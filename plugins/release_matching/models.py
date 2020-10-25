@@ -14,6 +14,12 @@ RELEASE_IDENTIFIERS = {
 def _normalize_artist(artist):
     artist = artist.lower()
     artist = artist.replace('/', ' ').replace('-', ' ')
+    # Remove anything parentheses
+    artist = re.sub(
+        r'\(.*\)',
+        '',
+        artist,
+    )
     artist = re.sub(' +', ' ', artist)
     artist = artist.strip()
     return artist
@@ -24,6 +30,7 @@ def _normalize_title(title):
     for release_identifier in RELEASE_IDENTIFIERS:
         title = title.replace('({})'.format(release_identifier), '')
     title = title.replace('/', ' ').replace('-', ' ')
+    # Remove things like (Remastered Edition), (Original Soundtrack) and so on
     title = re.sub(
         r'\([^()]*(' +
         '|'.join((

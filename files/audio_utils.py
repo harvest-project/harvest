@@ -10,17 +10,9 @@ def stringify_tag(value):
         return ', '.join(str(i) for i in value)
     elif isinstance(value, int):
         return str(value)
-    elif not isinstance(value, str):
+    elif isinstance(value, str):
         return value
     raise Exception('Unknown tag value type {}'.format(type(value).__name__))
-
-
-def get_tag_value(tags, *keys):
-    for key in keys:
-        value = tags.get(key)
-        if value:
-            return value
-    return None
 
 
 class StreamInfo:
@@ -37,9 +29,6 @@ class StreamInfo:
             if not self.sample_rate:
                 raise Exception(
                     'Got bad sample rate of {} for {}'.format(self.sample_rate, muta.filename))
-            if not self.bits_per_sample:
-                logger.debug('Got bits per sample of {} for {}', self.bits_per_sample,
-                             muta.filename)
             if not self.channels:
                 raise Exception(
                     'Got bad channels of {} for {}'.format(self.channels, muta.filename))

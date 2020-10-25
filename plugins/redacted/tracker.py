@@ -78,10 +78,13 @@ class RedactedTrackerPlugin(BaseTracker):
         ),
     )
 
-    def fetch_torrent(self, tracker_id):
+    def fetch_torrent(self, tracker_id, fetch_torrent_file=True):
         client = RedactedClient()
         torrent_info = client.get_torrent(tracker_id)
-        torrent_filename, torrent_file = client.get_torrent_file(tracker_id)
+        if fetch_torrent_file:
+            torrent_filename, torrent_file = client.get_torrent_file(tracker_id)
+        else:
+            torrent_filename, torrent_file = None, None
         return FetchTorrentResult(
             raw_response=json.dumps(torrent_info).encode(),
             torrent_filename=torrent_filename,

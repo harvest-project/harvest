@@ -156,7 +156,7 @@ class RedactedTorrent(models.Model):
         (ENCODING_OTHER, ENCODING_OTHER),
     )
 
-    fetched_datetime = models.DateTimeField()
+    fetched_datetime = models.DateTimeField(db_index=True)
     is_deleted = models.BooleanField()
 
     torrent_info = models.OneToOneField(TorrentInfo, models.CASCADE, related_name='redacted_torrent')

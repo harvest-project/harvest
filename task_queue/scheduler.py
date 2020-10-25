@@ -111,6 +111,8 @@ class QueueScheduler:
             break
 
     async def periodic_task_tick(self, task_info):
+        if task_info.interval_seconds == -1:
+            return
         while not self.shutting_down:
             if task_info in self.executing_periodic_tasks:
                 logger.debug('Skipping executing periodic task {}', task_info.handler_str)

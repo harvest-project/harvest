@@ -54,7 +54,41 @@ export class LayoutBase extends React.Component {
         return items;
     }
 
-    render() {
+    renderFullPageSwitch() {
+        return (
+            <Switch>
+                {RouteRegistry.fullPageRoutes}
+                <Route path="/" render={() => <>
+                    <HarvestHeader/>
+
+                    <Layout.Content style={{margin: '0 16px'}}>
+                        <MainPageSpinner>
+                            <Breadcrumb style={{margin: '16px 0'}}>
+                                {this.renderBreadcrumbItems()}
+                            </Breadcrumb>
+                            <div style={{padding: 24, background: '#fff'}}>
+                                <ErrorBoundary>
+                                    <HomeRoutes/>
+                                    <MonitoringRoutes/>
+                                    <SettingsRoutes/>
+                                    <TorrentsRoutes/>
+                                    <UploadStudioRoutes/>
+
+                                    {RouteRegistry.pageRoutes}
+                                </ErrorBoundary>
+                            </div>
+                        </MainPageSpinner>
+                    </Layout.Content>
+
+                    <Layout.Footer style={{textAlign: 'center'}}>
+                        Harvest Project ©2019 Created by the Harvest team
+                    </Layout.Footer>
+                </>}/>
+            </Switch>
+        );
+    }
+
+    renderMainLayout() {
         return (
             <Layout style={{minHeight: '100vh'}}>
                 <Layout.Sider
@@ -69,37 +103,18 @@ export class LayoutBase extends React.Component {
                     <MainMenu/>
                 </Layout.Sider>
                 <Layout>
-                    <Switch>
-                        {RouteRegistry.fullPageRoutes}
-                        <Route path="/" render={() => <>
-                            <HarvestHeader/>
-
-                            <Layout.Content style={{margin: '0 16px'}}>
-                                <MainPageSpinner>
-                                    <Breadcrumb style={{margin: '16px 0'}}>
-                                        {this.renderBreadcrumbItems()}
-                                    </Breadcrumb>
-                                    <div style={{padding: 24, background: '#fff'}}>
-                                        <ErrorBoundary>
-                                            <HomeRoutes/>
-                                            <MonitoringRoutes/>
-                                            <SettingsRoutes/>
-                                            <TorrentsRoutes/>
-                                            <UploadStudioRoutes/>
-
-                                            {RouteRegistry.pageRoutes}
-                                        </ErrorBoundary>
-                                    </div>
-                                </MainPageSpinner>
-                            </Layout.Content>
-
-                            <Layout.Footer style={{textAlign: 'center'}}>
-                                Harvest Project ©2019 Created by the Harvest team
-                            </Layout.Footer>
-                        </>}/>
-                    </Switch>
+                    {this.renderFullPageSwitch()}
                 </Layout>
             </Layout>
+        );
+    }
+
+    render() {
+        return (
+            <Switch>
+                {RouteRegistry.fullScreenRoutes}
+                <Route path="/" render={() => this.renderMainLayout()}/>
+            </Switch>
         );
     }
 }

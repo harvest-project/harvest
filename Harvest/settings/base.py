@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_extensions',
+    'channels',
     'Harvest',
     'task_queue.apps.TaskQueueConfig',
     'home.apps.HomeConfig',
@@ -68,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Harvest.wsgi.application'
+ASGI_APPLICATION = 'Harvest.routing.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases

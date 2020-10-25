@@ -15,6 +15,10 @@ class RedactedTorrentNotFoundException(TorrentNotFoundException, RedactedExcepti
     pass
 
 
+class RedactedArtistNotFoundException(TorrentNotFoundException, RedactedException):
+    pass
+
+
 class RedactedRateLimitExceededException(RedactedException):
     pass
 

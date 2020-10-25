@@ -1,5 +1,7 @@
 import re
 
+from unidecode import unidecode
+
 RELEASE_IDENTIFIERS = {
     'deluxe',
     'remastered',
@@ -23,7 +25,13 @@ def _normalize_title(title):
         title = title.replace('({})'.format(release_identifier), '')
     title = title.replace('/', ' ').replace('-', ' ')
     title = re.sub(
-        r'\([^()]*(deluxe|remaster|score|music|anniversary|edition|soundtrack|live)[^()]*\)',
+        r'\([^()]*(' +
+        '|'.join((
+            'deluxe', 'remaster', 'score', 'music', 'anniversary', 'edition', 'soundtrack', 'live',
+            'explicit', 'reissue',
+        )) +
+        r')[^()]*\)',
+
         '',
         title,
     )
@@ -43,10 +51,14 @@ class ReleaseMatchInfo:
         self.normalized_title = _normalize_title(self.title)
 
     def equals(self, match_info):
-        if self.normalized_title != match_info.normalized_title:
+        if unidecode(self.normalized_title) != unidecode(match_info.normalized_title):
             return False
-        if len(set(self.normalized_artists) & set(match_info.normalized_artists)) == 0:
+
+        decoded_artists = {unidecode(a) for a in self.normalized_artists}
+        match_info_decoded_artists = {unidecode(a) for a in match_info.normalized_artists}
+        if len(decoded_artists & match_info_decoded_artists) == 0:
             return False
+
         return True
 
     def __str__(self):

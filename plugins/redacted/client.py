@@ -5,7 +5,7 @@ from Harvest.throttling import DatabaseSyncedThrottler
 from Harvest.utils import get_filename_from_content_disposition, control_transaction, get_logger
 from plugins.redacted.exceptions import RedactedTorrentNotFoundException, \
     RedactedRateLimitExceededException, \
-    RedactedException, RedactedLoginException
+    RedactedException, RedactedLoginException, RedactedArtistNotFoundException
 from plugins.redacted.models import RedactedThrottledRequest, RedactedClientConfig
 
 logger = get_logger(__name__)
@@ -24,8 +24,7 @@ class RedactedClient:
 
     def __init__(self, timeout=30):
         self.timeout = timeout
-        self.throttler = DatabaseSyncedThrottler(
-            RedactedClientConfig, RedactedThrottledRequest, 5, 10)
+        self.throttler = self.get_throttler()
         self.config = None
 
     @property
@@ -162,10 +161,17 @@ class RedactedClient:
         try:
             data = resp.json()
             if data['status'] != 'success':
-                if data['error'] in {'bad id parameter', 'bad hash parameter'}:
-                    raise RedactedTorrentNotFoundException()
+                if data['error'] == 'bad id parameter':
+                    raise RedactedTorrentNotFoundException(
+                        'Torrent {} not found'.format(kwargs['id']))
+                elif data['error'] == 'bad hash parameter':
+                    raise RedactedTorrentNotFoundException(
+                        'Torrent {} not found'.format(kwargs['hash']))
                 elif data['error'] == 'rate limit exceeded':
                     raise RedactedRateLimitExceededException(data)
+                elif data['error'] == 'no artist found':
+                    raise RedactedArtistNotFoundException(
+                        'Artist {} not found'.format(kwargs.get('artistname', kwargs.get('id'))))
                 raise RedactedException('Unknown Redacted API error: {}'.format(data))
             return data['response']
         except ValueError:
@@ -243,3 +249,7 @@ class RedactedClient:
     @classmethod
     def get_torrent_group_url(cls, group_id):
         return 'https://redacted.ch/torrents.php?id={}'.format(group_id)
+
+    @classmethod
+    def get_throttler(cls):
+        return DatabaseSyncedThrottler(RedactedClientConfig, RedactedThrottledRequest, 5, 10)

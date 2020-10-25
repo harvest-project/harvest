@@ -18,6 +18,7 @@ export class TrackerRegistry {
 export class RouteRegistry {
     static pageRoutes = [];
     static fullPageRoutes = [];
+    static fullScreenRoutes = [];
 
     static addPageRoute(route) {
         pushUnique(this.pageRoutes, route);
@@ -25,6 +26,10 @@ export class RouteRegistry {
 
     static addFullPageRoute(route) {
         pushUnique(this.fullPageRoutes, route);
+    }
+
+    static addFullScreenRoute(route) {
+        pushUnique(this.fullScreenRoutes, route);
     }
 }
 

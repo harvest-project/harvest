@@ -30,7 +30,7 @@ class BibliotikSettingsHelper extends BibliotikHelper {
     async testConnectionHandler() {
         NotyHelper.info('Testing connection, please wait...');
         try {
-            NotyHelper.success(await this.testConnection());
+            NotyHelper.success(await this.testConnection(true));
         } catch (message) {
             NotyHelper.error(message);
         }

@@ -4,7 +4,7 @@ import mutagen
 
 from Harvest.path_utils import list_rel_files
 from Harvest.utils import get_logger
-from files.audio_utils import StreamInfo, extract_track_disc_number, TrackDiscNumberExtractionException
+from files.audio_utils import StreamInfo, extract_disc_track_number, TrackDiscNumberExtractionException
 
 logger = get_logger(__name__)
 
@@ -42,7 +42,7 @@ class AudioDiscoveryStepMixin:
             self.rel_path = rel_path
             self.abs_path = abs_path
             self.muta = mutagen.File(self.abs_path, easy=True)
-            self.disc, self.track = extract_track_disc_number(self.muta)
+            self.disc, self.track = extract_disc_track_number(self.muta)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

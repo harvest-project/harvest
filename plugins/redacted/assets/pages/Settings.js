@@ -23,8 +23,8 @@ export class Settings extends React.Component {
         super(props);
 
         this.state = {
-            username: '',
-            password: '',
+            apiKey: '',
+            announceUrl: '',
             isSaving: false,
 
             isTesting: false,
@@ -50,8 +50,8 @@ export class Settings extends React.Component {
                 return;
             }
             this.setState({
-                username: data.username,
-                password: data.password,
+                apiKey: data.api_key,
+                announceUrl: data.announce_url,
                 config: data,
             });
         });
@@ -74,7 +74,7 @@ export class Settings extends React.Component {
     async saveConfig() {
         this.setState({isAdding: true});
         try {
-            await RedactedAPI.saveConfig(this.state.username, this.state.password);
+            await RedactedAPI.saveConfig(this.state.apiKey, this.state.announceUrl);
         } catch (response) {
             await APIHelper.showResponseError(response, 'Failed to save config');
             return;
@@ -144,14 +144,14 @@ export class Settings extends React.Component {
                 }}>
                     <h1>Redacted.ch Settings</h1>
 
-                    <Form.Item label="Username:" {...fieldLayout}>
-                        <Input type="text" value={this.state.username}
-                               onChange={event => this.setState({username: event.target.value})}/>
+                    <Form.Item label="API Key:" {...fieldLayout}>
+                        <Input type="text" value={this.state.apiKey}
+                               onChange={event => this.setState({apiKey: event.target.value})}/>
                     </Form.Item>
 
-                    <Form.Item label="Password:" {...fieldLayout}>
-                        <Input type="text" value={this.state.password}
-                               onChange={event => this.setState({password: event.target.value})}/>
+                    <Form.Item label="Announce URL:" {...fieldLayout}>
+                        <Input type="text" value={this.state.announceUrl}
+                               onChange={event => this.setState({announceUrl: event.target.value})}/>
                     </Form.Item>
 
                     <Form.Item {...submitLayout}>

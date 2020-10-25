@@ -85,7 +85,10 @@ class SoxProcessExecutor(StepExecutor):
             target_sample_rate = self.target_sample_rate
 
         if src_channels != self.target_channels:
-            self.raise_error('sox_process does not currently support remixing channels safely.')
+            self.raise_error(
+                'sox_process does not currently support remixing channels safely.',
+                finish_project=True,
+            )
 
         if target_sample_rate != src_sample_rate and target_sample_rate * 2 > src_sample_rate:
             self.raise_error('Refusing to resample by less than a factor of 2.')

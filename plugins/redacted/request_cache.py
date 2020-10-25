@@ -41,3 +41,15 @@ class RedactedRequestCache:
 
     def get_torrent_group(self, group_id, ttl=None):
         return self._get_cached_or_fetch('torrentgroup', ttl=ttl, id=str(group_id))
+
+    def get_artist(self, artist_id=None, artist_name=None, ttl=None):
+        kwargs = {}
+        if artist_id and artist_name:
+            raise ValueError('Set exactly one of artist_id or artist_name')
+        elif artist_id:
+            kwargs = {'id': artist_id}
+        elif artist_name:
+            kwargs = {'artistname': artist_name}
+        else:
+            raise ValueError('Set exactly one of artist_id or artist_name')
+        return self._get_cached_or_fetch('artist', ttl=ttl, **kwargs)

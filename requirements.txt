@@ -3,11 +3,11 @@ djangorestframework==3.9.2
 requests==2.21.0
 django-environ==0.4.5
 bencode.py==2.0.0
-psycopg2-binary==2.7.7
+psycopg2-binary==2.8.6
 redis==3.2.1
 coreapi==2.3.3
 iso8601==0.1.12
 beautifulsoup4==4.7.1
 html5lib==1.0.1
-mutagen==1.42.0
+mutagen==1.45.1
 zipstream==1.1.4

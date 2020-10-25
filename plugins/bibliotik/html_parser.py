@@ -7,11 +7,13 @@ from plugins.bibliotik.models import BibliotikTorrent
 
 HTML_PARSER = 'html5lib'
 
-SIZE_REGEX = r'(?P<size>[\d,.]+ (B|KB|MB|GB))'
+SIZE_REGEX = r'(?P<size>[\d,.]+ (B|KB|KiB|MB|MiB|GB|GiB))'
 LANGUAGE_REGEX = '|'.join(re.escape(lang) for lang in BibliotikTorrent.LANGUAGES)
 EBOOK_FORMATS_REGEX = '|'.join(re.escape(format) for format in BibliotikTorrent.EBOOK_FORMATS)
-AUDIOBOOK_FORMATS_REGEX = '|'.join(re.escape(format) for format in BibliotikTorrent.AUDIOBOOK_FORMATS)
-AUDIOBOOK_BITRATES_REGEX = '|'.join(re.escape(format) for format in BibliotikTorrent.AUDIOBOOK_BITRATES)
+AUDIOBOOK_FORMATS_REGEX = '|'.join(
+    re.escape(format) for format in BibliotikTorrent.AUDIOBOOK_FORMATS)
+AUDIOBOOK_BITRATES_REGEX = '|'.join(
+    re.escape(format) for format in BibliotikTorrent.AUDIOBOOK_BITRATES)
 
 
 class BibliotikHtmlParseException(Exception):
@@ -65,14 +67,16 @@ def _parse_language_pages(torrent, soup):
     if torrent.category == BibliotikTorrent.CATEGORY_EBOOKS:
         if not tag:
             raise BibliotikHtmlParseException('Unable to find p#details_content_info')
+        text_value = tag.text.strip()
         match = re.match(
             r'^(?P<language>{})'
             r'(, (?P<pages>\d+) pages)?'
             r'(, Supplementary material included)?'
             r'$'.format(LANGUAGE_REGEX),
-            tag.text.strip())
+            text_value)
         if not match:
-            raise BibliotikHtmlParseException('Unable to match language_pages')
+            raise BibliotikHtmlParseException('Unable to match language_pages: "{}".'.format(
+                text_value))
         torrent.language = match.group('language')
         torrent.pages = int(match.group('pages')) if match.group('pages') else None
     elif torrent.category == BibliotikTorrent.CATEGORY_AUDIOBOOKS:
@@ -86,7 +90,8 @@ def _parse_language_pages(torrent, soup):
             r'$'.format(LANGUAGE_REGEX),
             tag.text.strip())
         if not match:
-            raise BibliotikHtmlParseException('Unable to match audio book language_pages {}'.format(tag.text.strip()))
+            raise BibliotikHtmlParseException(
+                'Unable to match audio book language_pages {}'.format(tag.text.strip()))
         torrent.language = match.group('language')
         torrent.pages = int(match.group('pages')) if match.group('pages') else None
     else:
@@ -102,7 +107,15 @@ def _parse_tags(torrent, soup):
 
 def _parse_torrent_size(size):
     parts = size.split(' ')
-    sizes = {'B': 1, 'KB': 1000, 'MB': 1000 ** 2, 'GB': 1000 ** 3}
+    sizes = {
+        'B': 1,
+        'KB': 1000,
+        'KiB': 1024,
+        'MB': 1000 ** 2,
+        'MiB': 1024 ** 2,
+        'GB': 1000 ** 3,
+        'GiB': 1024 ** 3,
+    }
     return int(float(parts[0].replace(',', '')) * sizes[parts[1]])
 
 
@@ -117,7 +130,8 @@ def _parse_retail_format_size(torrent, soup):
             value,
         )
         if not match:
-            raise BibliotikHtmlParseException('Unable to match language_pages: {}'.format(value))
+            raise BibliotikHtmlParseException(
+                'Unable to match retail_format_size: {}'.format(value))
         torrent.retail = bool(match.group('retail'))
         torrent.format = match.group('format')
         torrent.size = _parse_torrent_size(match.group('size'))
@@ -128,7 +142,8 @@ def _parse_retail_format_size(torrent, soup):
             value,
         )
         if not match:
-            raise BibliotikHtmlParseException('Unable to match language_pages: {}'.format(value))
+            raise BibliotikHtmlParseException(
+                'Unable to match retail_format_size: {}'.format(value))
         torrent.retail = False
         torrent.format = match.group('format')
         if match.group('bitrate'):

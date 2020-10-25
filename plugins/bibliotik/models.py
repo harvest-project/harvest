@@ -69,7 +69,7 @@ class BibliotikTorrent(models.Model):
                  'Danish', 'Swedish', 'Norwegian', 'Finnish', 'Dutch', 'Russian', 'Polish', 'Portuguese', 'Greek',
                  'Catalan', 'Turkish', 'Hungarian', 'Bulgarian', 'Czech', 'Slovak', 'Serbian', 'Croatian', 'Macedonian',
                  'Ukrainian', 'Romanian', 'Korean', 'Chinese', 'Thai', 'Indonesian', 'Tagalog', 'Arabic', 'Bengali',
-                 'Slovenian', 'Esperanto', 'Inuktitut', 'Tamil']
+                 'Slovenian', 'Esperanto', 'Inuktitut', 'Tamil', 'Malay', 'Vietnamese', 'Telugu']
 
     LANGUAGE_CHOICES = tuple((l, l) for l in LANGUAGES)
 

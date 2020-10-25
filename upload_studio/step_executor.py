@@ -8,6 +8,7 @@ from rest_framework.renderers import JSONRenderer
 
 from Harvest.path_utils import copytree_into
 from Harvest.utils import get_logger
+from monitoring.models import LogEntry
 from upload_studio.models import ProjectStep, Project, ProjectStepWarning, ProjectStepError
 from upload_studio.upload_metadata import MusicMetadata, MusicMetadataSerializer
 
@@ -15,9 +16,10 @@ logger = get_logger(__name__)
 
 
 class StepAbortException(Exception):
-    def __init__(self, status, *args, **kwargs):
+    def __init__(self, status, *args, finish_project=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.status = status
+        self.finish_project = finish_project
 
 
 class StepExecutor:
@@ -60,11 +62,14 @@ class StepExecutor:
                 self.step.status = Project.STATUS_WARNINGS
                 raise StepAbortException(Project.STATUS_WARNINGS)
 
-    def raise_error(self, message):
+    def raise_error(self, message, finish_project=False):
         logger.warning('Project {} step({}) {} raised error {}.',
                        self.project.id, self.step.id, self.name, message)
         ProjectStepError.objects.create(step=self.step, message=message)
-        raise StepAbortException(Project.STATUS_ERRORS)
+        raise StepAbortException(
+            Project.STATUS_ERRORS,
+            finish_project=finish_project,
+        )
 
     def clean_work_area(self):
         try:
@@ -94,6 +99,9 @@ class StepExecutor:
             self.step.status = self.completed_status
         except StepAbortException as exc:
             self.step.status = exc.status
+            if exc.finish_project:
+                LogEntry.info('Finished upload studio {} due to error.'.format(self.project))
+                self.project.finish()
 
         if self.metadata:
             data = MusicMetadataSerializer(self.metadata).data

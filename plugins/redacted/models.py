@@ -11,23 +11,16 @@ from torrents.models import TorrentInfo
 
 
 class RedactedClientConfig(models.Model):
-    username = models.TextField()
-    password = models.TextField()
+    api_key = models.TextField()
+    announce_url = models.TextField()
 
     login_datetime = models.DateTimeField(null=True)
-    # None if not logged in, set otherwise
-    cookies = models.BinaryField(null=True)
     authkey = models.TextField(null=True)
     passkey = models.TextField(null=True)
 
-    # Set if the last login attempt failed. Use to prevent login attempt flooding. Reset manually or by user/pass change
+    # Set if the last login attempt failed. Use to prevent login attempt flooding.
+    # Reset manually or by user/pass change
     last_login_failed = models.BooleanField(default=False)
-
-    def clear_login_data(self):
-        self.login_datetime = None
-        self.cookies = None
-        self.authkey = None
-        self.passkey = None
 
 
 class RedactedThrottledRequest(ThrottledRequest, models.Model):

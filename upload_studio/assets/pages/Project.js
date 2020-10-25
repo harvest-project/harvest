@@ -140,6 +140,12 @@ export class Project extends React.Component {
                     <Menu.Item onClick={() => this.insertStep(step.index, 'fix_filename_track_numbers')}>
                         Fix filename track numbers
                     </Menu.Item>
+                    <Menu.Item onClick={() => this.insertStep(step.index, 'strip_filename_spaces')}>
+                        Strip filename spaces
+                    </Menu.Item>
+                    <Menu.Item onClick={() => this.insertStep(step.index, 'rename_files_to_tags')}>
+                        Rename files to tags
+                    </Menu.Item>
                 </Menu>}>
                     <Button htmlType="button">Insert Step <Icon type="down"/></Button>
                 </Dropdown>

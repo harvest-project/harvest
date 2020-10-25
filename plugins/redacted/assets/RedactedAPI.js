@@ -5,9 +5,12 @@ export const RedactedAPI = new class {
         return await APIHelper.get('/api/plugins/redacted/config');
     }
 
-    async saveConfig(username, password) {
+    async saveConfig(apiKey, announceUrl) {
         return await APIHelper.put('/api/plugins/redacted/config', {
-            jsonBody: {username, password},
+            jsonBody: {
+                api_key: apiKey,
+                announce_url: announceUrl,
+            },
         });
     }
 

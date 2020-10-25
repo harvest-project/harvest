@@ -20,7 +20,6 @@ class Config(TransactionAPIView, RetrieveUpdateDestroyAPIView):
     # After a username/password update, set last_login_failed to False
     def perform_update(self, serializer):
         serializer.instance.last_login_failed = False
-        serializer.instance.clear_login_data()
         super().perform_update(serializer)
 
 
@@ -38,6 +37,5 @@ class ClearLoginData(TransactionAPIView, APIView):
     def post(self, request):
         config = RedactedClientConfig.objects.select_for_update().get()
         config.last_login_failed = False
-        config.clear_login_data()
         config.save()
         return Response({'success': True})

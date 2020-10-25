@@ -145,7 +145,7 @@ class LAMETranscoderExecutor(StepExecutor):
         max_workers = os.cpu_count()
         executor = ThreadPoolExecutor(max_workers=max_workers)
         logger.info('{} starting transcode processes with {} workers.'.format(self.project, max_workers))
-        list(executor.map(self.FileInfo.process, self.audio_files, timeout=300))
+        list(executor.map(self.FileInfo.process, self.audio_files, timeout=1200))
 
     def check_output_files(self):
         for file in self.audio_files:

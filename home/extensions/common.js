@@ -251,16 +251,19 @@ export class PluginHelper {
         return response.cookies.length > 0;
     }
 
-    async testConnection() {
+    async testConnection(syncCookies = false) {
         await this.ping();
 
-        try {
-            await this.syncCookies();
-        } catch (exception) {
-            throw `Connection successful, but unable to sync cookies: ${exception}`;
+        if (syncCookies) {
+            try {
+                await this.syncCookies();
+            } catch (exception) {
+                throw `Connection successful, but unable to sync cookies: ${exception}`;
+            }
+            return 'Connection successful, cookies are synced.';
+        } else {
+            return 'Connection successful.';
         }
-
-        return 'Connection successful, cookies are synced.';
     }
 
     async onRequestLogin(request, sendResponse) {

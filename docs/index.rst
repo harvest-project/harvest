@@ -9,8 +9,9 @@ Welcome to Harvest Project's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :glob:
 
-
+   manual-installation
 
 Indices and tables
 ==================

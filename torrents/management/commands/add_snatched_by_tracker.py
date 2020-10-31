@@ -45,6 +45,25 @@ class ImportedTorrentMover():
 
 
 class Command(BaseCommand):
+    def existing_torrent_files(self, file_list, base_dir):
+        existing_files = []
+        for individual_file in file_list:
+            file_path = ''
+            
+            # os.join all parts of the path
+            # Example: /torrent/scans/folder.jpg shows as ['scans', 'folder.jpg']
+            for each in individual_file['path']:
+                # Bencode returns data in bytes if it is unicode
+                # Decode it here
+                if type(each) == bytes:
+                    each = each.decode('unicode_escape')
+                file_path = os.path.join(file_path, each)
+
+            individual_file_path = os.path.join(base_dir, file_path)
+            if os.path.exists(individual_file_path):
+                existing_files.append(file_path)
+        return existing_files
+
     def handle_single_torrent(self, realm, tracker, tracker_id, reject_missing, 
                             source_path_pattern, download_path_pattern):
         torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=False)
@@ -67,27 +86,13 @@ class Command(BaseCommand):
                 missing_data = False
         else:
             # Folder case
-            for individual_file in file_list:
-                file_path = ''
-                
-                # os.join all parts of the path
-                # Example: /torrent/scans/folder.jpg shows as ['scans', 'folder.jpg']
-                for each in individual_file['path']:
-                    # Bencode returns data in bytes if it is unicode
-                    # Decode it here
-                    if type(each) == bytes:
-                        each = each.decode('unicode_escape')
-                    file_path = os.path.join(file_path, each)
-
-                individual_file_path = os.path.join(base_dir, file_path)
-                if os.path.exists(individual_file_path):
-                    file_paths.append(file_path)
+            file_paths = self.existing_torrent_files(file_list, base_dir)
 
             # If not equal, we are missing parts of the torrent                
             if len(file_list) == len(file_paths):
                 missing_data = False
         
-        
+
         if reject_missing and missing_data:
             return
 

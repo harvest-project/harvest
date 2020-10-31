@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
 import mutagen.easyid3
@@ -11,13 +10,15 @@ import mutagen.mp3
 from Harvest.path_utils import list_src_dst_files
 from Harvest.utils import get_logger
 from upload_studio.audio_utils import InconsistentStreamInfoException, get_stream_info
+from upload_studio.executors.utils import get_flac_version, get_lame_version
 from upload_studio.step_executor import StepExecutor
 from upload_studio.upload_metadata import MusicMetadata
 from upload_studio.utils import execute_subprocess_chain, pprint_subprocess_chain
 
 logger = get_logger(__name__)
 
-FILES_TO_COPY = {'folder.jpg', 'folder.jpeg', 'cover.jpg', 'cover.jpeg', 'front.jpg', 'front.jpeg', 'front cover.jpg',
+FILES_TO_COPY = {'folder.jpg', 'folder.jpeg', 'cover.jpg', 'cover.jpeg', 'front.jpg', 'front.jpeg',
+                 'front cover.jpg',
                  'front cover.jpeg', 'art.jpg', 'art.jpeg', 'thumbnail.jpg', 'thumbnail.jpeg'}
 ALLOWED_SAMPLE_RATES = {44100, 48000}
 ALLOWED_BITS_PER_SAMPLE = {16}
@@ -67,12 +68,12 @@ class LAMETranscoderExecutor(StepExecutor):
             self.raise_error('The LAME encoder currently only supports FLAC input.')
 
         try:
-            self.lame_version = subprocess.check_output(['lame', '--version']).decode().split('\n')[0]
+            self.lame_version = get_lame_version()
         except FileNotFoundError:
             self.raise_error('lame not found in path. Make sure lame is installed.')
 
         try:
-            self.flac_version = subprocess.check_output(['flac', '--version']).decode().split('\n')[0]
+            self.flac_version = get_flac_version()
         except FileNotFoundError:
             self.raise_error('flac not found in path. Make sure flac is installed.')
 
@@ -81,7 +82,8 @@ class LAMETranscoderExecutor(StepExecutor):
         self.non_audio_files = []
         for src_file, dst_file in list_src_dst_files(self.prev_step.data_path, self.step.data_path):
             if os.path.basename(src_file) in FILES_TO_COPY:
-                logger.info('Project {} copying file {} to {}.', self.project.id, src_file, dst_file)
+                logger.info('Project {} copying file {} to {}.', self.project.id, src_file,
+                            dst_file)
                 os.makedirs(os.path.dirname(dst_file), exist_ok=True)
                 shutil.copy2(src_file, dst_file)
                 self.non_audio_files.append(os.path.relpath(dst_file, self.step.data_path))
@@ -128,23 +130,14 @@ class LAMETranscoderExecutor(StepExecutor):
 
     def transcode_audio_files(self):
         for file in self.audio_files:
-            flac_options = ['flac', '-d', '-c', file.src_file]
-            lame_options = ['lame', '-h']
-            if self.bitrate in LAME_BITRATE_SETTINGS:
-                lame_options += LAME_BITRATE_SETTINGS[self.bitrate]
-            else:
-                self.raise_error('Unknown bitrate {}. Supported bitrates are {}.'.format(
-                    self.bitrate, list(LAME_BITRATE_SETTINGS.keys())))
-            lame_options += ['-', file.dst_file]
-
-            chain = (flac_options, lame_options)
-            file.processing_chain = chain
+            file.processing_chain = self._get_transcoding_chain(file.src_file, file.dst_file)
             logger.info('{} transcoding plan {} -> {} with chain {}.'.format(
-                self.project, file.src_file, file.dst_file, chain))
+                self.project, file.src_file, file.dst_file, file.processing_chain))
 
         max_workers = os.cpu_count()
         executor = ThreadPoolExecutor(max_workers=max_workers)
-        logger.info('{} starting transcode processes with {} workers.'.format(self.project, max_workers))
+        logger.info(
+            '{} starting transcode processes with {} workers.'.format(self.project, max_workers))
         list(executor.map(self.FileInfo.process, self.audio_files, timeout=1200))
 
     def check_output_files(self):

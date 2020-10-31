@@ -22,6 +22,7 @@ class UploadStudioConfig(AppConfig):
             verify_audio_files_integrity,
             upload_cover_to_imgur,
             upload_spectrals_to_imgur,
+            reencode_flacs,
         )
         ExecutorRegistry.register_executor(manual_edit.ManualEditExecutor)
         ExecutorRegistry.register_executor(lame_transcode.LAMETranscoderExecutor)
@@ -38,6 +39,7 @@ class UploadStudioConfig(AppConfig):
             verify_audio_files_integrity.VerifyAudioFilesIntegrityExecutor)
         ExecutorRegistry.register_executor(upload_cover_to_imgur.UploadCoverToImgurExecutor)
         ExecutorRegistry.register_executor(upload_spectrals_to_imgur.UploadSpectralsImgurExecutor)
+        ExecutorRegistry.register_executor(reencode_flacs.ReencodeFLACsExecutor)
 
         from .receivers import on_torrent_finished
         signals.torrent_finished.connect(on_torrent_finished)

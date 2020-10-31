@@ -101,9 +101,9 @@ export class HarvestEvent {
         return true;
     }
 
-    fire(data) {
+    fire(...args) {
         for (const fn of this.callbacks) {
-            fn(data);
+            fn(...args);
         }
     }
 }

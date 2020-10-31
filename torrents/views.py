@@ -176,7 +176,7 @@ class TorrentView(RetrieveDestroyAPIView):
         return Response({})
 
 
-class TorrentByID(TorrentView, APIView):
+class TorrentByIDView(TorrentView, APIView):
     def get_object(self):
         try:
             return Torrent.objects.get(id=self.kwargs['torrent_id'])
@@ -184,7 +184,7 @@ class TorrentByID(TorrentView, APIView):
             raise NotFound()
 
 
-class TorrentZip(TorrentByID):
+class TorrentZip(TorrentByIDView):
     def get(self, request, torrent_id):
         torrent = self.get_object()
         zip_file = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_STORED, allowZip64=True)

@@ -2,12 +2,16 @@ import re
 
 from unidecode import unidecode
 
-RELEASE_IDENTIFIERS = {
-    'deluxe',
-    'remastered',
-    'deluxe edition',
-    'edición remasterizada',
-    'radio edit',
+RELEASE_SUFFIXES_TO_REMOVE = {
+    ' ep',
+    ' e.p.',
+    ' (ep)',
+    ' (e.p.)',
+}
+
+EDITION_KEYWORDS = {
+    'deluxe', 'remaster', 'score', 'music', 'anniversary', 'edition', 'soundtrack', 'live',
+    'explicit', 'reissue', 'instrumental', 'bonus',
 }
 
 
@@ -27,21 +31,38 @@ def _normalize_artist(artist):
 
 def _normalize_title(title):
     title = title.lower()
-    for release_identifier in RELEASE_IDENTIFIERS:
-        title = title.replace('({})'.format(release_identifier), '')
-    title = title.replace('/', ' ').replace('-', ' ')
+    # Remove known bad suffixes
+    for suffix in RELEASE_SUFFIXES_TO_REMOVE:
+        if title.endswith(suffix):
+            title = title[:-len(suffix)].strip()
+    # Replace slashes with spaces
+    title = title.replace('/', ' ')
     # Remove things like (Remastered Edition), (Original Soundtrack) and so on
     title = re.sub(
         r'\([^()]*(' +
-        '|'.join((
-            'deluxe', 'remaster', 'score', 'music', 'anniversary', 'edition', 'soundtrack', 'live',
-            'explicit', 'reissue', 'instrumental',
-        )) +
+        '|'.join(EDITION_KEYWORDS) +
         r')[^()]*\)',
-
         '',
         title,
     )
+    # Remove things like ": Remastered Edition" or " - Remastered Edition"
+    title = re.sub(
+        r':[^:]*(' +
+        '|'.join(EDITION_KEYWORDS) +
+        r')[^:]*^',
+        '',
+        title,
+    )
+    title = re.sub(
+        r'-[^-]*(' +
+        '|'.join(EDITION_KEYWORDS) +
+        r')[^-]*^',
+        '',
+        title,
+    )
+    # Remove common non-alphanumeric characters
+    title = re.sub(r'[-:(),"]', '', title)
+    # Remove consecutive spaces
     title = re.sub(' +', ' ', title)
     title = title.strip()
     return title

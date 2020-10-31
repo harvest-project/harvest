@@ -20,7 +20,7 @@ DOMAIN = 'redacted.ch'
 
 
 class RedactedClient:
-    UPLOAD_TIMEOUT = 60
+    UPLOAD_TIMEOUT = 180
 
     def __init__(self, timeout=30):
         self.timeout = timeout

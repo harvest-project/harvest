@@ -33,7 +33,7 @@ const entries = plugins.filter(p => p.hasAssets).map(p => p.assetsEntryPath).con
 const pluginExtensionConfigs = plugins.filter(p => p.hasExtension)
     .map(p => require(p.extensionWebpackConfigPath));
 
-module.exports = pluginExtensionConfigs.concat([{
+module.exports = [{
     mode: 'development',
     entry: entries,
     resolve: {
@@ -45,6 +45,7 @@ module.exports = pluginExtensionConfigs.concat([{
     output: {
         filename: 'app.js',
         path: path.resolve(__dirname, 'dist'),
+        publicPath: '/static/',
     },
     module: {
         rules: [
@@ -118,4 +119,11 @@ module.exports = pluginExtensionConfigs.concat([{
     optimization: {
         usedExports: true,
     },
-}]);
+    devServer: {
+        index: '',
+        port: 9092,
+        proxy: {
+            '!/static/**/*': 'http://localhost:9090',
+        },
+    },
+}].concat(pluginExtensionConfigs);

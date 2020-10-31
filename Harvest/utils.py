@@ -120,7 +120,13 @@ def get_logger(name):
     return BraceAdapter(logging.getLogger(name))
 
 
-def seconds_display(total_seconds):
-    minutes = total_seconds // 60
-    seconds = total_seconds % 60
-    return '{}:{:02d}'.format(minutes, seconds)
+def seconds_display(seconds):
+    hours = seconds // 3600
+    seconds -= hours * 3600
+    minutes = seconds // 60
+    seconds -= minutes * 60
+
+    if hours:
+        return '{}:{:02d}:{:02d}'.format(hours, minutes, seconds)
+    else:
+        return '{}:{:02d}'.format(minutes, seconds)

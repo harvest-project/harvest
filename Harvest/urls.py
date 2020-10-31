@@ -13,7 +13,7 @@ main_patterns = [
     path('api/', include('home.urls')),
     path('api/settings/', include('settings.urls')),
     path('api/monitoring/', include('monitoring.urls')),
-    path('api/torrents/', include('torrents.urls')),
+    path('api/torrents/', include('torrents.urls', namespace='torrents')),
     path('api/trackers/', include('trackers.urls')),
     path('api/upload-studio/', include('upload_studio.urls')),
     path('api/image-cache/', include('image_cache.urls')),

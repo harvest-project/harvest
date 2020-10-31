@@ -2,10 +2,12 @@ from django.urls import path
 
 from . import views
 
+app_name = 'torrents'
+
 urlpatterns = [
     path('', views.Torrents.as_view()),
-    path('by-id/<torrent_id>', views.TorrentByID.as_view()),
-    path('by-id/<torrent_id>/zip', views.TorrentZip.as_view()),
+    path('by-id/<torrent_id>', views.TorrentByIDView.as_view()),
+    path('by-id/<torrent_id>/zip', views.TorrentZip.as_view(), name='torrent_zip'),
     path('realms', views.Realms.as_view()),
     path('realms/<realm>/by-info-hash/<info_hash>', views.TorrentByRealmInfoHash.as_view()),
     path('realms/<realm>/by-tracker-id/<tracker_id>', views.TorrentByRealmTrackerId.as_view()),

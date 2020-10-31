@@ -312,7 +312,7 @@ export class Project extends React.Component {
                     </DivRow>
 
                     <h3>Metadata:</h3>
-                    <pre style={{maxHeight: 600, overflow: 'auto'}}>
+                    <pre style={{maxHeight: 600, overflow: 'auto', whiteSpace: 'pre-wrap'}}>
                         {JSON.stringify(proj.metadata, null, 4)}
                     </pre>
                 </Col>

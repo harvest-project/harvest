@@ -4,7 +4,8 @@
   "description": "## What is Harvest?",
   "main": "",
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "dev-server": "webpack-dev-server"
   },
   "repository": {
     "type": "git",
@@ -44,7 +45,8 @@
     "react-router-dom": "^4.3.1",
     "style-loader": "^0.23.1",
     "webpack": "^4.29.4",
-    "webpack-cli": "^3.2.3"
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.11.0"
   },
   "devDependencies": {
     "url-loader": "^1.1.2"

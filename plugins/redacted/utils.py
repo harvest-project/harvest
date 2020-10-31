@@ -1,4 +1,6 @@
 import html
+import re
+from dataclasses import dataclass
 
 import bs4
 
@@ -152,3 +154,18 @@ def select_best_torrents_from_torrent_dicts(torrents):
         if not best_torrents.get(key) or _is_torrent_better(torrent, best_torrents[key]):
             best_torrents[key] = torrent
     return list(best_torrents.values())
+
+
+@dataclass
+class RedactedFileInfo:
+    name: str
+    size: int
+
+
+def parse_file_list(file_list):
+    items = file_list.split('|||')
+    files = []
+    for item in items:
+        m = re.match('(.*){{{([0-9]*)}}}', item)
+        files.append(RedactedFileInfo(m[1], int(m[2])))
+    return files

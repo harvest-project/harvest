@@ -45,7 +45,7 @@ class ImportedTorrentMover():
 
 
 class Command(BaseCommand):
-    def existing_torrent_files(self, file_list, base_dir):
+    def get_existing_torrent_files(self, file_list, base_dir):
         existing_files = []
         for individual_file in file_list:
             file_path = ''
@@ -86,7 +86,7 @@ class Command(BaseCommand):
                 missing_data = False
         else:
             # Folder case
-            file_paths = self.existing_torrent_files(file_list, base_dir)
+            file_paths = self.get_existing_torrent_files(file_list, base_dir)
 
             # If not equal, we are missing parts of the torrent                
             if len(file_list) == len(file_paths):

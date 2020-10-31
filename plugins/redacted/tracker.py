@@ -152,3 +152,7 @@ class RedactedTrackerPlugin(BaseTracker):
             }
         except RedactedTorrent.DoesNotExist:
             return {}
+
+    def get_snatched(self, offset, limit):
+        client = RedactedClient()
+        return client.get_snatched(offset, limit)['snatched']

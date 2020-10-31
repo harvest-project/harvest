@@ -250,6 +250,15 @@ class RedactedClient:
             timeout=self.UPLOAD_TIMEOUT,
         )
 
+
+    def get_user_id(self):
+        return self.request_ajax('index')["id"]
+
+
+    def get_snatched(self, offset, limit):
+        return self.request_ajax('user_torrents', type='snatched', id=self.get_user_id(),
+                                offset=str(offset), limit=str(limit))
+
     @classmethod
     def get_torrent_url(cls, torrent_id):
         return 'https://redacted.ch/torrents.php?torrentid={}'.format(torrent_id)

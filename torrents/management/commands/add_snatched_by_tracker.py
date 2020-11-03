@@ -11,30 +11,101 @@ from torrents.exceptions import RealmNotFoundException
 
 from trackers.registry import TrackerRegistry
 
-class ImportedTorrentMover():
-    # store_files_hook for add_missing_from_tracker
+from plugins.redacted.client import RedactedClient
 
-    # base_dir:   Location where it looks /mnt/media/music
-    # folder:     Name of the folder
-    # sub_dir:    All torrent files relative to the folder
-    # to_copy     True - Copy the files in, False - Move them in
-    def __init__(self, base_dir=None, sub_dir=None, folder=None, to_copy=True):
-        self.base_dir = base_dir
-        self.sub_dir = sub_dir
-        self.folder = folder
+#todo
+#documentation
+#change it to redactedclient for getsnatched
+#change torrentmover api to be with torrent file
+
+class TorrentMover:
+    """Moves or copies torrent contents"""
+
+
+    def __init__(self, to_copy=True, base_dir='', torrent_file=None, torrent_info=None):
+        """
+        Initializes TorrentMover
+
+        Args:
+            base_dir (str): Where to look for the torrent contents
+            to_copy (bool): True if you want to copy files, False if you want to move them
+            torrent_info (TorrentInfo)
+            torrent_file (TorrentFile)
+
+        Notes:
+            - base_dir should almost always be defined
+            - only one of torrent_info or torrent_file needs to be defined
+            - torrent_info has priority over torrent_file if both defined
+            - If using store_files_hook, neither needs to be defined
+        """
         self.to_copy = to_copy
-    
-    # Moves all torrent contents to new download_path
-    def move_files(self, torrent_info, download_path):
-        source_base_dir = self.base_dir
-        dest_base_dir = download_path
+        self.base_dir = base_dir
+        self.torrent_file_decoded = None
+        self.file_list = None
 
-        if self.folder:
-            source_base_dir = os.path.join(source_base_dir,self.folder)
-            dest_base_dir = os.path.join(dest_base_dir, self.folder)
-        for path in self.sub_dir:
-            source_path = os.path.join(source_base_dir, path)
-            dest_path = os.path.join(dest_base_dir, path)
+        torrent_bytes = None
+        if torrent_file is not None:
+            torrent_bytes = bytes(torrent_file.torrent_file)
+        if torrent_info is not None:
+            torrent_bytes = bytes(torrent_info.torrent_file.torrent_file)
+        if torrent_bytes is not None:
+            self.torrent_file_decoded = bdecode(torrent_bytes)
+        
+
+    def _set_file_list(self):
+        # file_list is relative to the parent directory of the torrent contents
+        file_list = []
+        torrent_info = self.torrent_file_decoded.get('info')
+        if 'files' in torrent_info:
+            # folder case
+            folder = torrent_info['name']
+            
+            for individual_file in torrent_info['files']:
+                # joins full path of each file
+                individual_path = ''
+                for path_part in individual_file['path']:
+                    individual_path = os.path.join(individual_path, path_part)
+
+                file_list.append(os.path.join(folder, individual_path))            
+        else:
+            # single file case
+            file_list.append(torrent_info['name'])
+        self.file_list = file_list
+
+    def contains_files(self):
+        """
+        Checks if all the torrent contents are in base_dir
+
+        returns: bool
+        """
+        if self.file_list is None:
+            self._set_file_list()
+        for individual_file in self.file_list:
+            if not os.path.exists(os.path.join(self.base_dir, individual_file)):
+                return False
+        return True
+
+    def move_files(self, download_path):
+        """
+        Moves all of this torrent's contents to a new location
+
+        Args:
+        download_path: Where to copy the contents of this torrent to
+
+        Returns: None
+        """
+        if self.file_list is None:
+            _set_file_list()
+        
+        for individual_file in self.file_list:
+            source_path = os.path.join(self.base_dir, individual_file)
+            dest_path = os.path.join(download_path, individual_file)
+            print(individual_file)
+            # We don't move files that don't exist
+            if not os.path.exists(source_path):
+                continue
+            
+            # Make sure the destination directory exists
             if not os.path.exists(os.path.dirname(dest_path)):
                 os.makedirs(os.path.dirname(dest_path))
             if self.to_copy:
@@ -42,9 +113,29 @@ class ImportedTorrentMover():
             else:
                 os.rename(source_path, dest_path)
         return
+    
+    def store_files_hook(self, torrent_info, download_path):
+        """
+        Moves all of this torrent's contents to a new location
+
+        Note:
+            torrent_info takes precedence over existing torrent_file or torrent_info
+        
+        Args:
+            torrent_info (TorrentInfo)
+            download_path (str): Where to copy the contents of this torrent to
+
+        Returns: None
+        """
+        torrent_bytes = bytes(torrent_info.torrent_file.torrent_file)
+        self.torrent_file_decoded = bdecode(torrent_bytes)
+        self.move_files(download_path)
+
+
 
 
 class Command(BaseCommand):
+    help=''
     def get_existing_torrent_files(self, file_list, base_dir):
         existing_files = []
         for individual_file in file_list:
@@ -55,7 +146,7 @@ class Command(BaseCommand):
             for each in individual_file['path']:
                 # Bencode returns data in bytes if it is unicode
                 # Decode it here
-                if type(each) == bytes:
+                if type(each) is bytes:
                     each = each.decode('unicode_escape')
                 file_path = os.path.join(file_path, each)
 
@@ -65,43 +156,20 @@ class Command(BaseCommand):
         return existing_files
 
     def handle_single_torrent(self, realm, tracker, tracker_id, reject_missing, 
-                            source_path_pattern, download_path_pattern):
+                            source_path_pattern, download_path_pattern, to_copy=True):
         torrent_info = fetch_torrent(realm, tracker, tracker_id, force_fetch=False)
         torrent_file_bytes = bytes(torrent_info.torrent_file.torrent_file)
-        decoded = bdecode(torrent_file_bytes).get('info')
-
-        source_path = format_download_path_pattern(source_path_pattern, 
+        base_dir = format_download_path_pattern(source_path_pattern, 
                     torrent_file_bytes, torrent_info)
-        directory_name = decoded.get('name')
-        file_list = decoded.get('files')
-        file_paths = []
-        base_dir = os.path.join(source_path, directory_name)
+        tm = TorrentMover(base_dir=base_dir, to_copy=to_copy, torrent_info=torrent_info)
         
-
-        #verify data exists at source_pattern
-        missing_data = True
-        if file_list == None:
-            # Single file case
-            if os.path.exists(base_dir):
-                missing_data = False
-        else:
-            # Folder case
-            file_paths = self.get_existing_torrent_files(file_list, base_dir)
-
-            # If not equal, we are missing parts of the torrent                
-            if len(file_list) == len(file_paths):
-                missing_data = False
+        if not tm.contains_files():
+            if reject_missing:
+                print('bad')
+                return
+        print('good')
         
-
-        if reject_missing and missing_data:
-            return
-
-        # Moves file to download_path, and adds torrent
-        itm = ImportedTorrentMover(source_path,file_paths, folder=directory_name, to_copy=to_copy)
-        file_hook = itm.move_files
-        if missing_data:
-            file_hook = None
-        
+        file_hook = tm.store_files_hook
         added_torrent = add_torrent_from_tracker(
             tracker=tracker,
             tracker_id=tracker_id,
@@ -118,10 +186,11 @@ class Command(BaseCommand):
         except Realm.DoesNotExist:
             raise RealmNotFoundException(tracker.name)
 
+        # RED hardcoded in currently
         # checks if tracker client supports getting snatch history
-        if getattr(tracker, 'get_snatched', None) == None:
-            print('Tracker plugin does not support get_snatched')
-            return
+        # if getattr(tracker, 'get_snatched', None) is None:
+        #     print('Tracker plugin does not support get_snatched')
+        #     return
      
         active_tracker_ids = set()
         active_torrents = Torrent.objects.filter(realm=realm)
@@ -130,7 +199,11 @@ class Command(BaseCommand):
 
         offset = 0
         limit = 500
-        snatched_list = tracker.get_snatched(offset, limit)
+        
+        # This API does not exist
+        # snatched_list = tracker.get_snatched(offset, limit)
+        red_client = RedactedClient()
+        snatched_list = red_client.get_snatched(offset, limit)['snatched']
         while len(snatched_list) != 0:
             for torrent in snatched_list:
                 #Make sure it isn't already seeding
@@ -140,9 +213,9 @@ class Command(BaseCommand):
                 active_tracker_ids.add(tracker_id)
 
                 self.handle_single_torrent(realm, tracker, tracker_id, reject_missing, 
-                            source_path_pattern, download_path_pattern)
+                            source_path_pattern, download_path_pattern, to_copy=to_copy)
             offset += limit
-            snatched_list = tracker.get_snatched(offset, limit)
+            snatched_list = red_client.get_snatched(offset, limit)['snatched']
     
 
     def add_arguments(self, parser):
@@ -164,13 +237,13 @@ class Command(BaseCommand):
             help='Where to seed torrent contents from',
             required=True
         )
-        parser.add_argument('-add-missing', 
+        parser.add_argument('--add-missing', 
             action='store_true', 
             help='Adds torrents that cannot be found in source_path_pattern',
             default=False
         )
         parser.add_argument(
-            '-copy',
+            '--copy',
             help='Copies files instead of moving them in', 
             action='store_true',
             default=False
@@ -178,6 +251,9 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
+        if options['tracker'] != 'redacted':
+            print('Only redacted support so far')
+            return 
         self.add_missing_from_tracker(
             tracker=TrackerRegistry.get_plugin(options['tracker'], self.__class__.__name__),
             source_path_pattern=options['source_path_pattern'],

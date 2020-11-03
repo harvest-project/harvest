@@ -94,7 +94,7 @@ class TorrentMover:
         Returns: None
         """
         if self.file_list is None:
-            _set_file_list()
+            self._set_file_list()
         
         for individual_file in self.file_list:
             source_path = os.path.join(self.base_dir, individual_file)

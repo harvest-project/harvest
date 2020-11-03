@@ -152,4 +152,3 @@ class RedactedTrackerPlugin(BaseTracker):
             }
         except RedactedTorrent.DoesNotExist:
             return {}
-

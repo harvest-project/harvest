@@ -13,10 +13,9 @@ from trackers.registry import TrackerRegistry
 
 from plugins.redacted.client import RedactedClient
 
-#todo
-#documentation
-#change it to redactedclient for getsnatched
-#change torrentmover api to be with torrent file
+# TODO
+# Make the command able to add torrents for non-plugin trackers
+
 
 class TorrentMover:
     """Moves or copies torrent contents"""
@@ -135,25 +134,7 @@ class TorrentMover:
 
 
 class Command(BaseCommand):
-    help=''
-    def get_existing_torrent_files(self, file_list, base_dir):
-        existing_files = []
-        for individual_file in file_list:
-            file_path = ''
-            
-            # os.join all parts of the path
-            # Example: /torrent/scans/folder.jpg shows as ['scans', 'folder.jpg']
-            for each in individual_file['path']:
-                # Bencode returns data in bytes if it is unicode
-                # Decode it here
-                if type(each) is bytes:
-                    each = each.decode('unicode_escape')
-                file_path = os.path.join(file_path, each)
-
-            individual_file_path = os.path.join(base_dir, file_path)
-            if os.path.exists(individual_file_path):
-                existing_files.append(file_path)
-        return existing_files
+    help="""Adds torrents that you have snatched, but are not currently seeding"""
 
     def handle_single_torrent(self, realm, tracker, tracker_id, reject_missing, 
                             source_path_pattern, download_path_pattern, to_copy=True):
@@ -161,13 +142,12 @@ class Command(BaseCommand):
         torrent_file_bytes = bytes(torrent_info.torrent_file.torrent_file)
         base_dir = format_download_path_pattern(source_path_pattern, 
                     torrent_file_bytes, torrent_info)
+        
         tm = TorrentMover(base_dir=base_dir, to_copy=to_copy, torrent_info=torrent_info)
         
         if not tm.contains_files():
             if reject_missing:
-                print('bad')
                 return
-        print('good')
         
         file_hook = tm.store_files_hook
         added_torrent = add_torrent_from_tracker(
@@ -254,6 +234,7 @@ class Command(BaseCommand):
         if options['tracker'] != 'redacted':
             print('Only redacted support so far')
             return 
+        # TODO Probably should do some validation here
         self.add_missing_from_tracker(
             tracker=TrackerRegistry.get_plugin(options['tracker'], self.__class__.__name__),
             source_path_pattern=options['source_path_pattern'],

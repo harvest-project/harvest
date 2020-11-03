@@ -7,15 +7,14 @@ from trackers.registry import TrackerRegistry, PluginMissingException
 class Command(BaseCommand):
     help='Outputs snatch list for a tracker. If no output specified, prints to STDOUT'
 
-    def get_snatched(self, tracker, tracker_name, output):
-        output.write(tracker_name)
+    def get_snatched(self, tracker, output):
+        
 
         # if getattr(tracker, 'get_snatched', None) is None:
         #     print('Tracker plugin does not support get_snatched')
         #     return
         # This API does not exist
         # snatched_list = tracker.get_snatched(offset, limit)
-
 
         client = RedactedClient()
         offset = 0
@@ -58,4 +57,6 @@ class Command(BaseCommand):
         output = sys.stdout
         if options['output']:
             output = open(options['output'],'w')
-        self.get_snatched(tracker, options['tracker'], output)
+        output.write(options['tracker'])
+        self.get_snatched(tracker, output)
+        output.close()

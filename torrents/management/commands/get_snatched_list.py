@@ -1,7 +1,9 @@
+import sys
+
 from django.core.management import BaseCommand
 from plugins.redacted.client import RedactedClient
 from trackers.registry import TrackerRegistry, PluginMissingException
-import sys
+
 class Command(BaseCommand):
     help='Outputs snatch list for a tracker. If no output specified, prints to STDOUT'
 
@@ -25,8 +27,8 @@ class Command(BaseCommand):
                 snatch_list.append(int(torrent['torrentId']))
             offset += limit
             snatch_part_list = client.get_snatched(offset, limit)['snatched']
-        for id in snatch_list:
-            output.write('\n' + str(id))
+        for torrent_id in snatch_list:
+            output.write('\n' + str(torrent_id))
         return
 
     def add_arguments(self, parser):

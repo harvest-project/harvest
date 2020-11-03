@@ -1,6 +1,8 @@
-from bencode import bdecode
 import os
 import shutil
+
+
+from bencode import bdecode
 
 from django.core.management import BaseCommand
 
@@ -10,11 +12,6 @@ from torrents.add_torrent import add_torrent_from_tracker, fetch_torrent
 from torrents.exceptions import RealmNotFoundException
 
 from trackers.registry import TrackerRegistry
-
-from plugins.redacted.client import RedactedClient
-
-# TODO
-# Make the command able to add torrents for non-plugin trackers
 
 
 class TorrentMover:
@@ -49,7 +46,7 @@ class TorrentMover:
             torrent_bytes = bytes(torrent_info.torrent_file.torrent_file)
         if torrent_bytes is not None:
             self.torrent_file_decoded = bdecode(torrent_bytes)
-        
+
 
     def _set_file_list(self):
         # file_list is relative to the parent directory of the torrent contents
@@ -58,7 +55,7 @@ class TorrentMover:
         if 'files' in torrent_info:
             # folder case
             folder = torrent_info['name']
-            
+
             for individual_file in torrent_info['files']:
                 # joins full path of each file
                 individual_path = ''
@@ -150,7 +147,7 @@ class Command(BaseCommand):
                 return
         
         file_hook = tm.store_files_hook
-        added_torrent = add_torrent_from_tracker(
+        add_torrent_from_tracker(
             tracker=tracker,
             tracker_id=tracker_id,
             download_path_pattern=download_path_pattern,
@@ -158,45 +155,29 @@ class Command(BaseCommand):
             store_files_hook=file_hook
         )
 
-    def add_missing_from_tracker(self,*, tracker, download_path_pattern=None, 
-                            source_path_pattern=None, reject_missing=True, to_copy=True):
-    
+    def add_missing_from_tracker(self,*, tracker, download_path_pattern=None,
+                            source_path_pattern=None, reject_missing=True, to_copy=True, snatch_list=None):
+
         try:
             realm = Realm.objects.get(name=tracker.name)
         except Realm.DoesNotExist:
             raise RealmNotFoundException(tracker.name)
 
-        # RED hardcoded in currently
-        # checks if tracker client supports getting snatch history
-        # if getattr(tracker, 'get_snatched', None) is None:
-        #     print('Tracker plugin does not support get_snatched')
-        #     return
-     
         active_tracker_ids = set()
         active_torrents = Torrent.objects.filter(realm=realm)
         for torrent in active_torrents:
             active_tracker_ids.add(int(torrent.torrent_info.tracker_id))
 
-        offset = 0
-        limit = 500
-        
-        # This API does not exist
-        # snatched_list = tracker.get_snatched(offset, limit)
-        red_client = RedactedClient()
-        snatched_list = red_client.get_snatched(offset, limit)['snatched']
-        while len(snatched_list) != 0:
-            for torrent in snatched_list:
-                #Make sure it isn't already seeding
-                tracker_id = torrent['torrentId']
-                if tracker_id in active_tracker_ids:
-                    continue
-                active_tracker_ids.add(tracker_id)
-
-                self.handle_single_torrent(realm, tracker, tracker_id, reject_missing, 
+        for line in snatch_list:
+            tracker_id = int(line.strip())
+            if tracker_id in active_tracker_ids:
+                continue
+            active_tracker_ids.add(tracker_id)
+            self.handle_single_torrent(realm, tracker, tracker_id, reject_missing, 
                             source_path_pattern, download_path_pattern, to_copy=to_copy)
-            offset += limit
-            snatched_list = red_client.get_snatched(offset, limit)['snatched']
-    
+        return
+
+
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -224,22 +205,38 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--copy',
-            help='Copies files instead of moving them in', 
+            help='Copies files instead of moving them in',
             action='store_true',
             default=False
+        )
+        parser.add_argument(
+            '--snatch-list',
+            help='A list of torrent_ids generated using command get_snatched_list',
+            type=str,
+            required=True
         )
 
 
     def handle(self, *args, **options):
+        # data validation
         if options['tracker'] != 'redacted':
             print('Only redacted support so far')
-            return 
-        # TODO Probably should do some validation here
+            return
+        if not os.path.exists(options['snatch_list']):
+            print('Could not find snatch list')
+            return
+
+        snatch_list = open(options['snatch_list'],'r')
+        list_tracker_name = snatch_list.readline().strip()
+        if list_tracker_name != options['tracker']:
+            print('Snatch list does not match tracker')
+            return
         self.add_missing_from_tracker(
             tracker=TrackerRegistry.get_plugin(options['tracker'], self.__class__.__name__),
             source_path_pattern=options['source_path_pattern'],
             download_path_pattern=options['download_path_pattern'],
             reject_missing=not options['add_missing'],
-            to_copy=options['copy']
+            to_copy=options['copy'],
+            snatch_list=snatch_list
         )
-   
+        snatch_list.close()

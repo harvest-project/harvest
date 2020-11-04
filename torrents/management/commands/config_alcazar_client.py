@@ -19,7 +19,7 @@ class Command(BaseCommand):
     @transaction.atomic()
     def handle(self, *args, **options):
         try:
-            config = AlcazarClientConfig.objects.select_for_update().get()
+            config = AlcazarClientConfig.get_locked_config()
         except AlcazarNotConfiguredException:
             config = AlcazarClientConfig()
 

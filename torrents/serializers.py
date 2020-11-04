@@ -31,7 +31,7 @@ class TorrentInfoSerializer(serializers.ModelSerializer):
         realms_by_name = {r.name: r for r in Realm.objects.all()}
         self.metadata_serializers_by_realm_id = {}
         for tracker in TrackerRegistry.get_plugins():
-            realm = realms_by_name[tracker.name]
+            realm = realms_by_name.get(tracker.name)
             if not realm:
                 continue
             serializer_class = tracker.torrent_info_metadata_serializer_class

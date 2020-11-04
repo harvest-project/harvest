@@ -8,8 +8,9 @@ class Command(BaseCommand):
     help='Outputs snatch list for a tracker. If no output specified, prints to STDOUT'
 
     def get_snatched(self, tracker, output):
-        
 
+        # The tracker argument is mainly there so that when more plugins are implemented
+        # we can make get_snatched more universal
         # if getattr(tracker, 'get_snatched', None) is None:
         #     print('Tracker plugin does not support get_snatched')
         #     return

@@ -34,6 +34,7 @@ class TorrentMover:
             - torrent_info has priority over torrent_file if both defined
             - If using store_files_hook, neither needs to be defined
         """
+
         self.to_copy = to_copy
         self.base_dir = base_dir
         self.torrent_file_decoded = None
@@ -92,15 +93,14 @@ class TorrentMover:
         """
         if self.file_list is None:
             self._set_file_list()
-        
+
         for individual_file in self.file_list:
             source_path = os.path.join(self.base_dir, individual_file)
             dest_path = os.path.join(download_path, individual_file)
-            print(individual_file)
             # We don't move files that don't exist
             if not os.path.exists(source_path):
                 continue
-            
+
             # Make sure the destination directory exists
             if not os.path.exists(os.path.dirname(dest_path)):
                 os.makedirs(os.path.dirname(dest_path))
@@ -109,14 +109,14 @@ class TorrentMover:
             else:
                 os.rename(source_path, dest_path)
         return
-    
+
     def store_files_hook(self, torrent_info, download_path):
         """
         Moves all of this torrent's contents to a new location
 
         Note:
             torrent_info takes precedence over existing torrent_file or torrent_info
-        
+
         Args:
             torrent_info (TorrentInfo)
             download_path (str): Where to copy the contents of this torrent to
@@ -126,8 +126,6 @@ class TorrentMover:
         torrent_bytes = bytes(torrent_info.torrent_file.torrent_file)
         self.torrent_file_decoded = bdecode(torrent_bytes)
         self.move_files(download_path)
-
-
 
 
 class Command(BaseCommand):
@@ -140,7 +138,7 @@ class Command(BaseCommand):
     
     Notes: 
         To see available path patterns try creating one in the GUI and copy paste it
-        an argument
+        as an argument
     """
 
     def handle_single_torrent(self, realm, tracker, tracker_id, reject_missing, 
@@ -149,13 +147,13 @@ class Command(BaseCommand):
         torrent_file_bytes = bytes(torrent_info.torrent_file.torrent_file)
         base_dir = format_download_path_pattern(source_path_pattern, 
                     torrent_file_bytes, torrent_info)
-        
+
         tm = TorrentMover(base_dir=base_dir, to_copy=to_copy, torrent_info=torrent_info)
-        
+
         if not tm.contains_files():
             if reject_missing:
                 return
-        
+
         file_hook = tm.store_files_hook
         add_torrent_from_tracker(
             tracker=tracker,
@@ -185,9 +183,6 @@ class Command(BaseCommand):
             active_tracker_ids.add(tracker_id)
             self.handle_single_torrent(realm, tracker, tracker_id, reject_missing, 
                             source_path_pattern, download_path_pattern, to_copy=to_copy)
-        return
-
-
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -225,8 +220,6 @@ class Command(BaseCommand):
             action='store_true',
             default=False
         )
-
-
 
     def handle(self, *args, **options):
         # data validation

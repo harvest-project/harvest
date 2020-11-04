@@ -1,16 +1,17 @@
 {% load static %}
 <!doctype html>
 <html lang="en-US">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Harvest</title>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link rel="icon" href="favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Harvest</title>
+        <link rel="shortcut icon" href="favicon.ico">
+        <link rel="icon" href="favicon.ico">
+        <link rel="stylesheet" href="{% static 'main.css' %}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
 
-<body>
-<div id="react-root" class="react-root"></div>
-<script src="{% static 'app.js' %}"></script>
-</body>
+    <body>
+        <div id="react-root" class="react-root"></div>
+        <script src="{% static 'main.js' %}"></script>
+    </body>
 </html>

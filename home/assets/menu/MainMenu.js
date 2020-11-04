@@ -8,8 +8,6 @@ import {MonitoringUrls} from 'monitoring/assets/MonitoringUrls';
 import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
 import {MenuRegistry} from 'home/assets/PluginRegistry';
 
-const {SubMenu} = Menu;
-
 @withRouter
 export class MainMenu extends React.Component {
     constructor(props) {

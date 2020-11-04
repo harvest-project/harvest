@@ -107,3 +107,25 @@ export class HarvestEvent {
         }
     }
 }
+
+export function formatSeconds(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    seconds -= hours * 3600;
+    const minutes = Math.floor(seconds / 60);
+    seconds = (seconds - minutes * 60).toString().padStart(2, '0');
+
+    if (hours) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds}`;
+    } else {
+        return `${minutes}:${seconds}`;
+    }
+}
+
+export const debounce = () => {
+    let timer;
+
+    return (callback, ms) => {
+        clearTimeout(timer);
+        timer = setTimeout(callback, ms);
+    };
+};

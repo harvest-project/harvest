@@ -1,15 +1,19 @@
-import {observable} from 'mobx';
+import {makeAutoObservable, runInAction} from 'mobx';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 import {TrackersAPI} from 'trackers/assets/TrackersAPI';
 
 export const HarvestStore = new class HarvestStore {
     /******** Model State ********/
 
-    @observable user = null;
-    @observable realms = null;
-    @observable trackers = null;
-    @observable downloadLocations = null;
-    @observable pluginStores = {};
+    user = null;
+    realms = null;
+    trackers = null;
+    downloadLocations = null;
+    pluginStores = {};
+
+    constructor() {
+        makeAutoObservable(this);
+    }
 
     async fetchInitial() {
         this.realms = await TorrentsAPI.getRealms();
@@ -35,14 +39,16 @@ export const HarvestStore = new class HarvestStore {
 
     /******** UI State ********/
 
-    @observable numLoading = 0;
+    numLoading = 0;
 
     async trackLoadingAsync(fn) {
         this.numLoading++;
         try {
             await fn();
         } finally {
-            this.numLoading--;
+            runInAction(() => {
+                this.numLoading--;
+            });
         }
     }
 

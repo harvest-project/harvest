@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const pluginsRoot = path.resolve(__dirname, 'plugins');
 
@@ -43,10 +44,16 @@ module.exports = [{
         ],
     },
     output: {
-        filename: 'app.js',
+        filename: 'main.js',
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/static/',
     },
+    optimization: {
+        usedExports: true,
+    },
+    plugins: [
+        new MiniCssExtractPlugin(),
+    ],
     module: {
         rules: [
             {
@@ -91,12 +98,15 @@ module.exports = [{
             },
             {
                 test: /\.(css)$/i,
-                use: ['style-loader', 'css-loader'],
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader',
+                ],
             },
             {
                 test: /\.(less)$/i,
                 use: [
-                    {loader: 'style-loader'},
+                    MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                         options: {
@@ -116,9 +126,6 @@ module.exports = [{
         ],
     },
     devtool: 'eval-source-map',
-    optimization: {
-        usedExports: true,
-    },
     devServer: {
         index: '',
         port: 9092,

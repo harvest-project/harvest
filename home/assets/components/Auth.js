@@ -3,14 +3,10 @@ import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
 import {HarvestContext} from 'home/assets/context';
 import {Login} from 'home/assets/pages/Login';
-import {clearContextType} from 'home/assets/utils';
 import {observer} from 'mobx-react';
 import React from 'react';
 import {withRouter} from 'react-router-dom';
-import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
-import {TrackersAPI} from 'trackers/assets/TrackersAPI';
 
-@clearContextType
 @withRouter
 @observer
 export class Auth extends React.Component {
@@ -20,7 +16,7 @@ export class Auth extends React.Component {
         super(props);
         this.state = {
             isLoading: true,
-        }
+        };
     }
 
     componentDidMount() {
@@ -44,6 +40,6 @@ export class Auth extends React.Component {
     render() {
         return <Spin spinning={this.state.isLoading} style={{minHeight: '100vh'}}>
             {this.state.isLoading ? <div/> : (this.context.user ? this.props.children : <Login/>)}
-        </Spin>
+        </Spin>;
     }
 }

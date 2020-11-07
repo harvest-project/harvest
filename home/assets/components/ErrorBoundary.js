@@ -1,5 +1,4 @@
 import React from 'react';
-import {Icon} from 'antd';
 import {RobotOutlined} from '@ant-design/icons';
 
 export class ErrorBoundary extends React.Component {

@@ -1,4 +1,4 @@
-import {Icon, Table, Tooltip} from 'antd';
+import {Table, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';

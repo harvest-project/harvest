@@ -1,4 +1,4 @@
-import {Button, Drawer, Dropdown, Icon, Menu, Progress, Select, Table, Tooltip} from 'antd';
+import {Button, Drawer, Dropdown, Menu, Progress, Select, Table, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
@@ -14,10 +14,12 @@ import {TrackerRegistry} from 'home/assets/PluginRegistry';
 import {
     ClockCircleOutlined,
     CloseCircleOutlined,
-    DownloadOutlined, DownOutlined,
+    DownloadOutlined,
+    DownOutlined,
     InfoCircleOutlined,
     LinkOutlined,
-    PauseCircleOutlined, PlusOutlined,
+    PauseCircleOutlined,
+    PlusOutlined,
     QuestionCircleOutlined,
     UploadOutlined,
 } from '@ant-design/icons';

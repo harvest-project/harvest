@@ -6,6 +6,7 @@ import React from 'react';
 import {MonitoringAPI} from 'monitoring/assets/MonitoringAPI';
 import {formatDateTimeStringISO} from 'home/assets/utils';
 import {ComponentStatuses} from 'monitoring/assets/components/ComponentStatuses.js';
+import {InfoCircleOutlined} from '@ant-design/icons';
 
 function getLogRowClassName(record) {
     if (record.level >= 40) {
@@ -57,7 +58,7 @@ export class Monitoring extends React.Component {
                     {' '}
                     {record.traceback ?
                         <Tooltip title={record.traceback} overlayStyle={{width: 400}}>
-                            <Icon type="info-circle"/></Tooltip> : null}
+                            <InfoCircleOutlined/></Tooltip> : null}
                 </span>,
             },
         ];

@@ -4,6 +4,7 @@ import {DivRow} from 'home/assets/controls/DivRow';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {PlusOutlined} from '@ant-design/icons';
 
 const __CUSTOM = '__custom';
 
@@ -51,7 +52,7 @@ export class SelectDownloadLocation extends React.Component {
                         <Select.Option value={location.pattern}>{location.pattern}</Select.Option>
                     ))}
                     <Select.Option key="custom" value={__CUSTOM}>
-                        <Icon type="plus"/> Custom Location
+                        <PlusOutlined/> Custom Location
                     </Select.Option>
                 </Select>
             </DivRow>

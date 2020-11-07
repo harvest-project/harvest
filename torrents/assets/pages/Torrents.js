@@ -11,13 +11,23 @@ import {TorrentDetailsDisplay} from 'torrents/assets/components/TorrentDetailsDi
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 import {TorrentStatus} from 'torrents/assets/utils';
 import {TrackerRegistry} from 'home/assets/PluginRegistry';
+import {
+    ClockCircleOutlined,
+    CloseCircleOutlined,
+    DownloadOutlined, DownOutlined,
+    InfoCircleOutlined,
+    LinkOutlined,
+    PauseCircleOutlined, PlusOutlined,
+    QuestionCircleOutlined,
+    UploadOutlined,
+} from '@ant-design/icons';
 
-const iconError = <Icon type="close-circle" style={{color: 'red', fontSize: 18}}/>;
-const iconDownloading = <Icon type="download" style={{color: '#1890ff', fontSize: 18}}/>;
-const iconSeeding = <Icon type="upload" style={{color: '#52c41a', fontSize: 18}}/>;
-const iconWaiting = <Icon type="clock-circle" style={{color: '#cccccc', fontSize: 18}}/>;
-const iconStopped = <Icon type="pause-circle" style={{color: '#cccccc', fontSize: 18}}/>;
-const iconUnknown = <Icon type="question-circle" style={{color: 'red', fontSize: 18}}/>;
+const iconError = <CloseCircleOutlined style={{color: 'red', fontSize: 18}}/>;
+const iconDownloading = <DownloadOutlined style={{color: '#1890ff', fontSize: 18}}/>;
+const iconSeeding = <UploadOutlined style={{color: '#52c41a', fontSize: 18}}/>;
+const iconWaiting = <ClockCircleOutlined style={{color: '#cccccc', fontSize: 18}}/>;
+const iconStopped = <PauseCircleOutlined style={{color: '#cccccc', fontSize: 18}}/>;
+const iconUnknown = <QuestionCircleOutlined style={{color: 'red', fontSize: 18}}/>;
 
 const FILTER_ALL = 'all';
 const FILTER_ACTIVE = 'active';
@@ -160,14 +170,14 @@ export class Torrents extends React.Component {
                 target="_blank"
                 onClick={e => e.stopPropagation()}
             >
-                &nbsp;<Icon type="link"/>
+                &nbsp;<LinkOutlined/>
             </a>;
         }
         if (record.torrent_info && record.torrent_info.metadata && tracker && tracker.metadataColumnRenderer) {
             const MetadataRenderer = tracker.metadataColumnRenderer;
             content = (
                 <span>
-                    <Tooltip title={'Original Name: ' + record.name}><Icon type="info-circle"/></Tooltip>
+                    <Tooltip title={'Original Name: ' + record.name}><InfoCircleOutlined/></Tooltip>
                     <MetadataRenderer torrentInfo={record.torrent_info}/>
                 </span>
             );
@@ -334,8 +344,8 @@ export class Torrents extends React.Component {
                         From Tracker
                     </Menu.Item>
                 </Menu>}>
-                    <Button htmlType="button" type="primary" icon="plus">
-                        Add Torrent <Icon type="down"/>
+                    <Button htmlType="button" type="primary" icon={<PlusOutlined/>}>
+                        Add Torrent <DownOutlined/>
                     </Button>
                 </Dropdown>
 

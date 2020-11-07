@@ -1,4 +1,4 @@
-import {Button, Icon, message, Modal, Popconfirm, Table} from 'antd';
+import {Button, message, Modal, Popconfirm, Table} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {DivRow} from 'home/assets/controls/DivRow';
@@ -6,6 +6,7 @@ import {observer} from 'mobx-react';
 import React from 'react';
 import {DownloadLocationPatternInput} from 'torrents/assets/controls/DownloadLocationPatternInput';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
+import {PlusOutlined, RightCircleOutlined} from '@ant-design/icons';
 
 @observer
 export class DownloadLocationsSettings extends React.Component {
@@ -24,7 +25,7 @@ export class DownloadLocationsSettings extends React.Component {
                 dataIndex: 'pattern',
                 render: (data, record) => (
                     <span>
-                        {record.is_preferred ? <Icon type="right-circle"/> : null}
+                        {record.is_preferred ? <RightCircleOutlined/> : null}
                         {' '}{data}
                     </span>
                 ),
@@ -35,11 +36,13 @@ export class DownloadLocationsSettings extends React.Component {
                 width: 150,
                 render: (data, record) => (
                     <div>
-                        {!record.is_preferred ? <a onClick={() => this.patchLocationIsDefault(record.id)}>
-                            Mark&nbsp;Default
-                        </a> : null}
+                        {!record.is_preferred ?
+                            <a onClick={() => this.patchLocationIsDefault(record.id)}>
+                                Mark&nbsp;Default
+                            </a> : null}
                         {' '}
-                        <Popconfirm title="Are you sure?" onConfirm={() => this.deleteLocation(record.id)}>
+                        <Popconfirm title="Are you sure?"
+                                    onConfirm={() => this.deleteLocation(record.id)}>
                             <a>Delete</a>
                         </Popconfirm>
                     </div>
@@ -123,8 +126,12 @@ export class DownloadLocationsSettings extends React.Component {
             {this.context.realms.map(realm => <DivRow size="medium" key={realm.id}>
                 <h2>
                     {realm.name}{' '}
-                    <Button htmlType="button" icon="plus" size="small"
-                            onClick={() => this.addToRealm(realm)}/>
+                    <Button
+                        htmlType="button"
+                        icon={<PlusOutlined/>}
+                        size="small"
+                        onClick={() => this.addToRealm(realm)}
+                    />
                 </h2>
                 <Table
                     size="small"

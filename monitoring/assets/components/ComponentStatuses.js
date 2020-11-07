@@ -1,10 +1,11 @@
 import {Timer} from 'home/assets/controls/Timer.js';
-import {Icon, Table, Tooltip} from 'antd';
+import {Table, Tooltip} from 'antd';
 import React from 'react';
 import {StatusIcon} from 'home/assets/controls/StatusGreenIcon.js';
 import {formatDateTimeStringISO} from 'home/assets/utils.js';
 import {MonitoringAPI} from 'monitoring/assets/MonitoringAPI.js';
 import {APIHelper} from 'home/assets/api/APIHelper.js';
+import {InfoCircleOutlined} from '@ant-design/icons';
 
 function getComponentRowClassName(record) {
     if (record.status === 'red') {
@@ -45,7 +46,7 @@ export class ComponentStatuses extends React.Component {
                     {' '}
                     {record.traceback ?
                         <Tooltip title={record.traceback} overlayStyle={{width: 400}}>
-                            <Icon type="info-circle"/></Tooltip> : null}
+                            <InfoCircleOutlined/></Tooltip> : null}
                 </span>,
             },
         ];

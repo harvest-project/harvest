@@ -1,10 +1,11 @@
-import {Form, Icon, Input, message, Modal, Select, Spin} from 'antd';
+import {Form, Input, message, Modal, Select, Spin} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {observer} from 'mobx-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
+import {PlusOutlined} from '@ant-design/icons';
 
 const NEW_REALM = '__new';
 
@@ -25,7 +26,7 @@ export class AddClient extends React.Component {
             selectedRealm: null,
             customRealmName: '',
             selectedInstanceType: null,
-        }
+        };
     }
 
     get currentRealmName() {
@@ -48,7 +49,7 @@ export class AddClient extends React.Component {
             this.context.realms = await TorrentsAPI.getRealms();
         } catch (response) {
             await APIHelper.showResponseError(response, 'Error adding client');
-            return
+            return;
         } finally {
             this.setState({isAdding: false});
         }
@@ -82,7 +83,7 @@ export class AddClient extends React.Component {
                             ))}
 
                             <Select.Option value={NEW_REALM}>
-                                <Icon type="plus"/> New Realm
+                                <PlusOutlined/> New Realm
                             </Select.Option>
                         </Select>
                     </Form.Item>
@@ -97,8 +98,12 @@ export class AddClient extends React.Component {
                     <Form.Item label="Instance Type:">
                         <Select value={this.state.selectedInstanceType}
                                 onChange={value => this.setState({selectedInstanceType: value})}>
-                            <Select.Option value="managed_libtorrent">Managed Libtorrent</Select.Option>
-                            <Select.Option value="managed_transmission">Managed Transmission</Select.Option>
+                            <Select.Option value="managed_libtorrent">
+                                Managed Libtorrent
+                            </Select.Option>
+                            <Select.Option value="managed_transmission">
+                                Managed Transmission
+                            </Select.Option>
                         </Select>
                     </Form.Item>
                 </Form>

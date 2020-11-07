@@ -1,9 +1,10 @@
-import {Button, Col, Form, Icon, Input, message, Row} from 'antd';
+import {Button, Col, Form, Input, message, Row} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import React from 'react';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import {SettingsAPI} from 'settings/assets/SettingsAPI';
+import {CopyOutlined} from '@ant-design/icons';
 
 const fieldLayout = {
     wrapperCol: {sm: 24},
@@ -22,7 +23,7 @@ export class APISettings extends React.Component {
         this.state = {
             token: '',
             isSaving: false,
-        }
+        };
     }
 
     componentDidMount() {
@@ -69,7 +70,7 @@ export class APISettings extends React.Component {
             <Col sm={24} md={12} lg={10}>
                 <Form layout="vertical" onSubmit={e => {
                     e.preventDefault();
-                    this.generateToken()
+                    this.generateToken();
                 }}>
                     <h1>Harvest API Settings</h1>
 
@@ -81,14 +82,15 @@ export class APISettings extends React.Component {
                                 <CopyToClipboard
                                     text={this.state.token}
                                     onCopy={() => message.success('Copied!')}>
-                                    <Icon type="copy"/>
+                                    <CopyOutlined/>
                                 </CopyToClipboard>
                             }
                         />
                     </Form.Item>
 
                     <Form.Item {...submitLayout}>
-                        <Button type="primary" htmlType="submit" block loading={this.state.isSaving}>
+                        <Button type="primary" htmlType="submit" block
+                                loading={this.state.isSaving}>
                             Generate Token
                         </Button>
                     </Form.Item>

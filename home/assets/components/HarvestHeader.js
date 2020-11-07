@@ -1,4 +1,4 @@
-import {Icon, Layout} from 'antd';
+import {Layout} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {AuthAPI} from 'home/assets/api/AuthAPI';
 import {HarvestContext} from 'home/assets/context';
@@ -7,6 +7,13 @@ import {formatBytes} from 'home/assets/utils';
 import React from 'react';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
 import styles from './HarvestHeader.less';
+import {
+    CheckCircleOutlined,
+    ClockCircleOutlined,
+    CloseCircleOutlined,
+    LogoutOutlined,
+    WarningOutlined,
+} from '@ant-design/icons';
 
 const sizes = {
     small: 8,
@@ -52,10 +59,10 @@ export class HarvestHeader extends React.Component {
 
     renderAlcazarStatus() {
         if (this.state.clients === null) {
-            return <span><Icon type="clock-circle"/> Loading Alcazar status...</span>;
+            return <span><ClockCircleOutlined/> Loading Alcazar status...</span>;
         } else if (this.state.clients === _ALCAZAR_DOWN) {
             return <span>
-                <Icon type="close-circle" style={{color: 'red'}}/>{' '}
+                <CloseCircleOutlined style={{color: 'red'}}/>{' '}
                 Error connecting to Harvest/Alcazar. Check your setup.
             </span>;
         } else {
@@ -68,8 +75,8 @@ export class HarvestHeader extends React.Component {
                 .reduce((a, b) => a + b, 0);
             return <span>
                 {allGreen ?
-                    <Icon type="check-circle" style={{color: '#52c41a'}}/> :
-                    <Icon type="warning" style={{color: '#ddc000'}}/>}
+                    <CheckCircleOutlined style={{color: '#52c41a'}}/> :
+                    <WarningOutlined style={{color: '#ddc000'}}/>}
                 &nbsp;
                 Alcazar is up. Up: {formatBytes(upRate)}/s. Down: {formatBytes(downRate)}/s.
             </span>;
@@ -85,7 +92,7 @@ export class HarvestHeader extends React.Component {
             </div>
             <div className={styles['header-spacer']}/>
             <div className={styles['header-button']} onClick={this.logout}>
-                <Icon type="logout"/> Logout
+                <LogoutOutlined/> Logout
             </div>
         </Layout.Header>
     }

@@ -1,5 +1,6 @@
 import React from 'react';
 import {Icon} from 'antd';
+import {RobotOutlined} from '@ant-design/icons';
 
 export class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -23,7 +24,7 @@ export class ErrorBoundary extends React.Component {
         if (this.state.hasError) {
             // You can render any custom fallback UI
             return <h1>
-                <Icon type="robot" style={{fontSize: 48}}/><br/>
+                <RobotOutlined style={{size: 40}}/>
                 <br/>
                 <br/>
                 <pre>{this.state.error.message}</pre>

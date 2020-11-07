@@ -1,16 +1,4 @@
-import {
-    Alert,
-    Button,
-    Col,
-    Dropdown,
-    Icon,
-    Menu,
-    Popconfirm,
-    Row,
-    Table,
-    Timeline,
-    Tooltip,
-} from 'antd';
+import {Alert, Button, Col, Dropdown, Menu, Popconfirm, Row, Table, Timeline, Tooltip} from 'antd';
 import {APIHelper} from 'home/assets/api/APIHelper';
 import {HarvestContext} from 'home/assets/context';
 import {Timer} from 'home/assets/controls/Timer';
@@ -21,6 +9,13 @@ import {TextBr} from 'home/assets/controls/TextBr';
 import {DivRow} from 'home/assets/controls/DivRow';
 import {UploadStudioUrls} from 'upload_studio/assets/UploadStudioUrls';
 import {StepSettingsRegistry} from 'upload_studio/assets/StepSettingsRegistry.js';
+import {
+    CheckOutlined,
+    DownOutlined,
+    FileDoneOutlined,
+    LockOutlined,
+    PlayCircleOutlined,
+} from '@ant-design/icons';
 
 export class Project extends React.Component {
     static contextType = HarvestContext;
@@ -124,7 +119,7 @@ export class Project extends React.Component {
                 return {color: 'blue'};
             case 'running':
                 return {
-                    dot: <Icon type="play-circle"/>,
+                    dot: <PlayCircleOutlined/>,
                     style: {fontSize: '16px'},
                 };
             case 'warnings':
@@ -170,7 +165,7 @@ export class Project extends React.Component {
                         Upload spectrals to Imgur
                     </Menu.Item>
                 </Menu>}>
-                    <Button htmlType="button">Insert Step <Icon type="down"/></Button>
+                    <Button htmlType="button">Insert Step <DownOutlined/></Button>
                 </Dropdown>
             ) : null}
         </Button.Group>;
@@ -214,7 +209,7 @@ export class Project extends React.Component {
                                 <div style={{overflowX: 'auto'}}>
                                     <TextBr text={warning.message}/>
                                 </div>
-                                {warning.acked ? <Icon type="check"/> :
+                                {warning.acked ? <CheckOutlined/> :
                                     <a onClick={e => this.ackWarning(e, warning)}>Ack</a>}
                             </div>}
                         />
@@ -253,12 +248,12 @@ export class Project extends React.Component {
                 {' '}
                 {proj.is_locked ?
                     <Tooltip title="Project is locked because actions are being performed.">
-                        <Icon type="lock"/>
+                        <LockOutlined/>
                     </Tooltip> : null}
                 {proj.is_finished ?
                     <Tooltip
                         title="Project is finished (all data has been deleted. No further actions are allowed.">
-                        <Icon type="file-done"/>
+                        <FileDoneOutlined/>
                     </Tooltip> : null}
             </h2>
 

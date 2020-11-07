@@ -2,6 +2,7 @@ import React from 'react';
 import {Button, Modal} from 'antd';
 import {UploadStudioAPI} from 'upload_studio/assets/UploadStudioAPI.js';
 import {APIHelper} from 'home/assets/api/APIHelper.js';
+import {SettingOutlined} from '@ant-design/icons';
 
 export class SpectralSettings extends React.Component {
     constructor(props) {
@@ -69,8 +70,11 @@ export class SpectralSettings extends React.Component {
                 ))}
             </Modal>
             <Button
-                htmlType="button" type="default" icon="setting" size="small"
-                onClick={() => this.showSpectrals()}/>
+                type="default"
+                icon={<SettingOutlined/>}
+                size="small"
+                onClick={() => this.showSpectrals()}
+            />
         </>;
     }
 }

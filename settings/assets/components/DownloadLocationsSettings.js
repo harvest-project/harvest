@@ -127,7 +127,6 @@ export class DownloadLocationsSettings extends React.Component {
                 <h2>
                     {realm.name}{' '}
                     <Button
-                        htmlType="button"
                         icon={<PlusOutlined/>}
                         size="small"
                         onClick={() => this.addToRealm(realm)}

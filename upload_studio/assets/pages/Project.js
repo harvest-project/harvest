@@ -140,8 +140,9 @@ export class Project extends React.Component {
             {canReset ? (
                 <Popconfirm title="Delete all files for steps after this and reset to here?"
                             onConfirm={() => this.projectResetToStep(step.index)}>
-                    <Button type="danger" htmlType="button" disabled={this.disableAll}>Reset To
-                        Here</Button>
+                    <Button danger disabled={this.disableAll}>
+                        Reset To Here
+                    </Button>
                 </Popconfirm>
             ) : null}
             {!this.disableAll ? (
@@ -165,7 +166,7 @@ export class Project extends React.Component {
                         Upload spectrals to Imgur
                     </Menu.Item>
                 </Menu>}>
-                    <Button htmlType="button">Insert Step <DownOutlined/></Button>
+                    <Button>Insert Step <DownOutlined/></Button>
                 </Dropdown>
             ) : null}
         </Button.Group>;
@@ -259,27 +260,27 @@ export class Project extends React.Component {
 
             <DivRow>
                 <Button.Group>
-                    <Button type="primary" htmlType="button" disabled={this.disableAll}
+                    <Button type="primary" disabled={this.disableAll}
                             onClick={() => this.projectRunAll()}>
                         Run All
                     </Button>
-                    <Button type="default" htmlType="button" disabled={this.disableAll}
+                    <Button type="default" disabled={this.disableAll}
                             onClick={() => this.projectRunOne()}>
                         Run One
                     </Button>
                     <Popconfirm title="Delete all files and reset from start?"
                                 onConfirm={() => this.projectResetToStep(0)}>
-                        <Button type="danger" htmlType="button"
+                        <Button danger
                                 disabled={this.disableAll}>Reset</Button>
                     </Popconfirm>
                     <Popconfirm title="Delete all files and mark project as finished?"
                                 onConfirm={() => this.projectFinish()}>
-                        <Button type="danger" htmlType="button"
+                        <Button danger
                                 disabled={this.disableAll}>Finish</Button>
                     </Popconfirm>
                     <Popconfirm title="Delete project including all files?"
                                 onConfirm={() => this.projectDelete()}>
-                        <Button type="danger" htmlType="button"
+                        <Button danger
                                 disabled={this.disableAll && !proj.is_finished}>
                             Delete
                         </Button>

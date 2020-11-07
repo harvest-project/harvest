@@ -35,7 +35,7 @@ export class UploadTorrent extends React.Component {
 
     render() {
         return <span>
-            <Button htmlType="button" onClick={() => this.selectFile()}>Select File</Button>
+            <Button onClick={() => this.selectFile()}>Select File</Button>
             <input type="file" ref={this.fileRef} style={{display: 'none'}} onChange={e => this.fileSelected(e)}/>
         </span>;
     }

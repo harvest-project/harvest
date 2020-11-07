@@ -1,9 +1,10 @@
-import {Alert, Button, Col, Popconfirm, Progress, Row, Statistic, Tooltip} from 'antd';
+import {Alert, Button, Col, Popconfirm, Progress, Row, Statistic} from 'antd';
 import {formatBytes, formatDateStringHuman} from 'home/assets/utils';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {getTorrentStatusDisplay, shortenInfoHash} from 'torrents/assets/utils';
+import {getTorrentStatusDisplay} from 'torrents/assets/utils';
 import {TorrentsAPI} from 'torrents/assets/TorrentsAPI';
+import {DeleteOutlined, DownloadOutlined} from '@ant-design/icons';
 
 export class TorrentDetailsDisplay extends React.Component {
     static propTypes = {
@@ -65,13 +66,16 @@ export class TorrentDetailsDisplay extends React.Component {
             }
 
             <Col xs={24} style={{paddingTop: 8, paddingBottom: 8}}>
-                <Button htmlType="button" type="primary" icon="download"
-                        onClick={() => this.downloadZip()}>
+                <Button
+                    type="primary"
+                    icon={<DownloadOutlined/>}
+                    onClick={() => this.downloadZip()}
+                >
                     Download
                 </Button>
                 {' '}
                 <Popconfirm title="Are you sure?" onConfirm={() => this.props.onDelete()}>
-                    <Button htmlType="button" type="danger" icon="delete">Delete</Button>
+                    <Button danger icon={<DeleteOutlined/>}>Delete</Button>
                 </Popconfirm>
             </Col>
         </Row>;

@@ -346,30 +346,30 @@ export class Torrents extends React.Component {
                         From Tracker
                     </Menu.Item>
                 </Menu>}>
-                    <Button htmlType="button" type="primary" icon={<PlusOutlined/>}>
+                    <Button type="primary" icon={<PlusOutlined/>}>
                         Add Torrent <DownOutlined/>
                     </Button>
                 </Dropdown>
 
                 {' '}Filter:&nbsp;
                 <Button.Group>
-                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_ALL)}
+                    <Button type={this.getFilterButtonType(FILTER_ALL)}
                             onClick={() => this.setFilter(FILTER_ALL)}>
                         All
                     </Button>
-                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_ACTIVE)}
+                    <Button type={this.getFilterButtonType(FILTER_ACTIVE)}
                             onClick={() => this.setFilter(FILTER_ACTIVE)}>
                         Active
                     </Button>
-                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_DOWNLOADING)}
+                    <Button type={this.getFilterButtonType(FILTER_DOWNLOADING)}
                             onClick={() => this.setFilter(FILTER_DOWNLOADING)}>
                         Downloading
                     </Button>
-                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_SEEDING)}
+                    <Button type={this.getFilterButtonType(FILTER_SEEDING)}
                             onClick={() => this.setFilter(FILTER_SEEDING)}>
                         Seeding
                     </Button>
-                    <Button htmlType="button" type={this.getFilterButtonType(FILTER_ERRORS)}
+                    <Button type={this.getFilterButtonType(FILTER_ERRORS)}
                             onClick={() => this.setFilter(FILTER_ERRORS)}>
                         Errors
                     </Button>

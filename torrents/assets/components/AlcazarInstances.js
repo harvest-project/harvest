@@ -119,7 +119,7 @@ export class AlcazarInstances extends React.Component {
             <Timer interval={1000} onInterval={() => this.refreshInstances()}/>
 
             <p>
-                <Button htmlType="button" type="primary" onClick={() => this.displayAddClient(true)}>
+                <Button type="primary" onClick={() => this.displayAddClient(true)}>
                     Add Client
                 </Button>
             </p>

@@ -173,7 +173,7 @@ export class Settings extends React.Component {
 
                 <DivRow size="medium">
                     <Tooltip title="Make sure to save your new settings before testing.">
-                        <Button type="primary" htmlType="button" block loading={this.state.isTesting}
+                        <Button type="primary" block loading={this.state.isTesting}
                                 onClick={() => this.testConnection()}>
                             Test Connection
                         </Button>
@@ -188,7 +188,7 @@ export class Settings extends React.Component {
 
                 <DivRow size="medium">
                     <Tooltip title="Clears the saves cookies, authkey, passkey, etc.">
-                        <Button type="danger" htmlType="button" block loading={this.state.isClearingLoginData}
+                        <Button danger block loading={this.state.isClearingLoginData}
                                 onClick={() => this.clearLoginData()}>
                             Clear Login Data
                         </Button>

@@ -241,7 +241,7 @@ class AddTorrentFromFile(APIView):
     def post(self, request):
         realm_name = request.data['realm_name']
         torrent_file = base64.b64decode(request.data['torrent_file'])
-        download_path_pattern = request.data['download_path']
+        download_path_pattern = request.data.get('download_path')
 
         try:
             realm = Realm.objects.get(name=realm_name)
@@ -259,7 +259,7 @@ class AddTorrentFromTracker(CORSBrowserExtensionView, APIView):
     def post(self, request):
         tracker_name = request.data['tracker_name']
         tracker_id = request.data['tracker_id']
-        download_path_pattern = request.data['download_path']
+        download_path_pattern = request.data.get('download_path')
 
         tracker = TrackerRegistry.get_plugin(tracker_name, self.__class__.__name__)
         added_torrent = add_torrent_from_tracker(

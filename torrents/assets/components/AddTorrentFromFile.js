@@ -38,10 +38,6 @@ export class AddTorrentFromFile extends React.Component {
             message.error('Please select a file.');
             return;
         }
-        if (!this.state.downloadPath) {
-            message.error('Please enter a download path.');
-            return;
-        }
 
         const realm = this.context.getRealmById(this.state.selectedRealmId);
 

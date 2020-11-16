@@ -67,6 +67,14 @@ export const TorrentsAPI = new class {
     }
 
     async addTorrentFromFile(realmName, torrentFile, downloadPath) {
+        if (!downloadPath) {
+            return await APIHelper.post('/api/torrents/add-torrent-from-file', {
+                jsonBody: {
+                    realm_name: realmName,
+                    torrent_file: torrentFile,
+                },
+            });
+        }
         return await APIHelper.post('/api/torrents/add-torrent-from-file', {
             jsonBody: {
                 realm_name: realmName,
@@ -77,6 +85,14 @@ export const TorrentsAPI = new class {
     }
 
     async addTorrentFromTracker(trackerName, trackerId, downloadPath) {
+        if (!downloadPath) {
+            return await APIHelper.post('/api/torrents/add-torrent-from-tracker', {
+                jsonBody: {
+                    tracker_name: trackerName,
+                    tracker_id: trackerId,
+                },
+            });
+        }
         return await APIHelper.post('/api/torrents/add-torrent-from-tracker', {
             jsonBody: {
                 tracker_name: trackerName,

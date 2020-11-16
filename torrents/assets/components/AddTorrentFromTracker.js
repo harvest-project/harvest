@@ -36,10 +36,6 @@ export class AddTorrentFromTracker extends React.Component {
             message.error('Please select a file.');
             return;
         }
-        if (!this.state.downloadPath) {
-            message.error('Please enter a download path.');
-            return;
-        }
 
         this.setState({isAdding: true});
         try {

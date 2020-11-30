@@ -22,7 +22,7 @@ DOMAIN = 'redacted.ch'
 class RedactedClient:
     UPLOAD_TIMEOUT = 180
 
-    def __init__(self, timeout=30):
+    def __init__(self, timeout=60):
         self.timeout = timeout
         self.throttler = self.get_throttler()
         self.config = None

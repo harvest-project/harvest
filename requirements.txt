@@ -15,3 +15,4 @@ Pillow==8.0.0
 imgurpython==1.1.7
 django-extensions==3.0.9
 channels==2.4.0
+Unidecode==1.1.1

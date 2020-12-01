@@ -155,7 +155,7 @@ export class Settings extends React.Component {
                     </Form.Item>
 
                     <Form.Item {...submitLayout}>
-                        <Button type="primary" htmlType="submit" block loading={this.state.isAdding}>Save</Button>
+                        <Button type="primary" onClick={() => this.saveConfig()} htmlType="submit" block loading={this.state.isAdding}>Save</Button>
                     </Form.Item>
                 </Form>
             </Col>

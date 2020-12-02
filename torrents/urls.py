@@ -8,6 +8,8 @@ urlpatterns = [
     path('', views.Torrents.as_view()),
     path('by-id/<torrent_id>', views.TorrentByIDView.as_view()),
     path('by-id/<torrent_id>/zip', views.TorrentZip.as_view(), name='torrent_zip'),
+    path('by-id/<torrent_id>/force-reannounce', views.ForceReannounce.as_view(), name='force_reannounce'),
+    path('by-id/<torrent_id>/force-recheck', views.ForceRecheck.as_view(), name='force_recheck'),
     path('realms', views.Realms.as_view()),
     path('realms/<realm>/by-info-hash/<info_hash>', views.TorrentByRealmInfoHash.as_view()),
     path('realms/<realm>/by-tracker-id/<tracker_id>', views.TorrentByRealmTrackerId.as_view()),

@@ -20,7 +20,7 @@ from torrents.serializers import AlcazarClientConfigSerializer, RealmSerializer,
     DownloadLocationSerializer, TorrentInfoSerializer
 from torrents.utils import get_zip_download_filename_base, add_zip_download_files
 from trackers.registry import TrackerRegistry
-
+from torrents.torrent_actions import force_reannounce, force_recheck, move_data
 
 class Realms(ListAPIView):
     queryset = Realm.objects.all()
@@ -194,6 +194,15 @@ class TorrentZip(TorrentByIDView):
         response['Content-Disposition'] = 'attachment; filename={}'.format(f'{filename_base}.zip')
         return response
 
+class ForceRecheck(TorrentByIDView):
+    def get(self, request, torrent_id):
+        torrent = self.get_object()
+        return Response(force_recheck(torrent=torrent))
+
+class ForceReannounce(TorrentByIDView):
+    def get(self, request, torrent_id):
+        torrent = self.get_object()
+        return Response(force_reannounce(torrent=torrent))
 
 class TorrentByRealmInfoHash(TorrentView, APIView):
     def get_object(self):

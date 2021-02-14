@@ -73,7 +73,7 @@ export class Torrents extends React.Component {
         this.columns = [
             {
                 title: 'ID',
-                key: 'id,',
+                key: 'id',
                 dataIndex: 'id',
                 sorter: true,
                 width: 90,

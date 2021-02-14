@@ -138,8 +138,7 @@ export class Settings extends React.Component {
             <Timer interval={1000} onInterval={() => this.refreshConfig()}/>
 
             <Col sm={24} md={12} lg={10}>
-                <Form layout="vertical" onSubmit={e => {
-                    e.preventDefault();
+                <Form layout="vertical" onFinish={values => {
                     this.saveConfig()
                 }}>
                     <h1>Redacted.ch Settings</h1>

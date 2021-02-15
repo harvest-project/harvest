@@ -78,7 +78,14 @@ export class AddTorrentFromFile extends React.Component {
                 <Form layout="vertical">
                     <Form.Item label="Realm:">
                         <Select value={this.state.selectedRealmId}
-                                onChange={value => this.setState({selectedRealmId: value})}>
+                                onChange={value => {
+                                    this.setState({selectedRealmId: value});
+                                    this.context.getDownloadLocationsForRealm(value).forEach(location => {
+                                        if (location.is_preferred) {
+                                            this.setState({downloadPath: location.pattern});
+                                        }
+                                    });
+                                }}>
                             {this.context.realms.map(realm => (
                                 <Select.Option key={realm.name} value={realm.id}>
                                     {realm.name}

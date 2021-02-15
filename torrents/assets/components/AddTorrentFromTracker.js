@@ -74,7 +74,14 @@ export class AddTorrentFromTracker extends React.Component {
                 <Form layout="vertical">
                     <Form.Item label="Tracker:">
                         <Select value={this.state.selectedTracker}
-                                onChange={value => this.setState({selectedTracker: value})}>
+                                onChange={value => {
+                                    this.setState({selectedTracker: value});
+                                    this.context.getDownloadLocationsForRealm(this.context.getRealmByName(value).id).forEach(location => {
+                                        if (location.is_preferred) {
+                                            this.setState({downloadPath: location.pattern});
+                                        }
+                                    });
+                                }}>
                             {this.context.trackers.map(tracker => (
                                 <Select.Option key={tracker.name} value={tracker.name}>
                                     {tracker.display_name}

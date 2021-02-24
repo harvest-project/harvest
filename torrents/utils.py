@@ -10,8 +10,10 @@ from trackers.registry import TrackerRegistry, PluginMissingException
 
 def get_zip_download_filename_base(torrent):
     realm_name = torrent.realm.name.capitalize()
-    try:
-        torrent_info = torrent.torrent_info
+    torrent_info = torrent.torrent_info
+    if None is torrent_info:
+        return f'{realm_name} - {torrent.info_hash}'
+    else:
         try:
             tracker = TrackerRegistry.get_plugin(torrent.realm.name, 'download_torrent_zip')
             return tracker.get_zip_download_basename(torrent_info)
@@ -19,8 +21,7 @@ def get_zip_download_filename_base(torrent):
             torrent_filename = os.path.splitext(
                 os.path.basename(torrent_info.torrent_file.torrent_filename))[0]
             return f'[{torrent.realm.name.capitalize()} = {torrent_info.tracker_id}] {torrent_filename}'
-    except TorrentInfo.DoesNotExist:
-        return f'{realm_name} - {torrent.info_hash}'
+    
 
 
 def add_zip_download_files(zip_file, torrent):
